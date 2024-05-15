@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Builder.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Trello.API.Configurations;
+using Trello.Application;
 using Trello.Application.Utilities.Middleware;
+using Trello.Domain.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,15 +20,13 @@ builder.Services.AddCors(options =>
                 .AllowCredentials();
         });
 });
-//will do after scaffold database
-
-/*builder.Services.AddDbContext<WeHireDBContext>(options =>
+builder.Services.AddDbContext<TrellocloneContext>(options =>
 {
     options.UseSqlServer(builder.Configuration.GetConnectionString("MyDB"));
-});*/
+});
 builder.Services.RegisterJwtModule(builder.Configuration);
 builder.Services.RegisterSwaggerModule();
-
+builder.Services.InfrastructureRegister();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
