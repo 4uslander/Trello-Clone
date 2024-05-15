@@ -5,6 +5,9 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Trello.Application.Services.UserServices;
+using Trello.Infrastructure.IRepositories;
+using Trello.Infrastructure.Repositories;
 
 namespace Trello.Application.Services
 {
@@ -12,7 +15,8 @@ namespace Trello.Application.Services
     {
         public static void ServiceRegister(this IServiceCollection services)
         {
-            //add scope here
+            services.AddScoped<IUnitOfWork, UnitOfWork>();
+            services.AddScoped<IUserService, UserService>();
         }
     }
 }

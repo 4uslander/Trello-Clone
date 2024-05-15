@@ -34,6 +34,7 @@ namespace Trello.Domain.Models
         {
             if (!optionsBuilder.IsConfigured)
             {
+#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
                 optionsBuilder.UseSqlServer("Server=(local);Uid=sa;Pwd=Phongnguyen@123;Database=Trelloclone");
             }
         }
@@ -43,8 +44,6 @@ namespace Trello.Domain.Models
             modelBuilder.Entity<Board>(entity =>
             {
                 entity.ToTable("Board");
-
-                entity.Property(e => e.Id).ValueGeneratedNever();
 
                 entity.Property(e => e.CreatedDate).HasColumnType("datetime");
 
@@ -80,8 +79,6 @@ namespace Trello.Domain.Models
             {
                 entity.ToTable("Card");
 
-                entity.Property(e => e.Id).ValueGeneratedNever();
-
                 entity.Property(e => e.CreatedDate).HasColumnType("datetime");
 
                 entity.Property(e => e.EndDate).HasColumnType("datetime");
@@ -104,8 +101,6 @@ namespace Trello.Domain.Models
             modelBuilder.Entity<CardActivity>(entity =>
             {
                 entity.ToTable("CardActivity");
-
-                entity.Property(e => e.Id).ValueGeneratedNever();
 
                 entity.Property(e => e.CreatedDate).HasColumnType("datetime");
 
@@ -164,8 +159,6 @@ namespace Trello.Domain.Models
             {
                 entity.ToTable("Comment");
 
-                entity.Property(e => e.Id).ValueGeneratedNever();
-
                 entity.Property(e => e.CreatedDate).HasColumnType("datetime");
 
                 entity.Property(e => e.UpdatedDate).HasColumnType("datetime");
@@ -187,8 +180,6 @@ namespace Trello.Domain.Models
             {
                 entity.ToTable("Label");
 
-                entity.Property(e => e.Id).ValueGeneratedNever();
-
                 entity.Property(e => e.Color).HasMaxLength(50);
 
                 entity.Property(e => e.Name).HasMaxLength(50);
@@ -203,8 +194,6 @@ namespace Trello.Domain.Models
             modelBuilder.Entity<List>(entity =>
             {
                 entity.ToTable("List");
-
-                entity.Property(e => e.Id).ValueGeneratedNever();
 
                 entity.Property(e => e.Name)
                     .HasMaxLength(10)
@@ -221,16 +210,12 @@ namespace Trello.Domain.Models
             {
                 entity.ToTable("Role");
 
-                entity.Property(e => e.Id).ValueGeneratedNever();
-
                 entity.Property(e => e.Name).HasMaxLength(50);
             });
 
             modelBuilder.Entity<Task>(entity =>
             {
                 entity.ToTable("Task");
-
-                entity.Property(e => e.Id).ValueGeneratedNever();
 
                 entity.Property(e => e.Name).HasMaxLength(50);
 
@@ -245,8 +230,6 @@ namespace Trello.Domain.Models
             {
                 entity.ToTable("ToDo");
 
-                entity.Property(e => e.Id).ValueGeneratedNever();
-
                 entity.Property(e => e.Title).HasMaxLength(100);
 
                 entity.HasOne(d => d.Card)
@@ -259,8 +242,6 @@ namespace Trello.Domain.Models
             modelBuilder.Entity<User>(entity =>
             {
                 entity.ToTable("User");
-
-                entity.Property(e => e.Id).ValueGeneratedNever();
 
                 entity.Property(e => e.Email).HasMaxLength(50);
 

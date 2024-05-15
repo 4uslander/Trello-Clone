@@ -17,8 +17,4 @@
     <ProjectReference Include="..\Trello.Application\Trello.Application.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Controllers\" />
-  </ItemGroup>
-
 </Project>
