@@ -10,10 +10,10 @@ namespace Trello.Application
 {
     public static class DependencyInjection
     {
-        public static IServiceCollection AddApplication(this IServiceCollection services)
+        public static void InfrastructureRegister(this IServiceCollection services)
         {
             services.ServiceRegister();
-            return services;
+            
         }
     }
 }
