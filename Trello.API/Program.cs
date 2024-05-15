@@ -25,6 +25,7 @@ builder.Services.AddDbContext<TrellocloneContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("MyDB"));
 });
 builder.Services.RegisterJwtModule(builder.Configuration);
+builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 builder.Services.RegisterSwaggerModule();
 builder.Services.InfrastructureRegister();
 builder.Services.AddControllers();
