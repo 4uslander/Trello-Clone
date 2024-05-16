@@ -13,9 +13,9 @@ namespace Trello.API.Configurations
                 // Set Description Swagger
                 c.SwaggerDoc("v1", new OpenApiInfo
                 {
-                    Title = "WeHire.WebAPI",
+                    Title = "Trello.WebAPI",
                     Version = "v1",
-                    Description = "WeHire API Endpoints",
+                    Description = "Trello API Endpoints",
                 });
 
                 //c.DescribeAllParametersInCamelCase();
@@ -62,7 +62,7 @@ namespace Trello.API.Configurations
             });
             app.UseSwaggerUI(c =>
             {
-                c.SwaggerEndpoint("/v1/api-docs", "WeHire.WebAPI v1");
+                c.SwaggerEndpoint("/v1/api-docs", "Trello.WebAPI v1");
                 c.RoutePrefix = string.Empty;
             });
 

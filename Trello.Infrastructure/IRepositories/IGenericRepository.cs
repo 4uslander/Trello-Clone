@@ -24,6 +24,7 @@ namespace Trello.Infrastructure.IRepositories
         Task<TEntity> GetFirstOrDefaultAsync(
           Expression<Func<TEntity, bool>> filter = null,
           Expression<Func<TEntity, object>>[] includeProperties = null);
+        Task<TEntity> FirstOrDefaultAsync(Expression<Func<TEntity, bool>> predicate);
 
         Task<bool> AnyAsync(Expression<Func<TEntity, bool>> predicate);
 
