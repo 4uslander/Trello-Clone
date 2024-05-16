@@ -14,12 +14,15 @@ namespace Trello.Application.DTOs.User
         public string Email { get; set; } = null!;
 
         [Required(ErrorMessage = "Password is required")]
+        [MaxLength(50, ErrorMessage = "Password cannot exceed 50 characters")]
         public string Password { get; set; } = null!;
 
         [Required(ErrorMessage = "Name is required")]
+        [MaxLength(50, ErrorMessage = "Name cannot exceed 50 characters")]
         public string Name { get; set; } = null!;
 
         [Required(ErrorMessage = "Gender is required")]
+        [MaxLength(50, ErrorMessage = "Gender cannot exceed 50 characters")]
         public string Gender { get; set; } = null!;  
     }
 }
