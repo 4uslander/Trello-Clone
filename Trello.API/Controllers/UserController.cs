@@ -21,6 +21,11 @@ namespace Trello.API.Controllers
         [ProducesResponseType(typeof(ApiResponse<GetUserDetail>), StatusCodes.Status201Created)]
         public async Task<IActionResult> CreateEmployeeAsync(CreateUserDTO requestBody)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             var result = await _userService.CreateEmployeeAsync(requestBody);
 
             return Created(string.Empty, new ApiResponse<GetUserDetail>()
