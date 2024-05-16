@@ -12,6 +12,13 @@ namespace Trello.Application.Utilities.ResponseHandler
         {
             public int Code { get; set; }
             public T Data { get; set; }
+
+        }
+        public class LoginResponse<T>
+        {
+            public int Code { get; set; }
+            public T Bearer { get; set; }
+
         }
 
         public class PagedApiResponse<T>

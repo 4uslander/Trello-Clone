@@ -12,11 +12,13 @@ namespace Trello.Application.Utilities.GlobalVariables
         {
             public const string EMAIL_FIELD = "Email";
             public const string REQUEST_BODY = "Request body";
+            public const string STATUS_FIELD = "Status";
         }
         public static class ErrorMessage
         {
             public const string EMAIL_ALREADY_EXIST = "This email already exists!";
             public const string NULL_REQUEST_BODY = "Request body is null!";
+            public const string INVALID_CREDENTIALS = "Invalid Credentials";
 
         }
     }

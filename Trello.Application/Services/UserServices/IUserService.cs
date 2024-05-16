@@ -9,7 +9,8 @@ namespace Trello.Application.Services.UserServices
 {
     public interface IUserService
     {
-        public Task<GetUserDetail> CreateEmployeeAsync(CreateUserDTO requestBody);
+        public Task<GetUserDetail> CreateUserAsync(CreateUserDTO requestBody);
+        Task<string> LoginAsync(LoginDTO loginRequest);
         public Task IsExistEmail(string? Email);
     }
 }

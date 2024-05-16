@@ -90,6 +90,10 @@ namespace Trello.Infrastructure.Repositories
             }
             return await query.FirstOrDefaultAsync();
         }
+        public async Task<TEntity> FirstOrDefaultAsync(Expression<Func<TEntity, bool>> predicate)
+        {
+            return await _dbSet.FirstOrDefaultAsync(predicate);
+        }
 
         public IQueryable<TEntity> GetAll()
         {

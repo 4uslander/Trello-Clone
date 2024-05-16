@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Trello.Application.Services.UserServices;
+using Trello.Application.Utilities.Helper.JWT;
 using Trello.Infrastructure.IRepositories;
 using Trello.Infrastructure.Repositories;
 
@@ -17,6 +18,7 @@ namespace Trello.Application.Services
         {
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped<IUserService, UserService>();
+            services.AddScoped<IJwtHelper, JwtHelper>();
         }
     }
 }
