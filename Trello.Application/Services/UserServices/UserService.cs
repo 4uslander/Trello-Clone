@@ -12,6 +12,7 @@ using Trello.Application.DTOs.User;
 using Trello.Application.Utilities.ErrorHandler;
 using Trello.Application.Utilities.Helper.ConvertDate;
 using Trello.Application.Utilities.Helper.JWT;
+using Trello.Application.Utilities.Helper.Searching;
 using Trello.Domain.Enums;
 using Trello.Domain.Models;
 using Trello.Infrastructure.IRepositories;
@@ -71,7 +72,55 @@ namespace Trello.Application.Services.UserServices
             var token = _jwtHelper.generateJwtToken(claims);
             return token;
         }
+        public List<GetUserDetail> GetAllUser(SearchUserDTO searchKey)
+        {
+            
+            IQueryable<User> usersQuery = _unitOfWork.UserRepository.GetAll();
 
+            
+            if (!string.IsNullOrEmpty(searchKey?.Name))
+            {
+                usersQuery = usersQuery.Where(u => u.Name.Contains(searchKey.Name));
+            }
+
+            List<GetUserDetail> users = usersQuery
+                .Select(u => _mapper.Map<GetUserDetail>(u))
+                .ToList();
+
+            return users;
+        }
+        public async Task<object> GetUserLoginAsync(int userId)
+        {
+            var user = await _unitOfWork.UserRepository.Get(u => u.Id == userId).SingleOrDefaultAsync()
+                ?? throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.USER_FIELD, ErrorMessage.USER_NOT_EXIST);
+
+            object userDetail = null!;
+
+            userDetail = _mapper.Map<GetUserDetail>(user);
+
+            return userDetail;
+        }
+        public async Task<GetUserDetail> ChangeStatusAsync(int userId)
+        {
+            var user = await _unitOfWork.UserRepository.GetByIdAsync(userId);
+            if (user == null)
+                throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.USER_FIELD, ErrorMessage.USER_NOT_EXIST);
+
+            if (user.IsActive == (int)UserStatus.Active)
+            {
+                user.IsActive = (int)UserStatus.InActive;
+            }
+            else
+            {
+                user.IsActive = (int)UserStatus.Active;
+            }
+
+            _unitOfWork.UserRepository.Update(user);
+            await _unitOfWork.SaveChangesAsync();
+
+            var mappedUser = _mapper.Map<GetUserDetail>(user);
+            return mappedUser;
+        }
 
         public async System.Threading.Tasks.Task IsExistEmail(string? Email)
         {

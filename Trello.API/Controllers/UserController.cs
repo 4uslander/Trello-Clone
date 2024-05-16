@@ -17,7 +17,7 @@ namespace Trello.API.Controllers
             _userService = userService;
         }
 
-        [HttpPost]
+        [HttpPost("register")]
         [ProducesResponseType(typeof(ApiResponse<GetUserDetail>), StatusCodes.Status201Created)]
         public async Task<IActionResult> CreateEmployeeAsync(CreateUserDTO requestBody)
         {
@@ -57,8 +57,46 @@ namespace Trello.API.Controllers
                     Bearer = token
                 });
             }
-  
-        
+        [Authorize]
+        [HttpGet("all")]
+        [ProducesResponseType(typeof(ApiResponse<List<GetUserDetail>>), StatusCodes.Status200OK)]
+        public IActionResult GetAllUsers([FromQuery] SearchUserDTO searchKey)
+        {
+            List<GetUserDetail> users = _userService.GetAllUser(searchKey);
+
+            return Ok(new ApiResponse<List<GetUserDetail>>
+            {
+                Code = StatusCodes.Status200OK,
+                Data = users
+            });
+        }
+        [Authorize]
+        [HttpGet("{id}")]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetUserLoginAsync(int id)
+        {
+            var result = await _userService.GetUserLoginAsync(id);
+
+            return Ok(new ApiResponse<object>()
+            {
+                Code = StatusCodes.Status200OK,
+                Data = result
+            });
+        }
+
+        [Authorize/*(Roles = "Admin")*/]
+        [HttpDelete("ChangeStatus/{id}")]
+        [ProducesResponseType(typeof(ApiResponse<GetUserDetail>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> ChangeStatusAsync(int id)
+        {
+            var result = await _userService.ChangeStatusAsync(id);
+
+            return Ok(new ApiResponse<GetUserDetail>()
+            {
+                Code = StatusCodes.Status200OK,
+                Data = result
+            });
+        }
     }
 
 }
