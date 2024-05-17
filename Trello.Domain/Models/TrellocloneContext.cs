@@ -56,6 +56,10 @@ namespace Trello.Domain.Models
 
                 entity.ToTable("BoardMember");
 
+                entity.Property(e => e.CreatedDate).HasColumnType("datetime");
+
+                entity.Property(e => e.Id).ValueGeneratedOnAdd();
+
                 entity.HasOne(d => d.Board)
                     .WithMany()
                     .HasForeignKey(d => d.BoardId)
@@ -123,6 +127,10 @@ namespace Trello.Domain.Models
 
                 entity.ToTable("CardLabel");
 
+                entity.Property(e => e.CreatedDate).HasColumnType("datetime");
+
+                entity.Property(e => e.Id).ValueGeneratedOnAdd();
+
                 entity.HasOne(d => d.Card)
                     .WithMany()
                     .HasForeignKey(d => d.CardId)
@@ -141,6 +149,10 @@ namespace Trello.Domain.Models
                 entity.HasNoKey();
 
                 entity.ToTable("CardMember");
+
+                entity.Property(e => e.CreatedDate).HasColumnType("datetime");
+
+                entity.Property(e => e.Id).ValueGeneratedOnAdd();
 
                 entity.HasOne(d => d.Card)
                     .WithMany()
@@ -210,12 +222,16 @@ namespace Trello.Domain.Models
             {
                 entity.ToTable("Role");
 
+                entity.Property(e => e.CreatedDate).HasColumnType("datetime");
+
                 entity.Property(e => e.Name).HasMaxLength(50);
             });
 
             modelBuilder.Entity<Task>(entity =>
             {
                 entity.ToTable("Task");
+
+                entity.Property(e => e.CreatedDate).HasColumnType("datetime");
 
                 entity.Property(e => e.Name).HasMaxLength(50);
 
@@ -229,6 +245,8 @@ namespace Trello.Domain.Models
             modelBuilder.Entity<ToDo>(entity =>
             {
                 entity.ToTable("ToDo");
+
+                entity.Property(e => e.CreatedDate).HasColumnType("datetime");
 
                 entity.Property(e => e.Title).HasMaxLength(100);
 

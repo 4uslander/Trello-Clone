@@ -14,6 +14,7 @@ namespace Trello.Domain.Models
         public int CardId { get; set; }
         public string Title { get; set; } = null!;
         public int IsActive { get; set; }
+        public DateTime CreatedDate { get; set; }
 
         public virtual Card Card { get; set; } = null!;
         public virtual ICollection<Task> Tasks { get; set; }
