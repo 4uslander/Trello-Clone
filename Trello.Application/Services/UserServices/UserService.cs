@@ -1,18 +1,12 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
 using System.Net;
 using System.Security.Claims;
-using System.Text;
-using System.Threading.Tasks;
 using Trello.Application.DTOs.User;
 using Trello.Application.Utilities.ErrorHandler;
-using Trello.Application.Utilities.Helper.ConvertDate;
 using Trello.Application.Utilities.Helper.JWT;
-using Trello.Application.Utilities.Helper.Searching;
+using Trello.Application.Utilities.Helper.PasswordEncryption;
 using Trello.Domain.Enums;
 using Trello.Domain.Models;
 using Trello.Infrastructure.IRepositories;
@@ -40,8 +34,13 @@ namespace Trello.Application.Services.UserServices
 
             await IsExistEmail(requestBody.Email);
 
+            // Hash the password with the salt
+            var hashedPasswordWithSalt = PasswordHelper.HashPasswordWithSalt(requestBody.Password);
+
+
             var user = _mapper.Map<User>(requestBody);
             user.IsActive = (int)UserStatus.Active;
+            user.Password = hashedPasswordWithSalt;
 
             await _unitOfWork.UserRepository.InsertAsync(user);
             await _unitOfWork.SaveChangesAsync();
@@ -51,22 +50,23 @@ namespace Trello.Application.Services.UserServices
         }
         public async Task<string> LoginAsync(LoginDTO loginRequest)
         {
-            if (loginRequest == null)
-                throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.REQUEST_BODY, ErrorMessage.NULL_REQUEST_BODY);
-
-            var user = await _unitOfWork.UserRepository.FirstOrDefaultAsync(x => x.Email == loginRequest.Email && x.Password == loginRequest.Password);
+            var user = await _unitOfWork.UserRepository.FirstOrDefaultAsync(x => x.Email == loginRequest.Email);
 
             if (user == null)
-                throw new ExceptionResponse(HttpStatusCode.Unauthorized, ErrorField.REQUEST_BODY, "Invalid credentials");
+                throw new ExceptionResponse(HttpStatusCode.Unauthorized,ErrorField.LOGIN_FIELD, ErrorMessage.INVALID_EMAIL_PASSWORD);
+
+            if (user == null || !PasswordHelper.VerifyPassword(loginRequest.Password, user.Password))
+            {
+                throw new ExceptionResponse(HttpStatusCode.Unauthorized, ErrorField.LOGIN_FIELD, ErrorMessage.INVALID_EMAIL_PASSWORD);
+            }
 
             if (user.IsActive != (int)UserStatus.Active)
-            {
-                throw new ExceptionResponse(HttpStatusCode.Forbidden, ErrorField.REQUEST_BODY, "User is inactive");
-            }
+                throw new ExceptionResponse(HttpStatusCode.Forbidden, ErrorField.LOGIN_FIELD, ErrorMessage.INACTIVE_USER);
+
             var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                new Claim(ClaimTypes.Email, user.Email)
+                new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+                new Claim(JwtRegisteredClaimNames.Email, user.Email)
             };
 
             var token = _jwtHelper.generateJwtToken(claims);

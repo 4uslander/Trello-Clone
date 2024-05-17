@@ -15,6 +15,7 @@ namespace Trello.Application.Utilities.GlobalVariables
             public const string STATUS_FIELD = "Status";
             public const string USER_FIELD = "User";
             public const string BOARD_FIELD = "Board";
+            public const string LOGIN_FIELD = "Login";
 
         }
         public static class ErrorMessage
@@ -24,6 +25,8 @@ namespace Trello.Application.Utilities.GlobalVariables
             public const string NULL_REQUEST_BODY = "Request body is null!";
             public const string INVALID_CREDENTIALS = "Invalid Credentials";
             public const string USER_NOT_EXIST = "This user does not exist!";
+            public const string INVALID_EMAIL_PASSWORD = "Invalid Email or Password";
+            public const string INACTIVE_USER = "This user is inactive";
         }
     }
 }

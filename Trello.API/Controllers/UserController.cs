@@ -62,6 +62,15 @@ namespace Trello.API.Controllers
         [ProducesResponseType(typeof(ApiResponse<List<GetUserDetail>>), StatusCodes.Status200OK)]
         public IActionResult GetAllUsers([FromQuery] SearchUserDTO searchKey)
         {
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
+                return BadRequest(new ApiResponse<IEnumerable<string>>
+                {
+                    Code = StatusCodes.Status400BadRequest,
+                    Data = errors
+                });
+            }
             List<GetUserDetail> users = _userService.GetAllUser(searchKey);
 
             return Ok(new ApiResponse<List<GetUserDetail>>
@@ -75,6 +84,15 @@ namespace Trello.API.Controllers
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetUserLoginAsync(int id)
         {
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
+                return BadRequest(new ApiResponse<IEnumerable<string>>
+                {
+                    Code = StatusCodes.Status400BadRequest,
+                    Data = errors
+                });
+            }
             var result = await _userService.GetUserLoginAsync(id);
 
             return Ok(new ApiResponse<object>()
@@ -89,6 +107,15 @@ namespace Trello.API.Controllers
         [ProducesResponseType(typeof(ApiResponse<GetUserDetail>), StatusCodes.Status200OK)]
         public async Task<IActionResult> ChangeStatusAsync(int id)
         {
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
+                return BadRequest(new ApiResponse<IEnumerable<string>>
+                {
+                    Code = StatusCodes.Status400BadRequest,
+                    Data = errors
+                });
+            }
             var result = await _userService.ChangeStatusAsync(id);
 
             return Ok(new ApiResponse<GetUserDetail>()
