@@ -42,6 +42,15 @@ namespace Trello.API.Controllers
         [ProducesResponseType(typeof(ApiResponse<List<GetBoardDetail>>), StatusCodes.Status200OK)]
         public IActionResult GetAllBoards([FromQuery] SearchBoardDTO searchKey)
         {
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
+                return BadRequest(new ApiResponse<IEnumerable<string>>
+                {
+                    Code = StatusCodes.Status400BadRequest,
+                    Data = errors
+                });
+            }
             List<GetBoardDetail> result = _boardService.GetAllBoard(searchKey);
 
             return Ok(new ApiResponse<List<GetBoardDetail>>
