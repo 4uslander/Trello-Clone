@@ -9,7 +9,7 @@ namespace Trello.Application.Utilities.Helper.PasswordEncryption
 {
     public static class PasswordHelper
     {
-        
+
         public static string GenerateSalt()
         {
             var buffer = new byte[16];
@@ -20,12 +20,12 @@ namespace Trello.Application.Utilities.Helper.PasswordEncryption
             }
         }
 
-        public static string HashPasswordWithMD5(string password, string salt)
+        public static string HashPasswordWithSHA256(string password, string salt)
         {
-            using (var md5 = MD5.Create())
+            using (var sha256 = SHA256.Create())
             {
                 var inputBytes = Encoding.UTF8.GetBytes(password + salt);
-                var hashBytes = md5.ComputeHash(inputBytes);
+                var hashBytes = sha256.ComputeHash(inputBytes);
                 return Convert.ToBase64String(hashBytes);
             }
         }
@@ -33,7 +33,7 @@ namespace Trello.Application.Utilities.Helper.PasswordEncryption
         public static string HashPasswordWithSalt(string password)
         {
             var salt = GenerateSalt();
-            var hash = HashPasswordWithMD5(password, salt);
+            var hash = HashPasswordWithSHA256(password, salt);
             return $"{salt}:{hash}";
         }
 
@@ -46,7 +46,7 @@ namespace Trello.Application.Utilities.Helper.PasswordEncryption
             }
             var salt = parts[0];
             var storedHash = parts[1];
-            var hash = HashPasswordWithMD5(password, salt);
+            var hash = HashPasswordWithSHA256(password, salt);
             return hash == storedHash;
         }
     }

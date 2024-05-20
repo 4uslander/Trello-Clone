@@ -267,7 +267,7 @@ namespace Trello.Domain.Models
 
                 entity.Property(e => e.Name).HasMaxLength(50);
 
-                entity.Property(e => e.Password).HasMaxLength(50);
+                entity.Property(e => e.Password).HasMaxLength(255);
             });
 
             OnModelCreatingPartial(modelBuilder);
