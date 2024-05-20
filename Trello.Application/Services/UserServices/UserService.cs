@@ -1,4 +1,7 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net;
@@ -19,12 +22,14 @@ namespace Trello.Application.Services.UserServices
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly IJwtHelper _jwtHelper;
-        public UserService(IUnitOfWork unitOfWork, IMapper mapper, IJwtHelper jwtHelper)
+        private readonly IHttpContextAccessor _httpContextAccessor;
+
+        public UserService(IUnitOfWork unitOfWork, IMapper mapper, IJwtHelper jwtHelper, IHttpContextAccessor httpContextAccessor)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _jwtHelper = jwtHelper;
-
+            _httpContextAccessor = httpContextAccessor;
         }
 
         public async Task<GetUserDetail> CreateUserAsync(CreateUserDTO requestBody)
@@ -144,6 +149,44 @@ namespace Trello.Application.Services.UserServices
             var isExist = await _unitOfWork.UserRepository.AnyAsync(x => x.Email.Equals(Email));
             if (isExist)
                 throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.EMAIL_FIELD, ErrorMessage.EMAIL_ALREADY_EXIST);
+        }
+
+        public async Task<string> HandleGoogleLoginAsync(ClaimsPrincipal principal)
+        {
+            var email = principal.FindFirstValue(ClaimTypes.Email);
+            var user = await _unitOfWork.UserRepository.FirstOrDefaultAsync(x => x.Email == email);
+
+            if (user == null)
+            {
+                // Optionally, create a new user based on Google account information
+                user = new User
+                {
+                    Email = email,
+                    Name = principal.FindFirstValue(ClaimTypes.Name),
+                    IsActive = (int)UserStatus.Active
+                };
+                await _unitOfWork.UserRepository.InsertAsync(user);
+                await _unitOfWork.SaveChangesAsync();
+            }
+
+            var claims = new List<Claim>
+            {
+                new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+                new Claim(JwtRegisteredClaimNames.Email, user.Email)
+            };
+
+            var token = _jwtHelper.generateJwtToken(claims);
+            return token;
+        }
+
+
+        public async System.Threading.Tasks.Task SignOutAsync()
+        {
+            var context = _httpContextAccessor.HttpContext;
+            if (context != null)
+            {
+                await context.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            }
         }
     }
 }

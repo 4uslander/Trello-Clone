@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Builder.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Trello.API.Configurations;
@@ -20,6 +22,24 @@ builder.Services.AddCors(options =>
                 .AllowCredentials();
         });
 });
+builder.Services.AddControllersWithViews();
+
+// Configure Google authentication
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+    options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = GoogleDefaults.AuthenticationScheme;
+})
+.AddCookie()
+.AddGoogle(options =>
+{
+    options.ClientId = "1007009465587-6t4059d797m1m9tjk5131g33ude2q9hj.apps.googleusercontent.com";
+    options.ClientSecret = "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";
+    options.CallbackPath = "/signin-google";
+});
+builder.Services.AddHttpContextAccessor();
+
 builder.Services.AddDbContext<TrellocloneContext>(options =>
 {
     options.UseSqlServer(builder.Configuration.GetConnectionString("MyDB"));

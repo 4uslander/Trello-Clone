@@ -1,8 +1,13 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.Google;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Net;
 using Trello.Application.DTOs.User;
 using Trello.Application.Services.UserServices;
 using Trello.Application.Utilities.ErrorHandler;
+using static Trello.Application.Utilities.GlobalVariables.GlobalVariable;
 using static Trello.Application.Utilities.ResponseHandler.ResponseModel;
 
 namespace Trello.API.Controllers
@@ -145,6 +150,32 @@ namespace Trello.API.Controllers
                 Code = StatusCodes.Status200OK,
                 Data = result
             });
+        }
+
+        [HttpGet("signin-google")]
+        public IActionResult SignInWithGoogle()
+        {
+            var redirectUrl = Url.Action("GoogleResponse", "User");
+            var properties = new AuthenticationProperties { RedirectUri = redirectUrl };
+            return Challenge(properties, GoogleDefaults.AuthenticationScheme);
+        }
+
+        [HttpGet("google-response")]
+        public async Task<IActionResult> GoogleResponse()
+        {
+            var authenticateResult = await HttpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            if (!authenticateResult.Succeeded)
+                throw new ExceptionResponse(HttpStatusCode.Unauthorized, ErrorField.LOGIN_FIELD, "Google authentication failed");
+
+            var token = await _userService.HandleGoogleLoginAsync(authenticateResult.Principal);
+            return Ok(new { Token = token });
+        }
+
+        [HttpGet("signout")]
+        public async Task<IActionResult> SignOut()
+        {
+            await _userService.SignOutAsync();
+            return Ok();
         }
     }
 
