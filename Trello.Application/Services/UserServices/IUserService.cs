@@ -13,6 +13,7 @@ namespace Trello.Application.Services.UserServices
         Task<string> LoginAsync(LoginDTO loginRequest);
         public List<GetUserDetail> GetAllUser(SearchUserDTO searchKey);
         public Task<object> GetUserLoginAsync(int userId);
+        public Task<GetUserDetail> UpdateUserAsync(int id, UpdateUserDTO requestBody);
         public Task<GetUserDetail> ChangeStatusAsync(int Id);
         public Task IsExistEmail(string? Email);
     }

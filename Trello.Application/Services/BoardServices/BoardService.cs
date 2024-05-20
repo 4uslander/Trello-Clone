@@ -64,5 +64,46 @@ namespace Trello.Application.Services.BoardServices
             if (isExist)
                 throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.BOARD_FIELD, ErrorMessage.BOARD_ALREADY_EXIST);
         }
+
+        public async Task<GetBoardDetail> UpdateBoardAsync(int id, UpdateBoardDTO requestBody)
+        {
+            if (id != requestBody.BoardId)
+                throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.BOARD_ID_FIELD, ErrorMessage.BOARD_NOT_EXIST);
+
+            var board = await _unitOfWork.BoardRepository.GetByIdAsync(id)
+                ?? throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.BOARD_ID_FIELD, ErrorMessage.BOARD_NOT_EXIST);
+
+
+            board = _mapper.Map(requestBody, board);
+
+            _unitOfWork.BoardRepository.Update(board);
+            await _unitOfWork.SaveChangesAsync();
+
+            var boardDetail = _mapper.Map<GetBoardDetail>(board);
+            return boardDetail;
+        }
+
+        public async Task<GetBoardDetail> ChangeStatusAsync(int Id)
+        {
+            var board = await _unitOfWork.BoardRepository.GetByIdAsync(Id);
+            if (board == null)
+                throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.BOARD_ID_FIELD, ErrorMessage.BOARD_NOT_EXIST);
+
+            if (board.IsActive == (int)UserStatus.Active)
+            {
+                board.IsActive = (int)UserStatus.InActive;
+            }
+            else
+            {
+                board.IsActive = (int)UserStatus.Active;
+            }
+
+            _unitOfWork.BoardRepository.Update(board);
+            await _unitOfWork.SaveChangesAsync();
+
+            var mappedBoard = _mapper.Map<GetBoardDetail>(board);
+            return mappedBoard;
+        }
+
     }
 }

@@ -59,5 +59,50 @@ namespace Trello.API.Controllers
                 Data = result
             });
         }
+
+        [Authorize]
+        [HttpPut("{id}")]
+        [ProducesResponseType(typeof(ApiResponse<GetBoardDetail>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> UpdateBoardAsync(int id, [FromForm] UpdateBoardDTO requestBody)
+        {
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
+                return BadRequest(new ApiResponse<IEnumerable<string>>
+                {
+                    Code = StatusCodes.Status400BadRequest,
+                    Data = errors
+                });
+            }
+            var result = await _boardService.UpdateBoardAsync(id, requestBody);
+
+            return Ok(new ApiResponse<GetBoardDetail>()
+            {
+                Code = StatusCodes.Status200OK,
+                Data = result
+            });
+        }
+        [Authorize/*(Roles = "Admin")*/]
+        [HttpDelete("ChangeStatus/{id}")]
+        [ProducesResponseType(typeof(ApiResponse<GetBoardDetail>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> ChangeStatusAsync(int id)
+        {
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
+                return BadRequest(new ApiResponse<IEnumerable<string>>
+                {
+                    Code = StatusCodes.Status400BadRequest,
+                    Data = errors
+                });
+            }
+            var result = await _boardService.ChangeStatusAsync(id);
+
+            return Ok(new ApiResponse<GetBoardDetail>()
+            {
+                Code = StatusCodes.Status200OK,
+                Data = result
+            });
+        }
     }
 }

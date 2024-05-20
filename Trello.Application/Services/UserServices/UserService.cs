@@ -100,6 +100,23 @@ namespace Trello.Application.Services.UserServices
 
             return userDetail;
         }
+        public async Task<GetUserDetail> UpdateUserAsync(int id, UpdateUserDTO requestBody)
+        {
+            if (id != requestBody.UserId)
+                throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.USER_ID_FIELD, ErrorMessage.USER_NOT_EXIST);
+
+            var user = await _unitOfWork.UserRepository.GetByIdAsync(id)
+                ?? throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.USER_FIELD, ErrorMessage.USER_NOT_EXIST);
+
+
+            user = _mapper.Map(requestBody, user);
+
+            _unitOfWork.UserRepository.Update(user);
+            await _unitOfWork.SaveChangesAsync();
+
+            var userDetail = _mapper.Map<GetUserDetail>(user);
+            return userDetail;
+        }
         public async Task<GetUserDetail> ChangeStatusAsync(int userId)
         {
             var user = await _unitOfWork.UserRepository.GetByIdAsync(userId);
