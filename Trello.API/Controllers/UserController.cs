@@ -101,6 +101,28 @@ namespace Trello.API.Controllers
                 Data = result
             });
         }
+        [Authorize]
+        [HttpPut("{id}")]
+        [ProducesResponseType(typeof(ApiResponse<GetUserDetail>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> UpdateUserAsync(int id, [FromForm] UpdateUserDTO requestBody)
+        {
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
+                return BadRequest(new ApiResponse<IEnumerable<string>>
+                {
+                    Code = StatusCodes.Status400BadRequest,
+                    Data = errors
+                });
+            }
+            var result = await _userService.UpdateUserAsync(id, requestBody);
+
+            return Ok(new ApiResponse<GetUserDetail>()
+            {
+                Code = StatusCodes.Status200OK,
+                Data = result
+            });
+        }
 
         [Authorize/*(Roles = "Admin")*/]
         [HttpDelete("ChangeStatus/{id}")]
