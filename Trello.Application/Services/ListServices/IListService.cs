@@ -10,10 +10,10 @@ namespace Trello.Application.Services.ListServices
 {
     public interface IListService
     {
-        public Task<GetListDetail> CreateListAsync(CreateListDTO requestBody);
-        public List<GetListDetail> GetAllList(string? name);
-        public Task<GetListDetail> UpdateListAsync(int id, UpdateListDTO requestBody);
-        public Task<GetListDetail> ChangeStatusAsync(int Id);
+        public Task<ListDetail> CreateListAsync(CreateListDTO requestBody);
+        public List<ListDetail> GetAllList(string? name);
+        public Task<ListDetail> UpdateListAsync(int id, UpdateListDTO requestBody);
+        public Task<ListDetail> ChangeStatusAsync(int Id);
         public Task IsExistListName(string? name);
         public Task IsExistBoardId(int? id);
         Task IsUniqueListPosition(int boardId, int position);

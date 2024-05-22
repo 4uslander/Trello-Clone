@@ -20,7 +20,7 @@ namespace Trello.API.Controllers
 
         [Authorize]
         [HttpPost("create")]
-        [ProducesResponseType(typeof(ApiResponse<GetBoardDetail>), StatusCodes.Status201Created)]
+        [ProducesResponseType(typeof(ApiResponse<BoardDetail>), StatusCodes.Status201Created)]
         public async Task<IActionResult> CreateBoardAsync(CreateBoardDTO requestBody)
         {
             if (!ModelState.IsValid)
@@ -30,7 +30,7 @@ namespace Trello.API.Controllers
 
             var result = await _boardService.CreateBoardAsync(requestBody);
 
-            return Created(string.Empty, new ApiResponse<GetBoardDetail>()
+            return Created(string.Empty, new ApiResponse<BoardDetail>()
             {
                 Code = StatusCodes.Status201Created,
                 Data = result
@@ -39,7 +39,7 @@ namespace Trello.API.Controllers
 
         [Authorize]
         [HttpGet("all")]
-        [ProducesResponseType(typeof(ApiResponse<List<GetBoardDetail>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<List<BoardDetail>>), StatusCodes.Status200OK)]
         public IActionResult GetAllBoards([FromQuery] SearchBoardDTO searchKey)
         {
             if (!ModelState.IsValid)
@@ -51,9 +51,9 @@ namespace Trello.API.Controllers
                     Data = errors
                 });
             }
-            List<GetBoardDetail> result = _boardService.GetAllBoard(searchKey);
+            List<BoardDetail> result = _boardService.GetAllBoard(searchKey);
 
-            return Ok(new ApiResponse<List<GetBoardDetail>>
+            return Ok(new ApiResponse<List<BoardDetail>>
             {
                 Code = StatusCodes.Status200OK,
                 Data = result
@@ -62,7 +62,7 @@ namespace Trello.API.Controllers
 
         [Authorize]
         [HttpPut("{id}")]
-        [ProducesResponseType(typeof(ApiResponse<GetBoardDetail>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<BoardDetail>), StatusCodes.Status200OK)]
         public async Task<IActionResult> UpdateBoardAsync(int id, [FromForm] UpdateBoardDTO requestBody)
         {
             if (!ModelState.IsValid)
@@ -76,7 +76,7 @@ namespace Trello.API.Controllers
             }
             var result = await _boardService.UpdateBoardAsync(id, requestBody);
 
-            return Ok(new ApiResponse<GetBoardDetail>()
+            return Ok(new ApiResponse<BoardDetail>()
             {
                 Code = StatusCodes.Status200OK,
                 Data = result
@@ -84,7 +84,7 @@ namespace Trello.API.Controllers
         }
         [Authorize/*(Roles = "Admin")*/]
         [HttpDelete("ChangeStatus/{id}")]
-        [ProducesResponseType(typeof(ApiResponse<GetBoardDetail>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<BoardDetail>), StatusCodes.Status200OK)]
         public async Task<IActionResult> ChangeStatusAsync(int id)
         {
             if (!ModelState.IsValid)
@@ -98,7 +98,7 @@ namespace Trello.API.Controllers
             }
             var result = await _boardService.ChangeStatusAsync(id);
 
-            return Ok(new ApiResponse<GetBoardDetail>()
+            return Ok(new ApiResponse<BoardDetail>()
             {
                 Code = StatusCodes.Status200OK,
                 Data = result

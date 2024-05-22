@@ -27,7 +27,7 @@ namespace Trello.Application.Services.ListServices
             _mapper = mapper;
 
         }
-        public async Task<GetListDetail> CreateListAsync(CreateListDTO requestBody)
+        public async Task<ListDetail> CreateListAsync(CreateListDTO requestBody)
         {
             if (requestBody == null)
                 throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.REQUEST_BODY, ErrorMessage.NULL_REQUEST_BODY);
@@ -38,15 +38,17 @@ namespace Trello.Application.Services.ListServices
             await IsUniqueListPosition(requestBody.BoardId, requestBody.Position);
 
             var list = _mapper.Map<List>(requestBody);
-            list.IsActive = (int)ListEnum.Active;
+            list.IsActive = true;
+            list.CreatedDate = DateTime.Now;
+            //list.CreatedUser = requestBody.UserName;
 
             await _unitOfWork.ListRepository.InsertAsync(list);
             await _unitOfWork.SaveChangesAsync();
 
-            var createdListDto = _mapper.Map<GetListDetail>(list);
+            var createdListDto = _mapper.Map<ListDetail>(list);
             return createdListDto;
         }
-        public List<GetListDetail> GetAllList(string? name)
+        public List<ListDetail> GetAllList(string? name)
         {
             IQueryable<List> listsQuery = _unitOfWork.ListRepository.GetAll();
 
@@ -56,13 +58,13 @@ namespace Trello.Application.Services.ListServices
                 listsQuery = listsQuery.Where(u => u.Name.Contains(name));
             }
 
-            List<GetListDetail> lists = listsQuery
-                .Select(u => _mapper.Map<GetListDetail>(u))
+            List<ListDetail> lists = listsQuery
+                .Select(u => _mapper.Map<ListDetail>(u))
                 .ToList();
 
             return lists;
         }
-        public async Task<GetListDetail> UpdateListAsync(int id, UpdateListDTO requestBody)
+        public async Task<ListDetail> UpdateListAsync(int id, UpdateListDTO requestBody)
         {
 
             var list = await _unitOfWork.ListRepository.GetByIdAsync(id)
@@ -77,29 +79,29 @@ namespace Trello.Application.Services.ListServices
             _unitOfWork.ListRepository.Update(list);
             await _unitOfWork.SaveChangesAsync();
 
-            var listDetail = _mapper.Map<GetListDetail>(list);
+            var listDetail = _mapper.Map<ListDetail>(list);
             return listDetail;
         }
 
-        public async Task<GetListDetail> ChangeStatusAsync(int Id)
+        public async Task<ListDetail> ChangeStatusAsync(int Id)
         {
             var list = await _unitOfWork.ListRepository.GetByIdAsync(Id);
             if (list == null)
                 throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.LIST_FIELD, ErrorMessage.LIST_NOT_EXIST);
 
-            if (list.IsActive == (int)UserStatus.Active)
+            if (list.IsActive == true)
             {
-                list.IsActive = (int)UserStatus.InActive;
+                list.IsActive = false;
             }
             else
             {
-                list.IsActive = (int)UserStatus.Active;
+                list.IsActive = true;
             }
 
             _unitOfWork.ListRepository.Update(list);
             await _unitOfWork.SaveChangesAsync();
 
-            var mappedList = _mapper.Map<GetListDetail>(list);
+            var mappedList = _mapper.Map<ListDetail>(list);
             return mappedList;
         }
 

@@ -11,6 +11,7 @@ namespace Trello.Application.DTOs.Board
     {
         [Required]
         public int BoardId { get; set; }
+
         [Required(ErrorMessage = "Board Name is required")]
         [MaxLength(50, ErrorMessage = "Board Name cannot exceed 50 characters")]
         public string Name { get; set; } = null!;

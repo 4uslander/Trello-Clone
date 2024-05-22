@@ -5,11 +5,14 @@ namespace Trello.Domain.Models
 {
     public partial class CardLabel
     {
+        public int Id { get; set; }
         public int CardId { get; set; }
         public int LabelId { get; set; }
-        public int Id { get; set; }
         public DateTime CreatedDate { get; set; }
-        public int IsActive { get; set; }
+        public string CreatedUser { get; set; } = null!;
+        public DateTime? UpdatedDate { get; set; }
+        public string? UpdatedUser { get; set; }
+        public bool IsActive { get; set; }
 
         public virtual Card Card { get; set; } = null!;
         public virtual Label Label { get; set; } = null!;

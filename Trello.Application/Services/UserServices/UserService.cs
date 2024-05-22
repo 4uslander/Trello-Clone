@@ -27,7 +27,7 @@ namespace Trello.Application.Services.UserServices
 
         }
 
-        public async Task<GetUserDetail> CreateUserAsync(CreateUserDTO requestBody)
+        public async Task<UserDetail> CreateUserAsync(CreateUserDTO requestBody)
         {
             if (requestBody == null)
                 throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.REQUEST_BODY, ErrorMessage.NULL_REQUEST_BODY);
@@ -39,13 +39,15 @@ namespace Trello.Application.Services.UserServices
 
 
             var user = _mapper.Map<User>(requestBody);
-            user.IsActive = (int)UserStatus.Active;
+            user.IsActive = true;
             user.Password = hashedPasswordWithSalt;
+            user.CreatedDate = DateTime.UtcNow;
+            user.CreatedUser = requestBody.Name;
 
             await _unitOfWork.UserRepository.InsertAsync(user);
             await _unitOfWork.SaveChangesAsync();
 
-            var newUser = _mapper.Map<GetUserDetail>(user);
+            var newUser = _mapper.Map<UserDetail>(user);
             return newUser;
         }
         public async Task<string> LoginAsync(LoginDTO loginRequest)
@@ -60,7 +62,7 @@ namespace Trello.Application.Services.UserServices
                 throw new ExceptionResponse(HttpStatusCode.Unauthorized, ErrorField.LOGIN_FIELD, ErrorMessage.INVALID_EMAIL_PASSWORD);
             }
 
-            if (user.IsActive != (int)UserStatus.Active)
+            if (user.IsActive != true)
                 throw new ExceptionResponse(HttpStatusCode.Forbidden, ErrorField.LOGIN_FIELD, ErrorMessage.INACTIVE_USER);
 
             var claims = new List<Claim>
@@ -72,7 +74,7 @@ namespace Trello.Application.Services.UserServices
             var token = _jwtHelper.generateJwtToken(claims);
             return token;
         }
-        public List<GetUserDetail> GetAllUser(SearchUserDTO searchKey)
+        public List<UserDetail> GetAllUser(SearchUserDTO searchKey)
         {
             
             IQueryable<User> usersQuery = _unitOfWork.UserRepository.GetAll();
@@ -83,8 +85,8 @@ namespace Trello.Application.Services.UserServices
                 usersQuery = usersQuery.Where(u => u.Name.Contains(searchKey.Name));
             }
 
-            List<GetUserDetail> users = usersQuery
-                .Select(u => _mapper.Map<GetUserDetail>(u))
+            List<UserDetail> users = usersQuery
+                .Select(u => _mapper.Map<UserDetail>(u))
                 .ToList();
 
             return users;
@@ -96,11 +98,11 @@ namespace Trello.Application.Services.UserServices
 
             object userDetail = null!;
 
-            userDetail = _mapper.Map<GetUserDetail>(user);
+            userDetail = _mapper.Map<UserDetail>(user);
 
             return userDetail;
         }
-        public async Task<GetUserDetail> UpdateUserAsync(int id, UpdateUserDTO requestBody)
+        public async Task<UserDetail> UpdateUserAsync(int id, UpdateUserDTO requestBody)
         {
             if (id != requestBody.UserId)
                 throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.USER_ID_FIELD, ErrorMessage.USER_NOT_EXIST);
@@ -108,34 +110,35 @@ namespace Trello.Application.Services.UserServices
             var user = await _unitOfWork.UserRepository.GetByIdAsync(id)
                 ?? throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.USER_FIELD, ErrorMessage.USER_NOT_EXIST);
 
-
+            user.UpdatedUser = requestBody.Name;
+            user.UpdatedDate = DateTime.UtcNow;
             user = _mapper.Map(requestBody, user);
 
             _unitOfWork.UserRepository.Update(user);
             await _unitOfWork.SaveChangesAsync();
 
-            var userDetail = _mapper.Map<GetUserDetail>(user);
+            var userDetail = _mapper.Map<UserDetail>(user);
             return userDetail;
         }
-        public async Task<GetUserDetail> ChangeStatusAsync(int userId)
+        public async Task<UserDetail> ChangeStatusAsync(int userId)
         {
             var user = await _unitOfWork.UserRepository.GetByIdAsync(userId);
             if (user == null)
                 throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.USER_FIELD, ErrorMessage.USER_NOT_EXIST);
 
-            if (user.IsActive == (int)UserStatus.Active)
+            if (user.IsActive == true)
             {
-                user.IsActive = (int)UserStatus.InActive;
+                user.IsActive = false;
             }
             else
             {
-                user.IsActive = (int)UserStatus.Active;
+                user.IsActive = true;
             }
 
             _unitOfWork.UserRepository.Update(user);
             await _unitOfWork.SaveChangesAsync();
 
-            var mappedUser = _mapper.Map<GetUserDetail>(user);
+            var mappedUser = _mapper.Map<UserDetail>(user);
             return mappedUser;
         }
 

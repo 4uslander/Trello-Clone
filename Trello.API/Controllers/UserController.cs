@@ -18,7 +18,7 @@ namespace Trello.API.Controllers
         }
 
         [HttpPost("register")]
-        [ProducesResponseType(typeof(ApiResponse<GetUserDetail>), StatusCodes.Status201Created)]
+        [ProducesResponseType(typeof(ApiResponse<UserDetail>), StatusCodes.Status201Created)]
         public async Task<IActionResult> CreateEmployeeAsync(CreateUserDTO requestBody)
         {
             if (!ModelState.IsValid)
@@ -28,7 +28,7 @@ namespace Trello.API.Controllers
 
             var result = await _userService.CreateUserAsync(requestBody);
 
-            return Created(string.Empty, new ApiResponse<GetUserDetail>()
+            return Created(string.Empty, new ApiResponse<UserDetail>()
             {
                 Code = StatusCodes.Status201Created,
                 Data = result
@@ -59,7 +59,7 @@ namespace Trello.API.Controllers
             }
         [Authorize]
         [HttpGet("all")]
-        [ProducesResponseType(typeof(ApiResponse<List<GetUserDetail>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<List<UserDetail>>), StatusCodes.Status200OK)]
         public IActionResult GetAllUsers([FromQuery] SearchUserDTO searchKey)
         {
             if (!ModelState.IsValid)
@@ -71,9 +71,9 @@ namespace Trello.API.Controllers
                     Data = errors
                 });
             }
-            List<GetUserDetail> users = _userService.GetAllUser(searchKey);
+            List<UserDetail> users = _userService.GetAllUser(searchKey);
 
-            return Ok(new ApiResponse<List<GetUserDetail>>
+            return Ok(new ApiResponse<List<UserDetail>>
             {
                 Code = StatusCodes.Status200OK,
                 Data = users
@@ -103,7 +103,7 @@ namespace Trello.API.Controllers
         }
         [Authorize]
         [HttpPut("{id}")]
-        [ProducesResponseType(typeof(ApiResponse<GetUserDetail>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<UserDetail>), StatusCodes.Status200OK)]
         public async Task<IActionResult> UpdateUserAsync(int id, [FromForm] UpdateUserDTO requestBody)
         {
             if (!ModelState.IsValid)
@@ -117,7 +117,7 @@ namespace Trello.API.Controllers
             }
             var result = await _userService.UpdateUserAsync(id, requestBody);
 
-            return Ok(new ApiResponse<GetUserDetail>()
+            return Ok(new ApiResponse<UserDetail>()
             {
                 Code = StatusCodes.Status200OK,
                 Data = result
@@ -126,7 +126,7 @@ namespace Trello.API.Controllers
 
         [Authorize/*(Roles = "Admin")*/]
         [HttpDelete("ChangeStatus/{id}")]
-        [ProducesResponseType(typeof(ApiResponse<GetUserDetail>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<UserDetail>), StatusCodes.Status200OK)]
         public async Task<IActionResult> ChangeStatusAsync(int id)
         {
             if (!ModelState.IsValid)
@@ -140,7 +140,7 @@ namespace Trello.API.Controllers
             }
             var result = await _userService.ChangeStatusAsync(id);
 
-            return Ok(new ApiResponse<GetUserDetail>()
+            return Ok(new ApiResponse<UserDetail>()
             {
                 Code = StatusCodes.Status200OK,
                 Data = result

@@ -10,7 +10,7 @@ namespace Trello.Application.Utilities.Helper.Mapping.MappingProfile
     {
         public BoardProfile()
         {
-            CreateMap<Board, GetBoardDetail>()
+            CreateMap<Board, BoardDetail>()
                 .ForMember(dest => dest.IsActiveString, opt => opt.MapFrom(src => Enum.GetName(typeof(BoardStatus), src.IsActive)))
                 .ForMember(dest => dest.IsPublicString, opt => opt.MapFrom(src => Enum.GetName(typeof(BoardPublicStatus), src.IsPublic)));
 
