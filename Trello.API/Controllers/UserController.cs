@@ -60,7 +60,7 @@ namespace Trello.API.Controllers
         [Authorize]
         [HttpGet("all")]
         [ProducesResponseType(typeof(ApiResponse<List<UserDetail>>), StatusCodes.Status200OK)]
-        public IActionResult GetAllUsers([FromQuery] SearchUserDTO searchKey)
+        public IActionResult GetAllUsers([FromQuery] string? email, string? name, string? gender)
         {
             if (!ModelState.IsValid)
             {
@@ -71,7 +71,7 @@ namespace Trello.API.Controllers
                     Data = errors
                 });
             }
-            List<UserDetail> users = _userService.GetAllUser(searchKey);
+            List<UserDetail> users = _userService.GetAllUser(email,name,gender);
 
             return Ok(new ApiResponse<List<UserDetail>>
             {

@@ -74,15 +74,23 @@ namespace Trello.Application.Services.UserServices
             var token = _jwtHelper.generateJwtToken(claims);
             return token;
         }
-        public List<UserDetail> GetAllUser(SearchUserDTO searchKey)
+        public List<UserDetail> GetAllUser(string? email, string? name, string? gender)
         {
             
             IQueryable<User> usersQuery = _unitOfWork.UserRepository.GetAll();
 
             
-            if (!string.IsNullOrEmpty(searchKey?.Name))
+            if (!string.IsNullOrEmpty(email))
             {
-                usersQuery = usersQuery.Where(u => u.Name.Contains(searchKey.Name));
+                usersQuery = usersQuery.Where(u => u.Email.Contains(email));
+            }
+            if (!string.IsNullOrEmpty(name))
+            {
+                usersQuery = usersQuery.Where(u => u.Name.Contains(name));
+            }
+            if (!string.IsNullOrEmpty(gender))
+            {
+                usersQuery = usersQuery.Where(u => u.Gender.Contains(gender));
             }
 
             List<UserDetail> users = usersQuery
