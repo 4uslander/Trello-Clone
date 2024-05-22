@@ -20,7 +20,7 @@ namespace Trello.API.Controllers
 
         [Authorize]
         [HttpPost("create")]
-        [ProducesResponseType(typeof(ApiResponse<GetListDetail>), StatusCodes.Status201Created)]
+        [ProducesResponseType(typeof(ApiResponse<ListDetail>), StatusCodes.Status201Created)]
         public async Task<IActionResult> CreateListAsync(CreateListDTO requestBody)
         {
             if (!ModelState.IsValid)
@@ -30,16 +30,16 @@ namespace Trello.API.Controllers
 
             var result = await _listService.CreateListAsync(requestBody);
 
-            return Created(string.Empty, new ApiResponse<GetListDetail>()
+            return Created(string.Empty, new ApiResponse<ListDetail>()
             {
                 Code = StatusCodes.Status201Created,
                 Data = result
             });
         }
 
-        //[Authorize]
+        [Authorize]
         [HttpGet("all")]
-        [ProducesResponseType(typeof(ApiResponse<List<GetListDetail>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<List<ListDetail>>), StatusCodes.Status200OK)]
         public IActionResult GetAllLists([FromQuery] string? name)
         {
             if (!ModelState.IsValid)
@@ -51,18 +51,18 @@ namespace Trello.API.Controllers
                     Data = errors
                 });
             }
-            List<GetListDetail> result = _listService.GetAllList(name);
+            List<ListDetail> result = _listService.GetAllList(name);
 
-            return Ok(new ApiResponse<List<GetListDetail>>
+            return Ok(new ApiResponse<List<ListDetail>>
             {
                 Code = StatusCodes.Status200OK,
                 Data = result
             });
         }
 
-        //[Authorize]
+        [Authorize]
         [HttpPut("{id}")]
-        [ProducesResponseType(typeof(ApiResponse<GetListDetail>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<ListDetail>), StatusCodes.Status200OK)]
         public async Task<IActionResult> UpdateListAsync(int id, [FromForm] UpdateListDTO requestBody)
         {
             if (!ModelState.IsValid)
@@ -76,16 +76,16 @@ namespace Trello.API.Controllers
             }
             var result = await _listService.UpdateListAsync(id, requestBody);
 
-            return Ok(new ApiResponse<GetListDetail>()
+            return Ok(new ApiResponse<ListDetail>()
             {
                 Code = StatusCodes.Status200OK,
                 Data = result
             });
         }
 
-        //[Authorize/*(Roles = "Admin")*/]
+        [Authorize/*(Roles = "Admin")*/]
         [HttpDelete("ChangeStatus/{id}")]
-        [ProducesResponseType(typeof(ApiResponse<GetListDetail>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<ListDetail>), StatusCodes.Status200OK)]
         public async Task<IActionResult> ChangeStatusAsync(int id)
         {
             if (!ModelState.IsValid)
@@ -99,7 +99,7 @@ namespace Trello.API.Controllers
             }
             var result = await _listService.ChangeStatusAsync(id);
 
-            return Ok(new ApiResponse<GetListDetail>()
+            return Ok(new ApiResponse<ListDetail>()
             {
                 Code = StatusCodes.Status200OK,
                 Data = result

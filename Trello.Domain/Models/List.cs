@@ -14,7 +14,11 @@ namespace Trello.Domain.Models
         public int BoardId { get; set; }
         public string Name { get; set; } = null!;
         public int Position { get; set; }
-        public int IsActive { get; set; }
+        public DateTime CreatedDate { get; set; }
+        public string CreatedUser { get; set; } = null!;
+        public DateTime? UpdatedDate { get; set; }
+        public string? UpdatedUser { get; set; }
+        public bool IsActive { get; set; }
 
         public virtual Board Board { get; set; } = null!;
         public virtual ICollection<Card> Cards { get; set; }

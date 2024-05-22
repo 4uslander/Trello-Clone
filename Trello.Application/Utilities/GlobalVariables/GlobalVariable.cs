@@ -16,6 +16,7 @@ namespace Trello.Application.Utilities.GlobalVariables
             public const string USER_FIELD = "User";
             public const string BOARD_FIELD = "Board";
             public const string LIST_FIELD = "List";
+            public const string TITLE_FIELD = "Title";
             public const string LOGIN_FIELD = "Login";
             public const string USER_ID_FIELD = "User Id";
             public const string BOARD_ID_FIELD = "Board Id";
@@ -26,6 +27,7 @@ namespace Trello.Application.Utilities.GlobalVariables
             public const string EMAIL_ALREADY_EXIST = "This email already exists!";
             public const string BOARD_ALREADY_EXIST = "This board name already exists!";
             public const string LIST_ALREADY_EXIST = "This list name already exists!";
+            public const string TITLE_ALREADY_EXIST = "This card title already exists!";
             public const string NULL_REQUEST_BODY = "Request body is null!";
             public const string INVALID_CREDENTIALS = "Invalid Credentials";
             public const string USER_NOT_EXIST = "This user does not exist!";

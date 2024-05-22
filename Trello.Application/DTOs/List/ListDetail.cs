@@ -6,12 +6,16 @@ using System.Threading.Tasks;
 
 namespace Trello.Application.DTOs.List
 {
-    public class GetListDetail
+    public class ListDetail
     {
         public int Id { get; set; }
         public int BoardId { get; set; }
         public string Name { get; set; } = null!;
         public int Position { get; set; }
+        public DateTime CreatedDate { get; set; }
+        public string CreatedUser { get; set; } = null!;
+        public DateTime? UpdatedDate { get; set; }
+        public string? UpdatedUser { get; set; }
         public string IsActiveString { get; set; }
     }
 }

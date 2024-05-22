@@ -17,11 +17,13 @@ namespace Trello.Domain.Models
         public string Title { get; set; } = null!;
         public string? Description { get; set; }
         public DateTime CreatedDate { get; set; }
+        public string CreatedUser { get; set; } = null!;
         public DateTime? UpdatedDate { get; set; }
+        public string? UpdatedUser { get; set; }
         public DateTime? StartDate { get; set; }
         public DateTime? EndDate { get; set; }
         public DateTime? ReminderDate { get; set; }
-        public int IsActive { get; set; }
+        public bool IsActive { get; set; }
 
         public virtual List List { get; set; } = null!;
         public virtual ICollection<CardActivity> CardActivities { get; set; }

@@ -9,11 +9,12 @@ namespace Trello.Application.DTOs.Board
 {
     public class CreateBoardDTO
     {
+        [Required(ErrorMessage = "Created user is required")]
+        public int CreatedUserId { get; set; }
+
         [Required(ErrorMessage = "Board Name is required")]
         [MaxLength(50, ErrorMessage = "Board Name cannot exceed 50 characters")]
         public string Name { get; set; } = null!;
 
-        [Required(ErrorMessage = "Created Date is required")]
-        public DateTime CreatedDate { get; set; }
     }
 }

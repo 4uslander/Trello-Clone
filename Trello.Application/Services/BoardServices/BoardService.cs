@@ -21,27 +21,32 @@ namespace Trello.Application.Services.BoardServices
             _mapper = mapper;
 
         }
-        public async Task<GetBoardDetail> CreateBoardAsync(CreateBoardDTO requestBody)
+        public async Task<BoardDetail> CreateBoardAsync(CreateBoardDTO requestBody)
         {
             if (requestBody == null)
                 throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.REQUEST_BODY, ErrorMessage.NULL_REQUEST_BODY);
             await IsExistBoardName(requestBody.Name);
 
+            var user = await _unitOfWork.UserRepository.GetByIdAsync(requestBody.CreatedUserId);
+            if (user == null)
+                throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.USER_FIELD, ErrorMessage.USER_NOT_EXIST);
+
             var board = _mapper.Map<Board>(requestBody);
 
             board.CreatedDate = DateTime.Now;
-            board.IsPublic = (int)BoardPublicStatus.Public;
-            board.IsActive = (int)BoardStatus.Active;
+            board.CreatedUser = user.Name;
+            board.IsPublic = true;
+            board.IsActive = true;
 
             await _unitOfWork.BoardRepository.InsertAsync(board);
             await _unitOfWork.SaveChangesAsync();
 
-            var createdBoardDto = _mapper.Map<GetBoardDetail>(board);
+            var createdBoardDto = _mapper.Map<BoardDetail>(board);
 
             return createdBoardDto;
         }
 
-        public List<GetBoardDetail> GetAllBoard(SearchBoardDTO searchKey)
+        public List<BoardDetail> GetAllBoard(SearchBoardDTO searchKey)
         {
             IQueryable<Board> boardsQuery = _unitOfWork.BoardRepository.GetAll();
 
@@ -51,8 +56,8 @@ namespace Trello.Application.Services.BoardServices
                 boardsQuery = boardsQuery.Where(u => u.Name.Contains(searchKey.Name));
             }
 
-            List<GetBoardDetail> boards = boardsQuery
-                .Select(u => _mapper.Map<GetBoardDetail>(u))
+            List<BoardDetail> boards = boardsQuery
+                .Select(u => _mapper.Map<BoardDetail>(u))
                 .ToList();
 
             return boards;
@@ -65,7 +70,7 @@ namespace Trello.Application.Services.BoardServices
                 throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.BOARD_FIELD, ErrorMessage.BOARD_ALREADY_EXIST);
         }
 
-        public async Task<GetBoardDetail> UpdateBoardAsync(int id, UpdateBoardDTO requestBody)
+        public async Task<BoardDetail> UpdateBoardAsync(int id, UpdateBoardDTO requestBody)
         {
             if (id != requestBody.BoardId)
                 throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.BOARD_ID_FIELD, ErrorMessage.BOARD_NOT_EXIST);
@@ -79,29 +84,29 @@ namespace Trello.Application.Services.BoardServices
             _unitOfWork.BoardRepository.Update(board);
             await _unitOfWork.SaveChangesAsync();
 
-            var boardDetail = _mapper.Map<GetBoardDetail>(board);
+            var boardDetail = _mapper.Map<BoardDetail>(board);
             return boardDetail;
         }
 
-        public async Task<GetBoardDetail> ChangeStatusAsync(int Id)
+        public async Task<BoardDetail> ChangeStatusAsync(int Id)
         {
             var board = await _unitOfWork.BoardRepository.GetByIdAsync(Id);
             if (board == null)
                 throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.BOARD_ID_FIELD, ErrorMessage.BOARD_NOT_EXIST);
 
-            if (board.IsActive == (int)UserStatus.Active)
+            if (board.IsActive == true)
             {
-                board.IsActive = (int)UserStatus.InActive;
+                board.IsActive = false;
             }
             else
             {
-                board.IsActive = (int)UserStatus.Active;
+                board.IsActive = true;
             }
 
             _unitOfWork.BoardRepository.Update(board);
             await _unitOfWork.SaveChangesAsync();
 
-            var mappedBoard = _mapper.Map<GetBoardDetail>(board);
+            var mappedBoard = _mapper.Map<BoardDetail>(board);
             return mappedBoard;
         }
 
