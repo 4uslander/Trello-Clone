@@ -20,9 +20,9 @@ namespace Trello.API.Controllers
 
 
         //[Authorize]
-        [HttpPost("create")]
+        [HttpPost("create-card")]
         [ProducesResponseType(typeof(ApiResponse<CardDetail>), StatusCodes.Status201Created)]
-        public async Task<IActionResult> CreateCardAsync(CreateCardDTO requestBody)
+        public async Task<IActionResult> CreateCardAsync(CardDTO requestBody)
         {
             if (!ModelState.IsValid)
             {
@@ -39,7 +39,7 @@ namespace Trello.API.Controllers
         }
 
         //[Authorize]
-        [HttpGet("all")]
+        [HttpGet("get-all-card")]
         [ProducesResponseType(typeof(ApiResponse<List<CardDetail>>), StatusCodes.Status200OK)]
         public IActionResult GetAllCards([FromQuery] string? title)
         {

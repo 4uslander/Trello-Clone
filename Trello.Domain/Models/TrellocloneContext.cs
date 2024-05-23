@@ -49,13 +49,9 @@ namespace Trello.Domain.Models
 
                 entity.Property(e => e.CreatedDate).HasColumnType("datetime");
 
-                entity.Property(e => e.CreatedUser).HasMaxLength(50);
-
                 entity.Property(e => e.Name).HasMaxLength(50);
 
                 entity.Property(e => e.UpdatedDate).HasColumnType("datetime");
-
-                entity.Property(e => e.UpdatedUser).HasMaxLength(50);
             });
 
             modelBuilder.Entity<BoardMember>(entity =>
@@ -66,11 +62,7 @@ namespace Trello.Domain.Models
 
                 entity.Property(e => e.CreatedDate).HasColumnType("datetime");
 
-                entity.Property(e => e.CreatedUser).HasMaxLength(50);
-
                 entity.Property(e => e.UpdatedDate).HasColumnType("datetime");
-
-                entity.Property(e => e.UpdatedUser).HasMaxLength(50);
 
                 entity.HasOne(d => d.Board)
                     .WithMany()
@@ -99,8 +91,6 @@ namespace Trello.Domain.Models
 
                 entity.Property(e => e.CreatedDate).HasColumnType("datetime");
 
-                entity.Property(e => e.CreatedUser).HasMaxLength(50);
-
                 entity.Property(e => e.EndDate).HasColumnType("datetime");
 
                 entity.Property(e => e.ReminderDate).HasColumnType("datetime");
@@ -110,8 +100,6 @@ namespace Trello.Domain.Models
                 entity.Property(e => e.Title).HasMaxLength(50);
 
                 entity.Property(e => e.UpdatedDate).HasColumnType("datetime");
-
-                entity.Property(e => e.UpdatedUser).HasMaxLength(50);
 
                 entity.HasOne(d => d.List)
                     .WithMany(p => p.Cards)
@@ -128,11 +116,7 @@ namespace Trello.Domain.Models
 
                 entity.Property(e => e.CreatedDate).HasColumnType("datetime");
 
-                entity.Property(e => e.CreatedUser).HasMaxLength(50);
-
                 entity.Property(e => e.UpdatedDate).HasColumnType("datetime");
-
-                entity.Property(e => e.UpdatedUser).HasMaxLength(50);
 
                 entity.HasOne(d => d.Card)
                     .WithMany(p => p.CardActivities)
@@ -155,11 +139,7 @@ namespace Trello.Domain.Models
 
                 entity.Property(e => e.CreatedDate).HasColumnType("datetime");
 
-                entity.Property(e => e.CreatedUser).HasMaxLength(50);
-
                 entity.Property(e => e.UpdatedDate).HasColumnType("datetime");
-
-                entity.Property(e => e.UpdatedUser).HasMaxLength(50);
 
                 entity.HasOne(d => d.Card)
                     .WithMany()
@@ -182,11 +162,7 @@ namespace Trello.Domain.Models
 
                 entity.Property(e => e.CreatedDate).HasColumnType("datetime");
 
-                entity.Property(e => e.CreatedUser).HasMaxLength(50);
-
                 entity.Property(e => e.UpdatedDate).HasColumnType("datetime");
-
-                entity.Property(e => e.UpdatedUser).HasMaxLength(50);
 
                 entity.HasOne(d => d.Card)
                     .WithMany()
@@ -209,11 +185,7 @@ namespace Trello.Domain.Models
 
                 entity.Property(e => e.CreatedDate).HasColumnType("datetime");
 
-                entity.Property(e => e.CreatedUser).HasMaxLength(50);
-
                 entity.Property(e => e.UpdatedDate).HasColumnType("datetime");
-
-                entity.Property(e => e.UpdatedUser).HasMaxLength(50);
 
                 entity.HasOne(d => d.Card)
                     .WithMany(p => p.Comments)
@@ -238,13 +210,9 @@ namespace Trello.Domain.Models
 
                 entity.Property(e => e.CreatedDate).HasColumnType("datetime");
 
-                entity.Property(e => e.CreatedUser).HasMaxLength(50);
-
                 entity.Property(e => e.Name).HasMaxLength(50);
 
                 entity.Property(e => e.UpdatedDate).HasColumnType("datetime");
-
-                entity.Property(e => e.UpdatedUser).HasMaxLength(50);
 
                 entity.HasOne(d => d.Board)
                     .WithMany(p => p.Labels)
@@ -261,15 +229,9 @@ namespace Trello.Domain.Models
 
                 entity.Property(e => e.CreatedDate).HasColumnType("datetime");
 
-                entity.Property(e => e.CreatedUser).HasMaxLength(50);
-
-                entity.Property(e => e.Name)
-                    .HasMaxLength(10)
-                    .IsFixedLength();
+                entity.Property(e => e.Name).HasMaxLength(50);
 
                 entity.Property(e => e.UpdatedDate).HasColumnType("datetime");
-
-                entity.Property(e => e.UpdatedUser).HasMaxLength(50);
 
                 entity.HasOne(d => d.Board)
                     .WithMany(p => p.Lists)
@@ -286,13 +248,9 @@ namespace Trello.Domain.Models
 
                 entity.Property(e => e.CreatedDate).HasColumnType("datetime");
 
-                entity.Property(e => e.CreatedUser).HasMaxLength(50);
-
                 entity.Property(e => e.Name).HasMaxLength(50);
 
                 entity.Property(e => e.UpdatedDate).HasColumnType("datetime");
-
-                entity.Property(e => e.UpdatedUser).HasMaxLength(50);
             });
 
             modelBuilder.Entity<Task>(entity =>
@@ -303,13 +261,9 @@ namespace Trello.Domain.Models
 
                 entity.Property(e => e.CreatedDate).HasColumnType("datetime");
 
-                entity.Property(e => e.CreatedUser).HasMaxLength(50);
-
                 entity.Property(e => e.Name).HasMaxLength(50);
 
                 entity.Property(e => e.UpdatedDate).HasColumnType("datetime");
-
-                entity.Property(e => e.UpdatedUser).HasMaxLength(50);
 
                 entity.HasOne(d => d.Todo)
                     .WithMany(p => p.Tasks)
@@ -326,13 +280,9 @@ namespace Trello.Domain.Models
 
                 entity.Property(e => e.CreatedDate).HasColumnType("datetime");
 
-                entity.Property(e => e.CreatedUser).HasMaxLength(50);
-
                 entity.Property(e => e.Title).HasMaxLength(100);
 
                 entity.Property(e => e.UpdatedDate).HasColumnType("datetime");
-
-                entity.Property(e => e.UpdatedUser).HasMaxLength(50);
 
                 entity.HasOne(d => d.Card)
                     .WithMany(p => p.ToDos)
@@ -349,8 +299,6 @@ namespace Trello.Domain.Models
 
                 entity.Property(e => e.CreatedDate).HasColumnType("datetime");
 
-                entity.Property(e => e.CreatedUser).HasMaxLength(50);
-
                 entity.Property(e => e.Email).HasMaxLength(50);
 
                 entity.Property(e => e.Gender).HasMaxLength(20);
@@ -360,8 +308,6 @@ namespace Trello.Domain.Models
                 entity.Property(e => e.Password).HasMaxLength(255);
 
                 entity.Property(e => e.UpdatedDate).HasColumnType("datetime");
-
-                entity.Property(e => e.UpdatedUser).HasMaxLength(50);
             });
 
             OnModelCreatingPartial(modelBuilder);

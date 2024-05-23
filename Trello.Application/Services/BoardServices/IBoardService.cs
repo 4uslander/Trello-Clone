@@ -14,6 +14,7 @@ namespace Trello.Application.Services.BoardServices
         public List<BoardDetail> GetAllBoard(string? name);
         public Task<BoardDetail> UpdateBoardAsync(Guid id, UpdateBoardDTO requestBody);
         public Task<BoardDetail> ChangeStatusAsync(Guid Id);
+        public Task<BoardDetail> ChangeVisibility(Guid Id);
         public Task IsExistBoardName(string? name);
     }
 }

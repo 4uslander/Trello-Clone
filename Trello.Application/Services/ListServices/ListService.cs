@@ -1,8 +1,11 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
@@ -20,27 +23,34 @@ namespace Trello.Application.Services.ListServices
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public ListService(IUnitOfWork unitOfWork, IMapper mapper)
+        public ListService(IUnitOfWork unitOfWork, IMapper mapper, IHttpContextAccessor httpContextAccessor)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
-
+            _httpContextAccessor = httpContextAccessor;
         }
-        public async Task<ListDetail> CreateListAsync(CreateListDTO requestBody)
+        public async Task<ListDetail> CreateListAsync(ListDTO requestBody)
         {
             if (requestBody == null)
                 throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.REQUEST_BODY, ErrorMessage.NULL_REQUEST_BODY);
 
-            await IsExistListName(requestBody.Name);
+            await IsExistListName(requestBody.Name, requestBody.BoardId);
             await IsExistBoardId(requestBody.BoardId);
-            ValidateListPosition(requestBody.Position);
-            await IsUniqueListPosition(requestBody.BoardId, requestBody.Position);
+
+            var currentUserId = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (currentUserId == null)
+                throw new ExceptionResponse(HttpStatusCode.Unauthorized, ErrorField.AUTHENTICATION_FIELD, ErrorMessage.UNAUTHORIZED);
+            var latestPosition = await GetLatestListPositionAsync(requestBody.BoardId);
 
             var list = _mapper.Map<List>(requestBody);
+            list.Id = Guid.NewGuid();
             list.IsActive = true;
             list.CreatedDate = DateTime.Now;
-            //list.CreatedUser = requestBody.UserName;
+            list.CreatedUser = Guid.Parse(currentUserId);
+            list.Position = latestPosition + 1;
+            
 
             await _unitOfWork.ListRepository.InsertAsync(list);
             await _unitOfWork.SaveChangesAsync();
@@ -70,11 +80,15 @@ namespace Trello.Application.Services.ListServices
             var list = await _unitOfWork.ListRepository.GetByIdAsync(id)
                 ?? throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.LIST_FIELD, ErrorMessage.LIST_NOT_EXIST);
 
-            await IsExistListName(requestBody.Name);
-            ValidateListPosition(requestBody.Position);
-            await IsUniqueListPosition(requestBody.BoardId, requestBody.Position);
+            await IsExistListName(requestBody.Name, requestBody.BoardId);
+
+            var currentUserId = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (currentUserId == null)
+                throw new ExceptionResponse(HttpStatusCode.Unauthorized, ErrorField.AUTHENTICATION_FIELD, ErrorMessage.UNAUTHORIZED);
 
             list = _mapper.Map(requestBody, list);
+            list.UpdatedDate = DateTime.Now;
+            list.UpdatedUser = Guid.Parse(currentUserId);
 
             _unitOfWork.ListRepository.Update(list);
             await _unitOfWork.SaveChangesAsync();
@@ -105,9 +119,9 @@ namespace Trello.Application.Services.ListServices
             return mappedList;
         }
 
-        public async System.Threading.Tasks.Task IsExistListName(string? name)
+        public async System.Threading.Tasks.Task IsExistListName(string name, Guid boardId)
         {
-            var isExist = await _unitOfWork.ListRepository.AnyAsync(x => x.Name.Equals(name));
+            var isExist = await _unitOfWork.ListRepository.AnyAsync(x => x.Name == name && x.BoardId == boardId);
             if (isExist)
                 throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.LIST_FIELD, ErrorMessage.LIST_ALREADY_EXIST);
         }
@@ -117,18 +131,13 @@ namespace Trello.Application.Services.ListServices
             if (!boardExists)
                 throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.BOARD_FIELD, ErrorMessage.BOARD_NOT_EXIST);
         }
-
-        public async System.Threading.Tasks.Task IsUniqueListPosition(Guid boardId, int position)
+        public async Task<int> GetLatestListPositionAsync(Guid boardId)
         {
-            var isExist = await _unitOfWork.ListRepository.AnyAsync(x => x.BoardId == boardId && x.Position == position);
-            if (isExist)
-                throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.LIST_FIELD, ErrorMessage.LIST_POSITION_ALREADY_EXIST);
-        }
+            var latestPosition = await _unitOfWork.ListRepository.GetAll().Where(x => x.BoardId == boardId)
+                .OrderByDescending(x => x.Position).Select(x => x.Position)
+                .FirstOrDefaultAsync();
 
-        private void ValidateListPosition(int position)
-        {
-            if (position < 1)
-                throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.LIST_FIELD, ErrorMessage.INVALID_LIST_POSITION);
+            return latestPosition;
         }
     }
 }

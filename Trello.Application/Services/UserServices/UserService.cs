@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net;
@@ -19,12 +20,14 @@ namespace Trello.Application.Services.UserServices
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly IJwtHelper _jwtHelper;
-        public UserService(IUnitOfWork unitOfWork, IMapper mapper, IJwtHelper jwtHelper)
+        private readonly IHttpContextAccessor _httpContextAccessor;
+
+        public UserService(IUnitOfWork unitOfWork, IMapper mapper, IJwtHelper jwtHelper, IHttpContextAccessor httpContextAccessor)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _jwtHelper = jwtHelper;
-
+            _httpContextAccessor = httpContextAccessor;
         }
 
         public async Task<UserDetail> CreateUserAsync(CreateUserDTO requestBody)
@@ -43,7 +46,7 @@ namespace Trello.Application.Services.UserServices
             user.IsActive = true;
             user.Password = hashedPasswordWithSalt;
             user.CreatedDate = DateTime.UtcNow;
-            user.CreatedUser = requestBody.Name;
+            user.CreatedUser = user.Id;
 
             await _unitOfWork.UserRepository.InsertAsync(user);
             await _unitOfWork.SaveChangesAsync();
@@ -119,7 +122,11 @@ namespace Trello.Application.Services.UserServices
             var user = await _unitOfWork.UserRepository.GetByIdAsync(id)
                 ?? throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.USER_FIELD, ErrorMessage.USER_NOT_EXIST);
 
-            user.UpdatedUser = requestBody.Name;
+            var currentUserId = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (currentUserId == null)
+                throw new ExceptionResponse(HttpStatusCode.Unauthorized, ErrorField.AUTHENTICATION_FIELD, ErrorMessage.UNAUTHORIZED);
+
+            user.UpdatedUser = Guid.Parse(currentUserId);
             user.UpdatedDate = DateTime.UtcNow;
             user = _mapper.Map(requestBody, user);
 

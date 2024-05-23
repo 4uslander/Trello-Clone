@@ -10,9 +10,9 @@ namespace Trello.Domain.Models
         public string? Name { get; set; }
         public string Color { get; set; } = null!;
         public DateTime CreatedDate { get; set; }
-        public string CreatedUser { get; set; } = null!;
+        public Guid CreatedUser { get; set; }
         public DateTime? UpdatedDate { get; set; }
-        public string? UpdatedUser { get; set; }
+        public Guid UpdatedUser { get; set; }
         public bool IsActive { get; set; }
 
         public virtual Board Board { get; set; } = null!;

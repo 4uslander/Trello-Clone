@@ -10,7 +10,7 @@ namespace Trello.Application.Services.CardServices
 {
     public interface ICardService
     {
-        public Task<CardDetail> CreateCardAsync(CreateCardDTO requestBody);
+        public Task<CardDetail> CreateCardAsync(CardDTO requestBody);
         public List<CardDetail> GetAllList(string? title);
         public Task IsExistCardTitle(string? title);
         public Task IsExistListId(Guid? id);

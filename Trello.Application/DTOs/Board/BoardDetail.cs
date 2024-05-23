@@ -14,7 +14,7 @@ namespace Trello.Application.DTOs.Board
         public string CreatedUser { get; set; } = null!;
         public DateTime? UpdatedDate { get; set; }
         public string? UpdatedUser { get; set; }
-        public string IsPublicString { get; set; }
-        public string IsActiveString { get; set; }
+        public bool IsPublic { get; set; }
+        public bool IsActive { get; set; }
     }
 }

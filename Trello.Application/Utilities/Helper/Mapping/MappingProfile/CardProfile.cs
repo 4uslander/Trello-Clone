@@ -14,10 +14,8 @@ namespace Trello.Application.Utilities.Helper.Mapping.MappingProfile
     {
         public CardProfile()
         {
-            CreateMap<Card, CardDetail>()
-                .ForMember(dest => dest.IsActiveString, opt => opt.MapFrom(src => src.IsActive? "Active" : "Inactive"));
-
-            CreateMap<CreateCardDTO, Card>().ReverseMap();
+            CreateMap<Card, CardDetail>().ReverseMap();
+            CreateMap<CardDTO, Card>().ReverseMap();
             //CreateMap<UpdateListDTO, List>().ReverseMap();
         }
     }
