@@ -7,16 +7,19 @@ using System.Threading.Tasks;
 
 namespace Trello.Application.DTOs.List
 {
-    public class CreateListDTO
+    public class ListDTO
     {
         [Required(ErrorMessage = "Board Id is required")]
         public Guid BoardId { get; set; }
 
         [Required(ErrorMessage = "List Name is required")]
-        [MaxLength(50, ErrorMessage = "Board Name cannot exceed 50 characters")]
+        [MaxLength(50, ErrorMessage = "List Name cannot exceed 50 characters")]
         public string Name { get; set; } = null!;
+    }
+    public class UpdateListDTO : ListDTO
+    {
+        [Required]
+        public Guid ListId { get; set; }
 
-        [Required(ErrorMessage = "List Position is required")]
-        public int Position { get; set; }
     }
 }

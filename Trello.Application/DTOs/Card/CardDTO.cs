@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Trello.Application.DTOs.Card
 {
-    public class CreateCardDTO
+    public class CardDTO
     {
         [Required(ErrorMessage = "List Id is required")]
         public Guid ListId { get; set; }
@@ -16,18 +16,10 @@ namespace Trello.Application.DTOs.Card
         [MaxLength(50, ErrorMessage = "Title cannot exceed 50 characters")]
         public string Title { get; set; } = null!;
 
-        public string? Description { get; set; }
-
-        [Required(ErrorMessage = "Created Date is required")]
-        public DateTime CreatedDate { get; set; }
-
-        public DateTime? UpdatedDate { get; set; }
-
-        public DateTime? StartDate { get; set; }
-
-        public DateTime? EndDate { get; set; }
-
-        public DateTime? ReminderDate { get; set; }
+        //public string? Description { get; set; }
+        //public DateTime? StartDate { get; set; }
+        //public DateTime? EndDate { get; set; }
+        //public DateTime? ReminderDate { get; set; }
 
     }
 }

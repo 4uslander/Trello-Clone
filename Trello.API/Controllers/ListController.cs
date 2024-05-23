@@ -19,9 +19,9 @@ namespace Trello.API.Controllers
         }
 
         [Authorize]
-        [HttpPost("create")]
+        [HttpPost("create-list")]
         [ProducesResponseType(typeof(ApiResponse<ListDetail>), StatusCodes.Status201Created)]
-        public async Task<IActionResult> CreateListAsync(CreateListDTO requestBody)
+        public async Task<IActionResult> CreateListAsync(ListDTO requestBody)
         {
             if (!ModelState.IsValid)
             {
@@ -38,7 +38,7 @@ namespace Trello.API.Controllers
         }
 
         [Authorize]
-        [HttpGet("all")]
+        [HttpGet("get-all-list")]
         [ProducesResponseType(typeof(ApiResponse<List<ListDetail>>), StatusCodes.Status200OK)]
         public IActionResult GetAllLists([FromQuery] string? name)
         {
@@ -61,7 +61,7 @@ namespace Trello.API.Controllers
         }
 
         [Authorize]
-        [HttpPut("{id}")]
+        [HttpPut("update-list/{id}")]
         [ProducesResponseType(typeof(ApiResponse<ListDetail>), StatusCodes.Status200OK)]
         public async Task<IActionResult> UpdateListAsync(Guid id, [FromForm] UpdateListDTO requestBody)
         {
@@ -84,7 +84,7 @@ namespace Trello.API.Controllers
         }
 
         [Authorize/*(Roles = "Admin")*/]
-        [HttpDelete("ChangeStatus/{id}")]
+        [HttpPut("change-status/{id}")]
         [ProducesResponseType(typeof(ApiResponse<ListDetail>), StatusCodes.Status200OK)]
         public async Task<IActionResult> ChangeStatusAsync(Guid id)
         {

@@ -13,9 +13,9 @@ namespace Trello.Application.DTOs.User
         public string Name { get; set; } = null!;
         public string? Gender { get; set; }
         public DateTime CreatedDate { get; set; }
-        public string CreatedUser { get; set; } = null!;
+        public Guid CreatedUser { get; set; }
         public DateTime? UpdatedDate { get; set; }
-        public string? UpdatedUser { get; set; }
-        public string IsActiveString { get; set; }
+        public Guid? UpdatedUser { get; set; }
+        public bool IsActive { get; set; }
     }
 }

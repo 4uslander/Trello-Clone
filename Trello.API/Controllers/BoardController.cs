@@ -19,7 +19,7 @@ namespace Trello.API.Controllers
         }
 
         [Authorize]
-        [HttpPost("create")]
+        [HttpPost("create-board")]
         [ProducesResponseType(typeof(ApiResponse<BoardDetail>), StatusCodes.Status201Created)]
         public async Task<IActionResult> CreateBoardAsync(CreateBoardDTO requestBody)
         {
@@ -38,7 +38,7 @@ namespace Trello.API.Controllers
         }
 
         [Authorize]
-        [HttpGet("all")]
+        [HttpGet("get-all-board")]
         [ProducesResponseType(typeof(ApiResponse<List<BoardDetail>>), StatusCodes.Status200OK)]
         public IActionResult GetAllBoards([FromQuery] string? name)
         {
@@ -61,7 +61,7 @@ namespace Trello.API.Controllers
         }
 
         [Authorize]
-        [HttpPut("{id}")]
+        [HttpPut("update-board/{id}")]
         [ProducesResponseType(typeof(ApiResponse<BoardDetail>), StatusCodes.Status200OK)]
         public async Task<IActionResult> UpdateBoardAsync(Guid id, [FromForm] UpdateBoardDTO requestBody)
         {
@@ -83,7 +83,7 @@ namespace Trello.API.Controllers
             });
         }
         [Authorize/*(Roles = "Admin")*/]
-        [HttpDelete("ChangeStatus/{id}")]
+        [HttpPut("change-board/{id}")]
         [ProducesResponseType(typeof(ApiResponse<BoardDetail>), StatusCodes.Status200OK)]
         public async Task<IActionResult> ChangeStatusAsync(Guid id)
         {
@@ -97,6 +97,28 @@ namespace Trello.API.Controllers
                 });
             }
             var result = await _boardService.ChangeStatusAsync(id);
+
+            return Ok(new ApiResponse<BoardDetail>()
+            {
+                Code = StatusCodes.Status200OK,
+                Data = result
+            });
+        }
+        [Authorize]
+        [HttpPut("change-visibility/{id}")]
+        [ProducesResponseType(typeof(ApiResponse<BoardDetail>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> ChangeVisibility(Guid id)
+        {
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
+                return BadRequest(new ApiResponse<IEnumerable<string>>
+                {
+                    Code = StatusCodes.Status400BadRequest,
+                    Data = errors
+                });
+            }
+            var result = await _boardService.ChangeVisibility(id);
 
             return Ok(new ApiResponse<BoardDetail>()
             {

@@ -1,8 +1,10 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
@@ -20,22 +22,31 @@ namespace Trello.Application.Services.CardServices
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public CardService(IUnitOfWork unitOfWork, IMapper mapper)
+        public CardService(IUnitOfWork unitOfWork, IMapper mapper, IHttpContextAccessor httpContextAccessor)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
-
+            _httpContextAccessor = httpContextAccessor;
         }
-        public async Task<CardDetail> CreateCardAsync(CreateCardDTO requestBody)
+        public async Task<CardDetail> CreateCardAsync(CardDTO requestBody)
         {
             if (requestBody == null)
                 throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.REQUEST_BODY, ErrorMessage.NULL_REQUEST_BODY);
 
             await IsExistCardTitle(requestBody.Title);
             await IsExistListId(requestBody.ListId);
+
+            var currentUserId = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (currentUserId == null)
+                throw new ExceptionResponse(HttpStatusCode.Unauthorized, ErrorField.AUTHENTICATION_FIELD, ErrorMessage.UNAUTHORIZED);
+
             var card = _mapper.Map<Card>(requestBody);
+            card.Id = Guid.NewGuid();
             card.IsActive = true;
+            card.CreatedDate = DateTime.UtcNow;
+            card.CreatedUser = Guid.Parse(currentUserId);
 
             await _unitOfWork.CardRepository.InsertAsync(card);
             await _unitOfWork.SaveChangesAsync();

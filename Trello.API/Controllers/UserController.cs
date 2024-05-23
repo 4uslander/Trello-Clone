@@ -17,7 +17,7 @@ namespace Trello.API.Controllers
             _userService = userService;
         }
 
-        [HttpPost("register")]
+        [HttpPost("register-user")]
         [ProducesResponseType(typeof(ApiResponse<UserDetail>), StatusCodes.Status201Created)]
         public async Task<IActionResult> CreateEmployeeAsync(CreateUserDTO requestBody)
         {
@@ -58,7 +58,7 @@ namespace Trello.API.Controllers
                 });
             }
         [Authorize]
-        [HttpGet("all")]
+        [HttpGet("get-all-user")]
         [ProducesResponseType(typeof(ApiResponse<List<UserDetail>>), StatusCodes.Status200OK)]
         public IActionResult GetAllUsers([FromQuery] string? email, string? name, string? gender)
         {
@@ -80,7 +80,7 @@ namespace Trello.API.Controllers
             });
         }
         [Authorize]
-        [HttpGet("{id}")]
+        [HttpGet("get-user/{id}")]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetUserLoginAsync(Guid id)
         {
@@ -102,7 +102,7 @@ namespace Trello.API.Controllers
             });
         }
         [Authorize]
-        [HttpPut("{id}")]
+        [HttpPut("update-user/{id}")]
         [ProducesResponseType(typeof(ApiResponse<UserDetail>), StatusCodes.Status200OK)]
         public async Task<IActionResult> UpdateUserAsync(Guid id, [FromForm] UpdateUserDTO requestBody)
         {
@@ -125,7 +125,7 @@ namespace Trello.API.Controllers
         }
 
         [Authorize/*(Roles = "Admin")*/]
-        [HttpDelete("ChangeStatus/{id}")]
+        [HttpPut("change-status/{id}")]
         [ProducesResponseType(typeof(ApiResponse<UserDetail>), StatusCodes.Status200OK)]
         public async Task<IActionResult> ChangeStatusAsync(Guid id)
         {

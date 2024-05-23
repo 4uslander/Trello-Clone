@@ -37,7 +37,7 @@ namespace Trello.Application.Services.BoardServices
             var board = _mapper.Map<Board>(requestBody);
             board.Id = Guid.NewGuid();
             board.CreatedDate = DateTime.Now;
-            board.CreatedUser = user.Name;
+            board.CreatedUser = user.Id;
             board.IsPublic = true;
             board.IsActive = true;
 
@@ -82,13 +82,13 @@ namespace Trello.Application.Services.BoardServices
                 ?? throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.BOARD_ID_FIELD, ErrorMessage.BOARD_NOT_EXIST);
 
 
-            var currentUser = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (currentUser == null)
+            var currentUserId = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (currentUserId == null)
                 throw new ExceptionResponse(HttpStatusCode.Unauthorized, ErrorField.AUTHENTICATION_FIELD, ErrorMessage.UNAUTHORIZED);
 
             board = _mapper.Map(requestBody, board);
             board.UpdatedDate = DateTime.Now;
-            board.UpdatedUser = currentUser;
+            board.UpdatedUser = Guid.Parse(currentUserId);
 
             _unitOfWork.BoardRepository.Update(board);
             await _unitOfWork.SaveChangesAsync();
@@ -110,6 +110,27 @@ namespace Trello.Application.Services.BoardServices
             else
             {
                 board.IsActive = true;
+            }
+
+            _unitOfWork.BoardRepository.Update(board);
+            await _unitOfWork.SaveChangesAsync();
+
+            var mappedBoard = _mapper.Map<BoardDetail>(board);
+            return mappedBoard;
+        }
+        public async Task<BoardDetail> ChangeVisibility(Guid Id)
+        {
+            var board = await _unitOfWork.BoardRepository.GetByIdAsync(Id);
+            if (board == null)
+                throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.BOARD_ID_FIELD, ErrorMessage.BOARD_NOT_EXIST);
+
+            if (board.IsPublic == true)
+            {
+                board.IsPublic = false;
+            }
+            else
+            {
+                board.IsPublic = true;
             }
 
             _unitOfWork.BoardRepository.Update(board);

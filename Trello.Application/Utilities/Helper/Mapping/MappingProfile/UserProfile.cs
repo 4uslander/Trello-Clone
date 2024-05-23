@@ -8,9 +8,7 @@ namespace Trello.Application.Utilities.Helper.Mapping.MappingProfile
     {
         public UserProfile()
         {
-            CreateMap<User, UserDetail>()
-                .ForMember(dest => dest.IsActiveString, opt => opt.MapFrom(src => src.IsActive ? "Active" : "Inactive"));
-
+            CreateMap<User, UserDetail>().ReverseMap();
             CreateMap<CreateUserDTO, User>().ReverseMap();
             CreateMap<User, UpdateUserDTO>().ReverseMap();
         }
