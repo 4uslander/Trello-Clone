@@ -11,7 +11,7 @@ namespace Trello.Domain.Models
             Lists = new HashSet<List>();
         }
 
-        public int Id { get; set; }
+        public Guid Id { get; set; }
         public string Name { get; set; } = null!;
         public DateTime CreatedDate { get; set; }
         public string CreatedUser { get; set; } = null!;

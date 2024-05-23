@@ -10,9 +10,9 @@ namespace Trello.Application.DTOs.List
     public class UpdateListDTO
     {
         [Required]
-        public int BoardId { get; set; }
+        public Guid BoardId { get; set; }
         [Required]
-        public int ListId { get; set; }
+        public Guid ListId { get; set; }
 
 
         [Required(ErrorMessage = "List Name is required")]

@@ -82,7 +82,7 @@ namespace Trello.API.Controllers
         [Authorize]
         [HttpGet("{id}")]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
-        public async Task<IActionResult> GetUserLoginAsync(int id)
+        public async Task<IActionResult> GetUserLoginAsync(Guid id)
         {
             if (!ModelState.IsValid)
             {
@@ -104,7 +104,7 @@ namespace Trello.API.Controllers
         [Authorize]
         [HttpPut("{id}")]
         [ProducesResponseType(typeof(ApiResponse<UserDetail>), StatusCodes.Status200OK)]
-        public async Task<IActionResult> UpdateUserAsync(int id, [FromForm] UpdateUserDTO requestBody)
+        public async Task<IActionResult> UpdateUserAsync(Guid id, [FromForm] UpdateUserDTO requestBody)
         {
             if (!ModelState.IsValid)
             {
@@ -127,7 +127,7 @@ namespace Trello.API.Controllers
         [Authorize/*(Roles = "Admin")*/]
         [HttpDelete("ChangeStatus/{id}")]
         [ProducesResponseType(typeof(ApiResponse<UserDetail>), StatusCodes.Status200OK)]
-        public async Task<IActionResult> ChangeStatusAsync(int id)
+        public async Task<IActionResult> ChangeStatusAsync(Guid id)
         {
             if (!ModelState.IsValid)
             {

@@ -5,8 +5,8 @@ namespace Trello.Domain.Models
 {
     public partial class Task
     {
-        public int Id { get; set; }
-        public int TodoId { get; set; }
+        public Guid Id { get; set; }
+        public Guid TodoId { get; set; }
         public string Name { get; set; } = null!;
         public DateTime CreatedDate { get; set; }
         public string CreatedUser { get; set; } = null!;

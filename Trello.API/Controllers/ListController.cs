@@ -63,7 +63,7 @@ namespace Trello.API.Controllers
         [Authorize]
         [HttpPut("{id}")]
         [ProducesResponseType(typeof(ApiResponse<ListDetail>), StatusCodes.Status200OK)]
-        public async Task<IActionResult> UpdateListAsync(int id, [FromForm] UpdateListDTO requestBody)
+        public async Task<IActionResult> UpdateListAsync(Guid id, [FromForm] UpdateListDTO requestBody)
         {
             if (!ModelState.IsValid)
             {
@@ -86,7 +86,7 @@ namespace Trello.API.Controllers
         [Authorize/*(Roles = "Admin")*/]
         [HttpDelete("ChangeStatus/{id}")]
         [ProducesResponseType(typeof(ApiResponse<ListDetail>), StatusCodes.Status200OK)]
-        public async Task<IActionResult> ChangeStatusAsync(int id)
+        public async Task<IActionResult> ChangeStatusAsync(Guid id)
         {
             if (!ModelState.IsValid)
             {

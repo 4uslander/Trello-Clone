@@ -45,6 +45,8 @@ namespace Trello.Domain.Models
             {
                 entity.ToTable("Board");
 
+                entity.Property(e => e.Id).ValueGeneratedNever();
+
                 entity.Property(e => e.CreatedDate).HasColumnType("datetime");
 
                 entity.Property(e => e.CreatedUser).HasMaxLength(50);
@@ -65,8 +67,6 @@ namespace Trello.Domain.Models
                 entity.Property(e => e.CreatedDate).HasColumnType("datetime");
 
                 entity.Property(e => e.CreatedUser).HasMaxLength(50);
-
-                entity.Property(e => e.Id).ValueGeneratedOnAdd();
 
                 entity.Property(e => e.UpdatedDate).HasColumnType("datetime");
 
@@ -95,6 +95,8 @@ namespace Trello.Domain.Models
             {
                 entity.ToTable("Card");
 
+                entity.Property(e => e.Id).ValueGeneratedNever();
+
                 entity.Property(e => e.CreatedDate).HasColumnType("datetime");
 
                 entity.Property(e => e.CreatedUser).HasMaxLength(50);
@@ -121,6 +123,8 @@ namespace Trello.Domain.Models
             modelBuilder.Entity<CardActivity>(entity =>
             {
                 entity.ToTable("CardActivity");
+
+                entity.Property(e => e.Id).ValueGeneratedNever();
 
                 entity.Property(e => e.CreatedDate).HasColumnType("datetime");
 
@@ -153,8 +157,6 @@ namespace Trello.Domain.Models
 
                 entity.Property(e => e.CreatedUser).HasMaxLength(50);
 
-                entity.Property(e => e.Id).ValueGeneratedOnAdd();
-
                 entity.Property(e => e.UpdatedDate).HasColumnType("datetime");
 
                 entity.Property(e => e.UpdatedUser).HasMaxLength(50);
@@ -182,8 +184,6 @@ namespace Trello.Domain.Models
 
                 entity.Property(e => e.CreatedUser).HasMaxLength(50);
 
-                entity.Property(e => e.Id).ValueGeneratedOnAdd();
-
                 entity.Property(e => e.UpdatedDate).HasColumnType("datetime");
 
                 entity.Property(e => e.UpdatedUser).HasMaxLength(50);
@@ -204,6 +204,8 @@ namespace Trello.Domain.Models
             modelBuilder.Entity<Comment>(entity =>
             {
                 entity.ToTable("Comment");
+
+                entity.Property(e => e.Id).ValueGeneratedNever();
 
                 entity.Property(e => e.CreatedDate).HasColumnType("datetime");
 
@@ -230,6 +232,8 @@ namespace Trello.Domain.Models
             {
                 entity.ToTable("Label");
 
+                entity.Property(e => e.Id).ValueGeneratedNever();
+
                 entity.Property(e => e.Color).HasMaxLength(50);
 
                 entity.Property(e => e.CreatedDate).HasColumnType("datetime");
@@ -252,6 +256,8 @@ namespace Trello.Domain.Models
             modelBuilder.Entity<List>(entity =>
             {
                 entity.ToTable("List");
+
+                entity.Property(e => e.Id).ValueGeneratedNever();
 
                 entity.Property(e => e.CreatedDate).HasColumnType("datetime");
 
@@ -276,6 +282,8 @@ namespace Trello.Domain.Models
             {
                 entity.ToTable("Role");
 
+                entity.Property(e => e.Id).ValueGeneratedNever();
+
                 entity.Property(e => e.CreatedDate).HasColumnType("datetime");
 
                 entity.Property(e => e.CreatedUser).HasMaxLength(50);
@@ -290,6 +298,8 @@ namespace Trello.Domain.Models
             modelBuilder.Entity<Task>(entity =>
             {
                 entity.ToTable("Task");
+
+                entity.Property(e => e.Id).ValueGeneratedNever();
 
                 entity.Property(e => e.CreatedDate).HasColumnType("datetime");
 
@@ -312,6 +322,8 @@ namespace Trello.Domain.Models
             {
                 entity.ToTable("ToDo");
 
+                entity.Property(e => e.Id).ValueGeneratedNever();
+
                 entity.Property(e => e.CreatedDate).HasColumnType("datetime");
 
                 entity.Property(e => e.CreatedUser).HasMaxLength(50);
@@ -332,6 +344,8 @@ namespace Trello.Domain.Models
             modelBuilder.Entity<User>(entity =>
             {
                 entity.ToTable("User");
+
+                entity.Property(e => e.Id).ValueGeneratedNever();
 
                 entity.Property(e => e.CreatedDate).HasColumnType("datetime");
 

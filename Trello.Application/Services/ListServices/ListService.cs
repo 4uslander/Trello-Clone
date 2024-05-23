@@ -64,7 +64,7 @@ namespace Trello.Application.Services.ListServices
 
             return lists;
         }
-        public async Task<ListDetail> UpdateListAsync(int id, UpdateListDTO requestBody)
+        public async Task<ListDetail> UpdateListAsync(Guid id, UpdateListDTO requestBody)
         {
 
             var list = await _unitOfWork.ListRepository.GetByIdAsync(id)
@@ -83,7 +83,7 @@ namespace Trello.Application.Services.ListServices
             return listDetail;
         }
 
-        public async Task<ListDetail> ChangeStatusAsync(int Id)
+        public async Task<ListDetail> ChangeStatusAsync(Guid Id)
         {
             var list = await _unitOfWork.ListRepository.GetByIdAsync(Id);
             if (list == null)
@@ -111,14 +111,14 @@ namespace Trello.Application.Services.ListServices
             if (isExist)
                 throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.LIST_FIELD, ErrorMessage.LIST_ALREADY_EXIST);
         }
-        public async System.Threading.Tasks.Task IsExistBoardId(int? id)
+        public async System.Threading.Tasks.Task IsExistBoardId(Guid? id)
         {
             var boardExists = await _unitOfWork.BoardRepository.AnyAsync(x => x.Id.Equals(id));
             if (!boardExists)
                 throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.BOARD_FIELD, ErrorMessage.BOARD_NOT_EXIST);
         }
 
-        public async System.Threading.Tasks.Task IsUniqueListPosition(int boardId, int position)
+        public async System.Threading.Tasks.Task IsUniqueListPosition(Guid boardId, int position)
         {
             var isExist = await _unitOfWork.ListRepository.AnyAsync(x => x.BoardId == boardId && x.Position == position);
             if (isExist)

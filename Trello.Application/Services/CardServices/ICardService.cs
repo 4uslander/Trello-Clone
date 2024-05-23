@@ -13,6 +13,6 @@ namespace Trello.Application.Services.CardServices
         public Task<CardDetail> CreateCardAsync(CreateCardDTO requestBody);
         public List<CardDetail> GetAllList(string? title);
         public Task IsExistCardTitle(string? title);
-        public Task IsExistListId(int? id);
+        public Task IsExistListId(Guid? id);
     }
 }

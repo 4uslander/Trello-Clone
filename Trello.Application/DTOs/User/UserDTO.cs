@@ -29,7 +29,7 @@ namespace Trello.Application.DTOs.User
     public class UpdateUserDTO : UserDTO
     {
         [Required]
-        public int UserId { get; set; }
+        public Guid UserId { get; set; }
 
         [Required(ErrorMessage = "Gender is required")]
         [MaxLength(50, ErrorMessage = "Gender cannot exceed 50 characters")]

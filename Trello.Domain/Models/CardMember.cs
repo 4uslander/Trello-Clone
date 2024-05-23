@@ -5,9 +5,9 @@ namespace Trello.Domain.Models
 {
     public partial class CardMember
     {
-        public int Id { get; set; }
-        public int CardId { get; set; }
-        public int UserId { get; set; }
+        public Guid Id { get; set; }
+        public Guid CardId { get; set; }
+        public Guid UserId { get; set; }
         public DateTime CreatedDate { get; set; }
         public string CreatedUser { get; set; } = null!;
         public DateTime? UpdatedDate { get; set; }

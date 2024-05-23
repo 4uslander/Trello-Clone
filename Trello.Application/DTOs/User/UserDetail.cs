@@ -8,7 +8,7 @@ namespace Trello.Application.DTOs.User
 {
     public class UserDetail
     {
-        public int Id { get; set; }
+        public Guid Id { get; set; }
         public string Email { get; set; } = null!;
         public string Name { get; set; } = null!;
         public string? Gender { get; set; }

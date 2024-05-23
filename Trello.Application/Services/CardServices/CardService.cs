@@ -68,7 +68,7 @@ namespace Trello.Application.Services.CardServices
                 throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.TITLE_FIELD, ErrorMessage.TITLE_ALREADY_EXIST);
         }
 
-        public async System.Threading.Tasks.Task IsExistListId(int? id)
+        public async System.Threading.Tasks.Task IsExistListId(Guid? id)
         {
             var listExists = await _unitOfWork.ListRepository.AnyAsync(x => x.Id.Equals(id));
             if (!listExists)
