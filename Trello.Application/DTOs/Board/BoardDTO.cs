@@ -7,13 +7,21 @@ using System.Threading.Tasks;
 
 namespace Trello.Application.DTOs.Board
 {
-    public class UpdateBoardDTO
+    public class BoardDTO
     {
-        [Required]
-        public int BoardId { get; set; }
-
         [Required(ErrorMessage = "Board Name is required")]
         [MaxLength(50, ErrorMessage = "Board Name cannot exceed 50 characters")]
         public string Name { get; set; } = null!;
+
+    }
+    public class CreateBoardDTO : BoardDTO
+    {
+        [Required(ErrorMessage = "Created user is required")]
+        public Guid CreatedUserId { get; set; }
+    }
+    public class UpdateBoardDTO : BoardDTO
+    {
+        [Required]
+        public Guid BoardId { get; set; }
     }
 }

@@ -40,7 +40,7 @@ namespace Trello.API.Controllers
         [Authorize]
         [HttpGet("all")]
         [ProducesResponseType(typeof(ApiResponse<List<BoardDetail>>), StatusCodes.Status200OK)]
-        public IActionResult GetAllBoards([FromQuery] SearchBoardDTO searchKey)
+        public IActionResult GetAllBoards([FromQuery] string? name)
         {
             if (!ModelState.IsValid)
             {
@@ -51,7 +51,7 @@ namespace Trello.API.Controllers
                     Data = errors
                 });
             }
-            List<BoardDetail> result = _boardService.GetAllBoard(searchKey);
+            List<BoardDetail> result = _boardService.GetAllBoard(name);
 
             return Ok(new ApiResponse<List<BoardDetail>>
             {
@@ -63,7 +63,7 @@ namespace Trello.API.Controllers
         [Authorize]
         [HttpPut("{id}")]
         [ProducesResponseType(typeof(ApiResponse<BoardDetail>), StatusCodes.Status200OK)]
-        public async Task<IActionResult> UpdateBoardAsync(int id, [FromForm] UpdateBoardDTO requestBody)
+        public async Task<IActionResult> UpdateBoardAsync(Guid id, [FromForm] UpdateBoardDTO requestBody)
         {
             if (!ModelState.IsValid)
             {
@@ -85,7 +85,7 @@ namespace Trello.API.Controllers
         [Authorize/*(Roles = "Admin")*/]
         [HttpDelete("ChangeStatus/{id}")]
         [ProducesResponseType(typeof(ApiResponse<BoardDetail>), StatusCodes.Status200OK)]
-        public async Task<IActionResult> ChangeStatusAsync(int id)
+        public async Task<IActionResult> ChangeStatusAsync(Guid id)
         {
             if (!ModelState.IsValid)
             {

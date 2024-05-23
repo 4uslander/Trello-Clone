@@ -1,5 +1,7 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Http;
 using System.Net;
+using System.Security.Claims;
 using Trello.Application.DTOs.Board;
 using Trello.Application.DTOs.User;
 using Trello.Application.Utilities.ErrorHandler;
@@ -14,12 +16,13 @@ namespace Trello.Application.Services.BoardServices
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public BoardService(IUnitOfWork unitOfWork, IMapper mapper)
+        public BoardService(IUnitOfWork unitOfWork, IMapper mapper, IHttpContextAccessor httpContextAccessor)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
-
+            _httpContextAccessor = httpContextAccessor;
         }
         public async Task<BoardDetail> CreateBoardAsync(CreateBoardDTO requestBody)
         {
@@ -32,7 +35,7 @@ namespace Trello.Application.Services.BoardServices
                 throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.USER_FIELD, ErrorMessage.USER_NOT_EXIST);
 
             var board = _mapper.Map<Board>(requestBody);
-
+            board.Id = Guid.NewGuid();
             board.CreatedDate = DateTime.Now;
             board.CreatedUser = user.Name;
             board.IsPublic = true;
@@ -46,14 +49,14 @@ namespace Trello.Application.Services.BoardServices
             return createdBoardDto;
         }
 
-        public List<BoardDetail> GetAllBoard(SearchBoardDTO searchKey)
+        public List<BoardDetail> GetAllBoard(string? name)
         {
             IQueryable<Board> boardsQuery = _unitOfWork.BoardRepository.GetAll();
 
 
-            if (!string.IsNullOrEmpty(searchKey?.Name))
+            if (!string.IsNullOrEmpty(name))
             {
-                boardsQuery = boardsQuery.Where(u => u.Name.Contains(searchKey.Name));
+                boardsQuery = boardsQuery.Where(u => u.Name.Contains(name));
             }
 
             List<BoardDetail> boards = boardsQuery
@@ -70,7 +73,7 @@ namespace Trello.Application.Services.BoardServices
                 throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.BOARD_FIELD, ErrorMessage.BOARD_ALREADY_EXIST);
         }
 
-        public async Task<BoardDetail> UpdateBoardAsync(int id, UpdateBoardDTO requestBody)
+        public async Task<BoardDetail> UpdateBoardAsync(Guid id, UpdateBoardDTO requestBody)
         {
             if (id != requestBody.BoardId)
                 throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.BOARD_ID_FIELD, ErrorMessage.BOARD_NOT_EXIST);
@@ -79,7 +82,13 @@ namespace Trello.Application.Services.BoardServices
                 ?? throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.BOARD_ID_FIELD, ErrorMessage.BOARD_NOT_EXIST);
 
 
+            var currentUser = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (currentUser == null)
+                throw new ExceptionResponse(HttpStatusCode.Unauthorized, ErrorField.AUTHENTICATION_FIELD, ErrorMessage.UNAUTHORIZED);
+
             board = _mapper.Map(requestBody, board);
+            board.UpdatedDate = DateTime.Now;
+            board.UpdatedUser = currentUser;
 
             _unitOfWork.BoardRepository.Update(board);
             await _unitOfWork.SaveChangesAsync();
@@ -88,7 +97,7 @@ namespace Trello.Application.Services.BoardServices
             return boardDetail;
         }
 
-        public async Task<BoardDetail> ChangeStatusAsync(int Id)
+        public async Task<BoardDetail> ChangeStatusAsync(Guid Id)
         {
             var board = await _unitOfWork.BoardRepository.GetByIdAsync(Id);
             if (board == null)

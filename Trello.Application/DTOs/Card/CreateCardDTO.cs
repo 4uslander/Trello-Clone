@@ -10,7 +10,7 @@ namespace Trello.Application.DTOs.Card
     public class CreateCardDTO
     {
         [Required(ErrorMessage = "List Id is required")]
-        public int ListId { get; set; }
+        public Guid ListId { get; set; }
 
         [Required(ErrorMessage = "Title is required")]
         [MaxLength(50, ErrorMessage = "Title cannot exceed 50 characters")]

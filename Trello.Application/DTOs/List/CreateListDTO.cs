@@ -10,7 +10,7 @@ namespace Trello.Application.DTOs.List
     public class CreateListDTO
     {
         [Required(ErrorMessage = "Board Id is required")]
-        public int BoardId { get; set; }
+        public Guid BoardId { get; set; }
 
         [Required(ErrorMessage = "List Name is required")]
         [MaxLength(50, ErrorMessage = "Board Name cannot exceed 50 characters")]

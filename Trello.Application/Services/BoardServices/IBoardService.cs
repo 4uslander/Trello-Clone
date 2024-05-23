@@ -11,9 +11,9 @@ namespace Trello.Application.Services.BoardServices
     public interface IBoardService
     {
         public Task<BoardDetail> CreateBoardAsync(CreateBoardDTO requestBody);
-        public List<BoardDetail> GetAllBoard(SearchBoardDTO searchKey);
-        public Task<BoardDetail> UpdateBoardAsync(int id, UpdateBoardDTO requestBody);
-        public Task<BoardDetail> ChangeStatusAsync(int Id);
+        public List<BoardDetail> GetAllBoard(string? name);
+        public Task<BoardDetail> UpdateBoardAsync(Guid id, UpdateBoardDTO requestBody);
+        public Task<BoardDetail> ChangeStatusAsync(Guid Id);
         public Task IsExistBoardName(string? name);
     }
 }

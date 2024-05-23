@@ -39,6 +39,7 @@ namespace Trello.Application.Services.UserServices
 
 
             var user = _mapper.Map<User>(requestBody);
+            user.Id = Guid.NewGuid();
             user.IsActive = true;
             user.Password = hashedPasswordWithSalt;
             user.CreatedDate = DateTime.UtcNow;
@@ -99,7 +100,7 @@ namespace Trello.Application.Services.UserServices
 
             return users;
         }
-        public async Task<object> GetUserLoginAsync(int userId)
+        public async Task<object> GetUserLoginAsync(Guid userId)
         {
             var user = await _unitOfWork.UserRepository.Get(u => u.Id == userId).SingleOrDefaultAsync()
                 ?? throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.USER_FIELD, ErrorMessage.USER_NOT_EXIST);
@@ -110,7 +111,7 @@ namespace Trello.Application.Services.UserServices
 
             return userDetail;
         }
-        public async Task<UserDetail> UpdateUserAsync(int id, UpdateUserDTO requestBody)
+        public async Task<UserDetail> UpdateUserAsync(Guid id, UpdateUserDTO requestBody)
         {
             if (id != requestBody.UserId)
                 throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.USER_ID_FIELD, ErrorMessage.USER_NOT_EXIST);
@@ -128,7 +129,7 @@ namespace Trello.Application.Services.UserServices
             var userDetail = _mapper.Map<UserDetail>(user);
             return userDetail;
         }
-        public async Task<UserDetail> ChangeStatusAsync(int userId)
+        public async Task<UserDetail> ChangeStatusAsync(Guid userId)
         {
             var user = await _unitOfWork.UserRepository.GetByIdAsync(userId);
             if (user == null)

@@ -12,10 +12,10 @@ namespace Trello.Application.Services.ListServices
     {
         public Task<ListDetail> CreateListAsync(CreateListDTO requestBody);
         public List<ListDetail> GetAllList(string? name);
-        public Task<ListDetail> UpdateListAsync(int id, UpdateListDTO requestBody);
-        public Task<ListDetail> ChangeStatusAsync(int Id);
+        public Task<ListDetail> UpdateListAsync(Guid id, UpdateListDTO requestBody);
+        public Task<ListDetail> ChangeStatusAsync(Guid Id);
         public Task IsExistListName(string? name);
-        public Task IsExistBoardId(int? id);
-        Task IsUniqueListPosition(int boardId, int position);
+        public Task IsExistBoardId(Guid? id);
+        Task IsUniqueListPosition(Guid boardId, int position);
     }
 }

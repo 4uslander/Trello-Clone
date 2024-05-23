@@ -8,8 +8,8 @@ namespace Trello.Application.DTOs.List
 {
     public class ListDetail
     {
-        public int Id { get; set; }
-        public int BoardId { get; set; }
+        public Guid Id { get; set; }
+        public Guid BoardId { get; set; }
         public string Name { get; set; } = null!;
         public int Position { get; set; }
         public DateTime CreatedDate { get; set; }

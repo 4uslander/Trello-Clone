@@ -20,6 +20,7 @@ namespace Trello.Application.Utilities.GlobalVariables
             public const string LOGIN_FIELD = "Login";
             public const string USER_ID_FIELD = "User Id";
             public const string BOARD_ID_FIELD = "Board Id";
+            public const string AUTHENTICATION_FIELD = "Authentication";
 
         }
         public static class ErrorMessage
@@ -37,6 +38,7 @@ namespace Trello.Application.Utilities.GlobalVariables
             public const string INACTIVE_USER = "This user is inactive";
             public const string INVALID_LIST_POSITION = "List position must be greater than or equal to 1.";
             public const string LIST_POSITION_ALREADY_EXIST = "List position already exists within the same board.";
+            public const string UNAUTHORIZED = "Unauthorized";
         }
     }
 }
