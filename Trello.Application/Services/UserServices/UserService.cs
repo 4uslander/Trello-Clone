@@ -54,7 +54,7 @@ namespace Trello.Application.Services.UserServices
             var newUser = _mapper.Map<UserDetail>(user);
             return newUser;
         }
-        public async Task<string> LoginAsync(LoginDTO loginRequest)
+        public async Task<string> LoginAsync(UserLoginDTO loginRequest)
         {
             var user = await _unitOfWork.UserRepository.FirstOrDefaultAsync(x => x.Email == loginRequest.Email);
 
@@ -116,8 +116,6 @@ namespace Trello.Application.Services.UserServices
         }
         public async Task<UserDetail> UpdateUserAsync(Guid id, UpdateUserDTO requestBody)
         {
-            if (id != requestBody.UserId)
-                throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.USER_ID_FIELD, ErrorMessage.USER_NOT_EXIST);
 
             var user = await _unitOfWork.UserRepository.GetByIdAsync(id)
                 ?? throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.USER_FIELD, ErrorMessage.USER_NOT_EXIST);
@@ -141,6 +139,14 @@ namespace Trello.Application.Services.UserServices
             var user = await _unitOfWork.UserRepository.GetByIdAsync(userId);
             if (user == null)
                 throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.USER_FIELD, ErrorMessage.USER_NOT_EXIST);
+
+            var currentUserId = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (currentUserId == null)
+                throw new ExceptionResponse(HttpStatusCode.Unauthorized, ErrorField.AUTHENTICATION_FIELD, ErrorMessage.UNAUTHORIZED);
+
+            user.UpdatedUser = Guid.Parse(currentUserId);
+            user.UpdatedDate = DateTime.UtcNow;
+
 
             if (user.IsActive == true)
             {

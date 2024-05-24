@@ -63,7 +63,7 @@ namespace Trello.API.Controllers
         [Authorize]
         [HttpPut("update-board/{id}")]
         [ProducesResponseType(typeof(ApiResponse<BoardDetail>), StatusCodes.Status200OK)]
-        public async Task<IActionResult> UpdateBoardAsync(Guid id, [FromForm] UpdateBoardDTO requestBody)
+        public async Task<IActionResult> UpdateBoardAsync(Guid id, [FromForm] BoardDTO requestBody)
         {
             if (!ModelState.IsValid)
             {

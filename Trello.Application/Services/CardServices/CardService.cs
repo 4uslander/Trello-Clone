@@ -30,7 +30,7 @@ namespace Trello.Application.Services.CardServices
             _mapper = mapper;
             _httpContextAccessor = httpContextAccessor;
         }
-        public async Task<CardDetail> CreateCardAsync(CardDTO requestBody)
+        public async Task<CardDetail> CreateCardAsync(CreateCardDTO requestBody)
         {
             if (requestBody == null)
                 throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.REQUEST_BODY, ErrorMessage.NULL_REQUEST_BODY);
@@ -45,6 +45,7 @@ namespace Trello.Application.Services.CardServices
             var card = _mapper.Map<Card>(requestBody);
             card.Id = Guid.NewGuid();
             card.IsActive = true;
+            card.ListId = requestBody.ListId;
             card.CreatedDate = DateTime.UtcNow;
             card.CreatedUser = Guid.Parse(currentUserId);
 
@@ -70,6 +71,73 @@ namespace Trello.Application.Services.CardServices
                 .ToList();
 
             return cards;
+        }
+        public async Task<CardDetail> UpdateCardAsync(Guid id, UpdateCardDTO requestBody)
+        {
+            var card = await _unitOfWork.CardRepository.GetByIdAsync(id)
+                ?? throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.CARD_FIELD, ErrorMessage.CARD_NOT_EXIST);
+
+            await IsExistCardTitle(requestBody.Title);
+
+            var currentUserId = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (currentUserId == null)
+                throw new ExceptionResponse(HttpStatusCode.Unauthorized, ErrorField.AUTHENTICATION_FIELD, ErrorMessage.UNAUTHORIZED);
+
+            // Validate that EndDate is later than StartDate
+            if (requestBody.EndDate.HasValue && requestBody.StartDate.HasValue)
+            {
+                if (requestBody.EndDate.Value <= requestBody.StartDate.Value)
+                {
+                    throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.DATE_FIELD, ErrorMessage.INVALID_END_DATE);
+                }
+            }
+            // Validate that ReminderDate is equal or later than EndDate
+            if (requestBody.ReminderDate.HasValue && requestBody.EndDate.HasValue)
+            {
+                if (requestBody.ReminderDate.Value < requestBody.EndDate.Value)
+                {
+                    throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.DATE_FIELD, ErrorMessage.INVALID_REMINDER_DATE);
+                }
+            }
+
+            card = _mapper.Map(requestBody, card);
+
+            card.UpdatedDate = DateTime.UtcNow; 
+            card.UpdatedUser = Guid.Parse(currentUserId);
+
+            _unitOfWork.CardRepository.Update(card);
+            await _unitOfWork.SaveChangesAsync();
+
+            var cardDetail = _mapper.Map<CardDetail>(card);
+            return cardDetail;
+        }
+
+        public async Task<CardDetail> ChangeStatusAsync(Guid Id)
+        {
+            var card = await _unitOfWork.CardRepository.GetByIdAsync(Id)
+                ?? throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.CARD_FIELD, ErrorMessage.CARD_NOT_EXIST);
+
+            var currentUserId = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (currentUserId == null)
+                throw new ExceptionResponse(HttpStatusCode.Unauthorized, ErrorField.AUTHENTICATION_FIELD, ErrorMessage.UNAUTHORIZED);
+
+            card.UpdatedDate = DateTime.Now;
+            card.UpdatedUser = Guid.Parse(currentUserId);
+
+            if (card.IsActive == true)
+            {
+                card.IsActive = false;
+            }
+            else
+            {
+                card.IsActive = true;
+            }
+
+            _unitOfWork.CardRepository.Update(card);
+            await _unitOfWork.SaveChangesAsync();
+
+            var mappedList = _mapper.Map<CardDetail>(card);
+            return mappedList;
         }
 
         public async System.Threading.Tasks.Task IsExistCardTitle(string? title)

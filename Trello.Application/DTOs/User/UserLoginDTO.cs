@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Trello.Application.DTOs.User
 {
-    public class LoginDTO
+    public class UserLoginDTO
     {
 
         [EmailAddress]

@@ -34,7 +34,7 @@ namespace Trello.Infrastructure.IRepositories
 
         void Update(TEntity entity);
 
-        Task DeleteAsync(int id);
+        Task DeleteAsync(Guid id);
 
     }
 }

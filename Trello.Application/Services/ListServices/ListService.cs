@@ -74,7 +74,7 @@ namespace Trello.Application.Services.ListServices
 
             return lists;
         }
-        public async Task<ListDetail> UpdateListAsync(Guid id, UpdateListDTO requestBody)
+        public async Task<ListDetail> UpdateListAsync(Guid id, ListDTO requestBody)
         {
 
             var list = await _unitOfWork.ListRepository.GetByIdAsync(id)
@@ -103,6 +103,13 @@ namespace Trello.Application.Services.ListServices
             if (list == null)
                 throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.LIST_FIELD, ErrorMessage.LIST_NOT_EXIST);
 
+            var currentUserId = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (currentUserId == null)
+                throw new ExceptionResponse(HttpStatusCode.Unauthorized, ErrorField.AUTHENTICATION_FIELD, ErrorMessage.UNAUTHORIZED);
+
+            list.UpdatedDate = DateTime.Now;
+            list.UpdatedUser = Guid.Parse(currentUserId);
+
             if (list.IsActive == true)
             {
                 list.IsActive = false;
@@ -119,7 +126,7 @@ namespace Trello.Application.Services.ListServices
             return mappedList;
         }
 
-        public async System.Threading.Tasks.Task IsExistListName(string name, Guid boardId)
+        public async System.Threading.Tasks.Task IsExistListName(string? name, Guid boardId)
         {
             var isExist = await _unitOfWork.ListRepository.AnyAsync(x => x.Name == name && x.BoardId == boardId);
             if (isExist)
