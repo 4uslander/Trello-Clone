@@ -36,7 +36,7 @@ namespace Trello.API.Controllers
         }
         [HttpPost("login")]
         [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status200OK)]
-        public async Task<IActionResult> LoginAsync(LoginDTO loginRequest)
+        public async Task<IActionResult> LoginAsync(UserLoginDTO loginRequest)
         {
             if (!ModelState.IsValid)
             {
@@ -49,14 +49,14 @@ namespace Trello.API.Controllers
             }
 
 
-                var token = await _userService.LoginAsync(loginRequest);
+            var token = await _userService.LoginAsync(loginRequest);
 
-                return Ok(new LoginResponse<string>
-                {
-                    Code = StatusCodes.Status200OK,
-                    Bearer = token
-                });
-            }
+            return Ok(new LoginResponse<string>
+            {
+                Code = StatusCodes.Status200OK,
+                Bearer = token
+            });
+        }
         [Authorize]
         [HttpGet("get-all-user")]
         [ProducesResponseType(typeof(ApiResponse<List<UserDetail>>), StatusCodes.Status200OK)]
@@ -71,7 +71,7 @@ namespace Trello.API.Controllers
                     Data = errors
                 });
             }
-            List<UserDetail> users = _userService.GetAllUser(email,name,gender);
+            List<UserDetail> users = _userService.GetAllUser(email, name, gender);
 
             return Ok(new ApiResponse<List<UserDetail>>
             {

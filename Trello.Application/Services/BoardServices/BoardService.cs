@@ -51,19 +51,32 @@ namespace Trello.Application.Services.BoardServices
 
         public List<BoardDetail> GetAllBoard(string? name)
         {
+            // Get the current user ID
+            var currentUserId = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (currentUserId == null)
+                throw new ExceptionResponse(HttpStatusCode.Unauthorized, ErrorField.AUTHENTICATION_FIELD, ErrorMessage.UNAUTHORIZED);
+
+            var currentUserIdGuid = Guid.Parse(currentUserId);
+
+            // Query to get all boards
             IQueryable<Board> boardsQuery = _unitOfWork.BoardRepository.GetAll();
 
+            // Filter for public boards or boards created by the current user
+            boardsQuery = boardsQuery.Where(u => u.IsActive && (u.IsPublic || u.CreatedUser == currentUserIdGuid));
 
+            // Additional filter by name if provided
             if (!string.IsNullOrEmpty(name))
             {
                 boardsQuery = boardsQuery.Where(u => u.Name.Contains(name));
             }
 
+            // Map the boards to the BoardDetail DTO
             List<BoardDetail> boards = boardsQuery
                 .Select(u => _mapper.Map<BoardDetail>(u))
                 .ToList();
 
             return boards;
+
         }
 
         public async System.Threading.Tasks.Task IsExistBoardName(string? name)
@@ -73,11 +86,8 @@ namespace Trello.Application.Services.BoardServices
                 throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.BOARD_FIELD, ErrorMessage.BOARD_ALREADY_EXIST);
         }
 
-        public async Task<BoardDetail> UpdateBoardAsync(Guid id, UpdateBoardDTO requestBody)
+        public async Task<BoardDetail> UpdateBoardAsync(Guid id, BoardDTO requestBody)
         {
-            if (id != requestBody.BoardId)
-                throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.BOARD_ID_FIELD, ErrorMessage.BOARD_NOT_EXIST);
-
             var board = await _unitOfWork.BoardRepository.GetByIdAsync(id)
                 ?? throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.BOARD_ID_FIELD, ErrorMessage.BOARD_NOT_EXIST);
 
@@ -103,6 +113,13 @@ namespace Trello.Application.Services.BoardServices
             if (board == null)
                 throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.BOARD_ID_FIELD, ErrorMessage.BOARD_NOT_EXIST);
 
+            var currentUserId = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (currentUserId == null)
+                throw new ExceptionResponse(HttpStatusCode.Unauthorized, ErrorField.AUTHENTICATION_FIELD, ErrorMessage.UNAUTHORIZED);
+
+            board.UpdatedDate = DateTime.Now;
+            board.UpdatedUser = Guid.Parse(currentUserId);
+
             if (board.IsActive == true)
             {
                 board.IsActive = false;
@@ -123,6 +140,13 @@ namespace Trello.Application.Services.BoardServices
             var board = await _unitOfWork.BoardRepository.GetByIdAsync(Id);
             if (board == null)
                 throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.BOARD_ID_FIELD, ErrorMessage.BOARD_NOT_EXIST);
+
+            var currentUserId = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (currentUserId == null)
+                throw new ExceptionResponse(HttpStatusCode.Unauthorized, ErrorField.AUTHENTICATION_FIELD, ErrorMessage.UNAUTHORIZED);
+
+            board.UpdatedDate = DateTime.Now;
+            board.UpdatedUser = Guid.Parse(currentUserId);
 
             if (board.IsPublic == true)
             {

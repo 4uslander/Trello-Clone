@@ -63,7 +63,7 @@ namespace Trello.API.Controllers
         [Authorize]
         [HttpPut("update-list/{id}")]
         [ProducesResponseType(typeof(ApiResponse<ListDetail>), StatusCodes.Status200OK)]
-        public async Task<IActionResult> UpdateListAsync(Guid id, [FromForm] UpdateListDTO requestBody)
+        public async Task<IActionResult> UpdateListAsync(Guid id, [FromForm] ListDTO requestBody)
         {
             if (!ModelState.IsValid)
             {

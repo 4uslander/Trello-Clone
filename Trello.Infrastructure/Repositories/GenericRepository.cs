@@ -120,7 +120,7 @@ namespace Trello.Infrastructure.Repositories
             _dbSet.Attach(entity);
             _context.Entry(entity).State = EntityState.Modified;
         }
-        public async System.Threading.Tasks.Task DeleteAsync(int id)
+        public async System.Threading.Tasks.Task DeleteAsync(Guid id)
         {
             var entity = await _dbSet.FindAsync(id);
             _dbSet.Remove(entity);

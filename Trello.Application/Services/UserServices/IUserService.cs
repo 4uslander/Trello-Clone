@@ -10,7 +10,7 @@ namespace Trello.Application.Services.UserServices
     public interface IUserService
     {
         public Task<UserDetail> CreateUserAsync(CreateUserDTO requestBody);
-        Task<string> LoginAsync(LoginDTO loginRequest);
+        Task<string> LoginAsync(UserLoginDTO loginRequest);
         public List<UserDetail> GetAllUser(string? email, string? name, string? gender);
         public Task<object> GetUserLoginAsync(Guid userId);
         public Task<UserDetail> UpdateUserAsync(Guid id, UpdateUserDTO requestBody);

@@ -19,9 +19,5 @@ namespace Trello.Application.DTOs.Board
         [Required(ErrorMessage = "Created user is required")]
         public Guid CreatedUserId { get; set; }
     }
-    public class UpdateBoardDTO : BoardDTO
-    {
-        [Required]
-        public Guid BoardId { get; set; }
-    }
+
 }
