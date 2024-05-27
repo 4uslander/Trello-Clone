@@ -56,28 +56,28 @@ namespace Trello.Domain.Models
 
             modelBuilder.Entity<BoardMember>(entity =>
             {
-                entity.HasNoKey();
-
                 entity.ToTable("BoardMember");
+
+                entity.Property(e => e.Id).ValueGeneratedNever();
 
                 entity.Property(e => e.CreatedDate).HasColumnType("datetime");
 
                 entity.Property(e => e.UpdatedDate).HasColumnType("datetime");
 
                 entity.HasOne(d => d.Board)
-                    .WithMany()
+                    .WithMany(p => p.BoardMembers)
                     .HasForeignKey(d => d.BoardId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_BoardMember_Board");
 
                 entity.HasOne(d => d.Role)
-                    .WithMany()
+                    .WithMany(p => p.BoardMembers)
                     .HasForeignKey(d => d.RoleId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_BoardMember_Role");
 
                 entity.HasOne(d => d.User)
-                    .WithMany()
+                    .WithMany(p => p.BoardMembers)
                     .HasForeignKey(d => d.UserId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_BoardMember_User");
@@ -133,22 +133,22 @@ namespace Trello.Domain.Models
 
             modelBuilder.Entity<CardLabel>(entity =>
             {
-                entity.HasNoKey();
-
                 entity.ToTable("CardLabel");
+
+                entity.Property(e => e.Id).ValueGeneratedNever();
 
                 entity.Property(e => e.CreatedDate).HasColumnType("datetime");
 
                 entity.Property(e => e.UpdatedDate).HasColumnType("datetime");
 
                 entity.HasOne(d => d.Card)
-                    .WithMany()
+                    .WithMany(p => p.CardLabels)
                     .HasForeignKey(d => d.CardId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_CardLabel_Card");
 
                 entity.HasOne(d => d.Label)
-                    .WithMany()
+                    .WithMany(p => p.CardLabels)
                     .HasForeignKey(d => d.LabelId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_CardLabel_Label");

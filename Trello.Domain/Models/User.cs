@@ -7,6 +7,7 @@ namespace Trello.Domain.Models
     {
         public User()
         {
+            BoardMembers = new HashSet<BoardMember>();
             CardActivities = new HashSet<CardActivity>();
             Comments = new HashSet<Comment>();
         }
@@ -22,6 +23,7 @@ namespace Trello.Domain.Models
         public Guid UpdatedUser { get; set; }
         public bool IsActive { get; set; }
 
+        public virtual ICollection<BoardMember> BoardMembers { get; set; }
         public virtual ICollection<CardActivity> CardActivities { get; set; }
         public virtual ICollection<Comment> Comments { get; set; }
     }

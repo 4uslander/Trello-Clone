@@ -7,6 +7,7 @@ namespace Trello.Domain.Models
     {
         public Board()
         {
+            BoardMembers = new HashSet<BoardMember>();
             Labels = new HashSet<Label>();
             Lists = new HashSet<List>();
         }
@@ -20,6 +21,7 @@ namespace Trello.Domain.Models
         public bool IsPublic { get; set; }
         public bool IsActive { get; set; }
 
+        public virtual ICollection<BoardMember> BoardMembers { get; set; }
         public virtual ICollection<Label> Labels { get; set; }
         public virtual ICollection<List> Lists { get; set; }
     }

@@ -1,13 +1,9 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Collections.Generic;
-using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Trello.Application.Services.BoardMemberServices;
 using Trello.Application.Services.BoardServices;
 using Trello.Application.Services.CardServices;
 using Trello.Application.Services.ListServices;
+using Trello.Application.Services.RoleServices;
 using Trello.Application.Services.UserServices;
 using Trello.Application.Utilities.Helper.JWT;
 using Trello.Infrastructure.IRepositories;
@@ -25,7 +21,8 @@ namespace Trello.Application.Services
             services.AddScoped<IBoardService, BoardService>();
             services.AddScoped<IListService, ListService>();
             services.AddScoped<ICardService, CardService>();
-
+            services.AddScoped<IBoardMemberService, BoardMemberService>();
+            services.AddScoped<IRoleService, RoleService>();
         }
     }
 }

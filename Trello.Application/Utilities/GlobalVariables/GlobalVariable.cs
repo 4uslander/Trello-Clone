@@ -16,9 +16,11 @@ namespace Trello.Application.Utilities.GlobalVariables
             public const string STATUS_FIELD = "Status";
             public const string USER_FIELD = "User";
             public const string BOARD_FIELD = "Board";
+            public const string BOARD_MEMBER_FIELD = "Board Member";
             public const string LIST_FIELD = "List";
             public const string CARD_FIELD = "Card";
             public const string TITLE_FIELD = "Title";
+            public const string ROLE_FIELD = "Title";
             public const string LOGIN_FIELD = "Login";
             public const string USER_ID_FIELD = "User Id";
             public const string BOARD_ID_FIELD = "Board Id";
@@ -29,6 +31,7 @@ namespace Trello.Application.Utilities.GlobalVariables
         {
             public const string EMAIL_ALREADY_EXIST = "This email already exists!";
             public const string BOARD_ALREADY_EXIST = "This board name already exists!";
+            public const string ROLE_ALREADY_EXIST = "This role name already exists!";
             public const string LIST_ALREADY_EXIST = "This list name already exists!";
             public const string TITLE_ALREADY_EXIST = "This card title already exists!";
             public const string NULL_REQUEST_BODY = "Request body is null!";
@@ -37,6 +40,7 @@ namespace Trello.Application.Utilities.GlobalVariables
             public const string INVALID_REMINDER_DATE = "ReminderDate must be equal to or later than EndDate.";
             public const string USER_NOT_EXIST = "This user does not exist!";
             public const string BOARD_NOT_EXIST = "This board does not exist!";
+            public const string BOARD_MEMBER_NOT_EXIST = "This board member does not exist!";
             public const string LIST_NOT_EXIST = "This list does not exist!";
             public const string CARD_NOT_EXIST = "This card does not exist!";
             public const string INVALID_EMAIL_PASSWORD = "Invalid Email or Password";
