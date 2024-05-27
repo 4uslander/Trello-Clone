@@ -1,15 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace Trello.Domain.Models
+namespace Trello.Application.DTOs.Role
 {
-    public partial class Role
+    public class RoleDetail
     {
-        public Role()
-        {
-            BoardMembers = new HashSet<BoardMember>();
-        }
-
         public Guid Id { get; set; }
         public string Name { get; set; } = null!;
         public DateTime CreatedDate { get; set; }
@@ -17,7 +15,5 @@ namespace Trello.Domain.Models
         public DateTime? UpdatedDate { get; set; }
         public Guid UpdatedUser { get; set; }
         public bool IsActive { get; set; }
-
-        public virtual ICollection<BoardMember> BoardMembers { get; set; }
     }
 }
