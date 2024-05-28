@@ -49,7 +49,7 @@ namespace Trello.Domain.Models
 
                 entity.Property(e => e.CreatedDate).HasColumnType("datetime");
 
-                entity.Property(e => e.Name).HasMaxLength(50);
+                entity.Property(e => e.Name).HasMaxLength(255);
 
                 entity.Property(e => e.UpdatedDate).HasColumnType("datetime");
             });
@@ -97,7 +97,7 @@ namespace Trello.Domain.Models
 
                 entity.Property(e => e.StartDate).HasColumnType("datetime");
 
-                entity.Property(e => e.Title).HasMaxLength(50);
+                entity.Property(e => e.Title).HasMaxLength(255);
 
                 entity.Property(e => e.UpdatedDate).HasColumnType("datetime");
 
@@ -210,7 +210,7 @@ namespace Trello.Domain.Models
 
                 entity.Property(e => e.CreatedDate).HasColumnType("datetime");
 
-                entity.Property(e => e.Name).HasMaxLength(50);
+                entity.Property(e => e.Name).HasMaxLength(255);
 
                 entity.Property(e => e.UpdatedDate).HasColumnType("datetime");
 
@@ -229,7 +229,7 @@ namespace Trello.Domain.Models
 
                 entity.Property(e => e.CreatedDate).HasColumnType("datetime");
 
-                entity.Property(e => e.Name).HasMaxLength(50);
+                entity.Property(e => e.Name).HasMaxLength(255);
 
                 entity.Property(e => e.UpdatedDate).HasColumnType("datetime");
 
@@ -248,7 +248,7 @@ namespace Trello.Domain.Models
 
                 entity.Property(e => e.CreatedDate).HasColumnType("datetime");
 
-                entity.Property(e => e.Name).HasMaxLength(50);
+                entity.Property(e => e.Name).HasMaxLength(255);
 
                 entity.Property(e => e.UpdatedDate).HasColumnType("datetime");
             });
@@ -303,7 +303,7 @@ namespace Trello.Domain.Models
 
                 entity.Property(e => e.Gender).HasMaxLength(20);
 
-                entity.Property(e => e.Name).HasMaxLength(50);
+                entity.Property(e => e.Name).HasMaxLength(255);
 
                 entity.Property(e => e.Password).HasMaxLength(255);
 
