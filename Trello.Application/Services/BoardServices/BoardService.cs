@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using System.Net;
 using System.Security.Claims;
 using Trello.Application.DTOs.Board;
@@ -163,6 +164,15 @@ namespace Trello.Application.Services.BoardServices
             var mappedBoard = _mapper.Map<BoardDetail>(board);
             return mappedBoard;
         }
+        public async Task<int> GetTotalBoardAsync(Guid? Id = null)
+        {
+            var total = 0;
+            var query = _unitOfWork.BoardRepository.GetAll();
 
+            if (Id.HasValue)
+                return total = await query.Where(p => p.Id == Id).CountAsync();
+
+            return total = await query.CountAsync();
+        }
     }
 }
