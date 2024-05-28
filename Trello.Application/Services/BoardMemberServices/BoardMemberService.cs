@@ -95,7 +95,7 @@ namespace Trello.Application.Services.BoardMemberServices
         {
             var boardMember = await _unitOfWork.BoardMemberRepository.GetByIdAsync(Id);
             if (boardMember == null)
-                throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.LIST_FIELD, ErrorMessage.LIST_NOT_EXIST);
+                throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.BOARD_MEMBER_FIELD, ErrorMessage.BOARD_MEMBER_NOT_EXIST);
 
             var currentUserId = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (currentUserId == null)

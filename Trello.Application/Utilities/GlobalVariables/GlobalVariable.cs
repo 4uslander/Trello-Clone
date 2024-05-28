@@ -40,6 +40,7 @@ namespace Trello.Application.Utilities.GlobalVariables
             public const string INVALID_REMINDER_DATE = "ReminderDate must be equal to or later than EndDate.";
             public const string USER_NOT_EXIST = "This user does not exist!";
             public const string BOARD_NOT_EXIST = "This board does not exist!";
+            public const string ROLE_NOT_EXIST = "This role does not exist!";
             public const string BOARD_MEMBER_NOT_EXIST = "This board member does not exist!";
             public const string LIST_NOT_EXIST = "This list does not exist!";
             public const string CARD_NOT_EXIST = "This card does not exist!";
