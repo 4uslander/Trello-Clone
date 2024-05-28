@@ -9,6 +9,7 @@ namespace Trello.Domain.Models
         {
             CardActivities = new HashSet<CardActivity>();
             CardLabels = new HashSet<CardLabel>();
+            CardMembers = new HashSet<CardMember>();
             Comments = new HashSet<Comment>();
             ToDos = new HashSet<ToDo>();
         }
@@ -29,6 +30,7 @@ namespace Trello.Domain.Models
         public virtual List List { get; set; } = null!;
         public virtual ICollection<CardActivity> CardActivities { get; set; }
         public virtual ICollection<CardLabel> CardLabels { get; set; }
+        public virtual ICollection<CardMember> CardMembers { get; set; }
         public virtual ICollection<Comment> Comments { get; set; }
         public virtual ICollection<ToDo> ToDos { get; set; }
     }

@@ -18,8 +18,15 @@ namespace Trello.API.Controllers
             _listService = listService;
         }
 
+        /// <summary>
+        /// Creates a new list.
+        /// </summary>
+        /// <param name="requestBody">The details of the list to be created.</param>
+        /// <returns>Returns the created list details.</returns>
+        /// <response code="201">If the list is created successfully.</response>
+        /// <response code="400">If the request body is invalid.</response>
         [Authorize]
-        [HttpPost("create-list")]
+        [HttpPost("create")]
         [ProducesResponseType(typeof(ApiResponse<ListDetail>), StatusCodes.Status201Created)]
         public async Task<IActionResult> CreateListAsync(ListDTO requestBody)
         {
@@ -37,8 +44,15 @@ namespace Trello.API.Controllers
             });
         }
 
+        /// <summary>
+        /// Retrieves all lists, optionally filtered by name.
+        /// </summary>
+        /// <param name="name">The optional name filter for lists.</param>
+        /// <returns>Returns a list of list details.</returns>
+        /// <response code="200">If the retrieval is successful.</response>
+        /// <response code="400">If the request is invalid.</response>
         [Authorize]
-        [HttpGet("get-all-list")]
+        [HttpGet("get-all")]
         [ProducesResponseType(typeof(ApiResponse<List<ListDetail>>), StatusCodes.Status200OK)]
         public IActionResult GetAllLists([FromQuery] string? name)
         {
@@ -60,8 +74,16 @@ namespace Trello.API.Controllers
             });
         }
 
+        /// <summary>
+        /// Updates an existing list.
+        /// </summary>
+        /// <param name="id">The ID of the list to update.</param>
+        /// <param name="requestBody">The new details for the list.</param>
+        /// <returns>Returns the updated list details.</returns>
+        /// <response code="200">If the list is updated successfully.</response>
+        /// <response code="400">If the request is invalid.</response>
         [Authorize]
-        [HttpPut("update-list/{id}")]
+        [HttpPut("update/{id}")]
         [ProducesResponseType(typeof(ApiResponse<ListDetail>), StatusCodes.Status200OK)]
         public async Task<IActionResult> UpdateListAsync(Guid id, [FromForm] ListDTO requestBody)
         {
@@ -83,6 +105,13 @@ namespace Trello.API.Controllers
             });
         }
 
+        /// <summary>
+        /// Changes the status of an existing list.
+        /// </summary>
+        /// <param name="id">The ID of the list whose status is to be changed.</param>
+        /// <returns>Returns the updated list details.</returns>
+        /// <response code="200">If the list status is changed successfully.</response>
+        /// <response code="400">If the request is invalid.</response>
         [Authorize/*(Roles = "Admin")*/]
         [HttpPut("change-status/{id}")]
         [ProducesResponseType(typeof(ApiResponse<ListDetail>), StatusCodes.Status200OK)]

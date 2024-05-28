@@ -17,7 +17,14 @@ namespace Trello.API.Controllers
             _userService = userService;
         }
 
-        [HttpPost("register-user")]
+        /// <summary>
+        /// Registers a new user.
+        /// </summary>
+        /// <param name="requestBody">The details of the user to register.</param>
+        /// <returns>Returns the registered user's details.</returns>
+        /// <response code="201">If the user is created successfully.</response>
+        /// <response code="400">If the request body is invalid.</response>
+        [HttpPost("register")]
         [ProducesResponseType(typeof(ApiResponse<UserDetail>), StatusCodes.Status201Created)]
         public async Task<IActionResult> CreateEmployeeAsync(CreateUserDTO requestBody)
         {
@@ -34,6 +41,14 @@ namespace Trello.API.Controllers
                 Data = result
             });
         }
+
+        /// <summary>
+        /// Logs in a user.
+        /// </summary>
+        /// <param name="loginRequest">The login details of the user.</param>
+        /// <returns>Returns a JWT token if the login is successful.</returns>
+        /// <response code="200">If the login is successful.</response>
+        /// <response code="400">If the request body is invalid.</response>
         [HttpPost("login")]
         [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status200OK)]
         public async Task<IActionResult> LoginAsync(UserLoginDTO loginRequest)
@@ -57,8 +72,18 @@ namespace Trello.API.Controllers
                 Bearer = token
             });
         }
+
+        /// <summary>
+        /// Retrieves all users, optionally filtered by email, name, or gender.
+        /// </summary>
+        /// <param name="email">The optional email filter.</param>
+        /// <param name="name">The optional name filter.</param>
+        /// <param name="gender">The optional gender filter.</param>
+        /// <returns>Returns a list of user details.</returns>
+        /// <response code="200">If the retrieval is successful.</response>
+        /// <response code="400">If the request is invalid.</response>
         [Authorize]
-        [HttpGet("get-all-user")]
+        [HttpGet("get-all")]
         [ProducesResponseType(typeof(ApiResponse<List<UserDetail>>), StatusCodes.Status200OK)]
         public IActionResult GetAllUsers([FromQuery] string? email, string? name, string? gender)
         {
@@ -79,8 +104,16 @@ namespace Trello.API.Controllers
                 Data = users
             });
         }
+
+        /// <summary>
+        /// Retrieves the details of a user by their ID.
+        /// </summary>
+        /// <param name="id">The ID of the user.</param>
+        /// <returns>Returns the user's details.</returns>
+        /// <response code="200">If the retrieval is successful.</response>
+        /// <response code="400">If the request is invalid.</response>
         [Authorize]
-        [HttpGet("get-user/{id}")]
+        [HttpGet("get/{id}")]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetUserLoginAsync(Guid id)
         {
@@ -101,8 +134,17 @@ namespace Trello.API.Controllers
                 Data = result
             });
         }
+
+        /// <summary>
+        /// Updates the details of an existing user.
+        /// </summary>
+        /// <param name="id">The ID of the user to update.</param>
+        /// <param name="requestBody">The new details of the user.</param>
+        /// <returns>Returns the updated user details.</returns>
+        /// <response code="200">If the update is successful.</response>
+        /// <response code="400">If the request is invalid.</response>
         [Authorize]
-        [HttpPut("update-user/{id}")]
+        [HttpPut("update/{id}")]
         [ProducesResponseType(typeof(ApiResponse<UserDetail>), StatusCodes.Status200OK)]
         public async Task<IActionResult> UpdateUserAsync(Guid id, [FromForm] UpdateUserDTO requestBody)
         {
@@ -124,6 +166,13 @@ namespace Trello.API.Controllers
             });
         }
 
+        /// <summary>
+        /// Changes the status of an existing user.
+        /// </summary>
+        /// <param name="id">The ID of the user whose status is to be changed.</param>
+        /// <returns>Returns the updated user details.</returns>
+        /// <response code="200">If the status change is successful.</response>
+        /// <response code="400">If the request is invalid.</response>
         [Authorize/*(Roles = "Admin")*/]
         [HttpPut("change-status/{id}")]
         [ProducesResponseType(typeof(ApiResponse<UserDetail>), StatusCodes.Status200OK)]
