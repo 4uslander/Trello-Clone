@@ -21,7 +21,7 @@ namespace Trello.API.Controllers
         [Authorize]
         [HttpPost("create")]
         [ProducesResponseType(typeof(ApiResponse<BoardMemberDetail>), StatusCodes.Status201Created)]
-        public async Task<IActionResult> CreateBoardMemberAsync(BoardMemberDTO requestBody)
+        public async Task<IActionResult> CreateBoardMemberAsync(CreateBoardMemberDTO requestBody)
         {
             if (!ModelState.IsValid)
             {
@@ -73,6 +73,28 @@ namespace Trello.API.Controllers
                 });
             }
             var result = await _boardMemberService.UpdateBoardMemberAsync(id, requestBody);
+
+            return Ok(new ApiResponse<BoardMemberDetail>()
+            {
+                Code = StatusCodes.Status200OK,
+                Data = result
+            });
+        }
+        [Authorize/*(Roles = "Admin")*/]
+        [HttpPut("change-status/{id}")]
+        [ProducesResponseType(typeof(ApiResponse<BoardMemberDetail>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> ChangeStatusAsync(Guid id)
+        {
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
+                return BadRequest(new ApiResponse<IEnumerable<string>>
+                {
+                    Code = StatusCodes.Status400BadRequest,
+                    Data = errors
+                });
+            }
+            var result = await _boardMemberService.ChangeStatusAsync(id);
 
             return Ok(new ApiResponse<BoardMemberDetail>()
             {
