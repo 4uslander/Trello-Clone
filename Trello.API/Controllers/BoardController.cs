@@ -18,6 +18,13 @@ namespace Trello.API.Controllers
             _boardService = boardService;
         }
 
+        /// <summary>
+        /// Creates a new board.
+        /// </summary>
+        /// <param name="requestBody">The details of the board to be created.</param>
+        /// <returns>Returns the created board details.</returns>
+        /// <response code="201">If the board is created successfully.</response>
+        /// <response code="400">If the request body is invalid.</response>
         [Authorize]
         [HttpPost("create-board")]
         [ProducesResponseType(typeof(ApiResponse<BoardDetail>), StatusCodes.Status201Created)]
@@ -37,6 +44,13 @@ namespace Trello.API.Controllers
             });
         }
 
+        /// <summary>
+        /// Retrieves all boards, optionally filtered by name.
+        /// </summary>
+        /// <param name="name">The optional name filter for boards.</param>
+        /// <returns>Returns a list of board details.</returns>
+        /// <response code="200">If the retrieval is successful.</response>
+        /// <response code="400">If the request is invalid.</response>
         [Authorize]
         [HttpGet("get-all-board")]
         [ProducesResponseType(typeof(ApiResponse<List<BoardDetail>>), StatusCodes.Status200OK)]
@@ -60,6 +74,14 @@ namespace Trello.API.Controllers
             });
         }
 
+        /// <summary>
+        /// Updates an existing board.
+        /// </summary>
+        /// <param name="id">The ID of the board to update.</param>
+        /// <param name="requestBody">The new details for the board.</param>
+        /// <returns>Returns the updated board details.</returns>
+        /// <response code="200">If the board is updated successfully.</response>
+        /// <response code="400">If the request is invalid.</response>
         [Authorize]
         [HttpPut("update-board/{id}")]
         [ProducesResponseType(typeof(ApiResponse<BoardDetail>), StatusCodes.Status200OK)]
@@ -82,6 +104,14 @@ namespace Trello.API.Controllers
                 Data = result
             });
         }
+
+        /// <summary>
+        /// Changes the status of an existing board.
+        /// </summary>
+        /// <param name="id">The ID of the board whose status is to be changed.</param>
+        /// <returns>Returns the updated board details.</returns>
+        /// <response code="200">If the board status is changed successfully.</response>
+        /// <response code="400">If the request is invalid.</response>
         [Authorize/*(Roles = "Admin")*/]
         [HttpPut("change-board/{id}")]
         [ProducesResponseType(typeof(ApiResponse<BoardDetail>), StatusCodes.Status200OK)]
@@ -104,6 +134,14 @@ namespace Trello.API.Controllers
                 Data = result
             });
         }
+
+        /// <summary>
+        /// Changes the visibility of an existing board.
+        /// </summary>
+        /// <param name="id">The ID of the board whose visibility is to be changed.</param>
+        /// <returns>Returns the updated board details.</returns>
+        /// <response code="200">If the board visibility is changed successfully.</response>
+        /// <response code="400">If the request is invalid.</response>
         [Authorize]
         [HttpPut("change-visibility/{id}")]
         [ProducesResponseType(typeof(ApiResponse<BoardDetail>), StatusCodes.Status200OK)]

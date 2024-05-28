@@ -19,6 +19,13 @@ namespace Trello.API.Controllers
             _roleService = roleService;
         }
 
+        /// <summary>
+        /// Creates a new role.
+        /// </summary>
+        /// <param name="requestBody">The details of the role to be created.</param>
+        /// <returns>Returns the created role details.</returns>
+        /// <response code="201">If the role is created successfully.</response>
+        /// <response code="400">If the request body is invalid.</response>
         [Authorize]
         [HttpPost("create")]
         [ProducesResponseType(typeof(ApiResponse<RoleDetail>), StatusCodes.Status201Created)]
@@ -37,6 +44,14 @@ namespace Trello.API.Controllers
                 Data = result
             });
         }
+
+        /// <summary>
+        /// Retrieves all roles, optionally filtered by name.
+        /// </summary>
+        /// <param name="name">The optional name filter for roles.</param>
+        /// <returns>Returns a list of role details.</returns>
+        /// <response code="200">If the retrieval is successful.</response>
+        /// <response code="400">If the request is invalid.</response>
         [Authorize]
         [HttpGet("get-all")]
         [ProducesResponseType(typeof(ApiResponse<List<RoleDetail>>), StatusCodes.Status200OK)]
@@ -59,6 +74,15 @@ namespace Trello.API.Controllers
                 Data = result
             });
         }
+
+        /// <summary>
+        /// Updates an existing role.
+        /// </summary>
+        /// <param name="id">The ID of the role to update.</param>
+        /// <param name="requestBody">The new details for the role.</param>
+        /// <returns>Returns the updated role details.</returns>
+        /// <response code="200">If the role is updated successfully.</response>
+        /// <response code="400">If the request is invalid.</response>
         [Authorize]
         [HttpPut("update/{id}")]
         [ProducesResponseType(typeof(ApiResponse<RoleDetail>), StatusCodes.Status200OK)]
@@ -81,6 +105,14 @@ namespace Trello.API.Controllers
                 Data = result
             });
         }
+
+        /// <summary>
+        /// Changes the status of an existing role.
+        /// </summary>
+        /// <param name="id">The ID of the role whose status is to be changed.</param>
+        /// <returns>Returns the updated role details.</returns>
+        /// <response code="200">If the role status is changed successfully.</response>
+        /// <response code="400">If the request is invalid.</response>
         [Authorize/*(Roles = "Admin")*/]
         [HttpPut("change-status/{id}")]
         [ProducesResponseType(typeof(ApiResponse<RoleDetail>), StatusCodes.Status200OK)]

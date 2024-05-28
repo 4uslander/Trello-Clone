@@ -18,6 +18,14 @@ namespace Trello.API.Controllers
         {
             _boardMemberService = boardMemberService;
         }
+
+        /// <summary>
+        /// Creates a new board member.
+        /// </summary>
+        /// <param name="requestBody">The details of the board member to be created.</param>
+        /// <returns>Returns the created board member details.</returns>
+        /// <response code="201">If the board member is created successfully.</response>
+        /// <response code="400">If the request body is invalid.</response>
         [Authorize]
         [HttpPost("create")]
         [ProducesResponseType(typeof(ApiResponse<BoardMemberDetail>), StatusCodes.Status201Created)]
@@ -36,6 +44,14 @@ namespace Trello.API.Controllers
                 Data = result
             });
         }
+
+        /// <summary>
+        /// Retrieves all board members, optionally filtered by name.
+        /// </summary>
+        /// <param name="name">The optional name filter for board members.</param>
+        /// <returns>Returns a list of board member details.</returns>
+        /// <response code="200">If the retrieval is successful.</response>
+        /// <response code="400">If the request is invalid.</response>
         [Authorize]
         [HttpGet("get-all")]
         [ProducesResponseType(typeof(ApiResponse<List<BoardMemberDetail>>), StatusCodes.Status200OK)]
@@ -58,6 +74,15 @@ namespace Trello.API.Controllers
                 Data = result
             });
         }
+
+        /// <summary>
+        /// Updates an existing board member.
+        /// </summary>
+        /// <param name="id">The ID of the board member to update.</param>
+        /// <param name="requestBody">The new details for the board member.</param>
+        /// <returns>Returns the updated board member details.</returns>
+        /// <response code="200">If the board member is updated successfully.</response>
+        /// <response code="400">If the request is invalid.</response>
         [Authorize]
         [HttpPut("update/{id}")]
         [ProducesResponseType(typeof(ApiResponse<BoardMemberDetail>), StatusCodes.Status200OK)]
@@ -80,6 +105,14 @@ namespace Trello.API.Controllers
                 Data = result
             });
         }
+
+        /// <summary>
+        /// Changes the status of an existing board member.
+        /// </summary>
+        /// <param name="id">The ID of the board member whose status is to be changed.</param>
+        /// <returns>Returns the updated board member details.</returns>
+        /// <response code="200">If the board member status is changed successfully.</response>
+        /// <response code="400">If the request is invalid.</response>
         [Authorize/*(Roles = "Admin")*/]
         [HttpPut("change-status/{id}")]
         [ProducesResponseType(typeof(ApiResponse<BoardMemberDetail>), StatusCodes.Status200OK)]

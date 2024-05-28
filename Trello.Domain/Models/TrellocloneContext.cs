@@ -156,22 +156,22 @@ namespace Trello.Domain.Models
 
             modelBuilder.Entity<CardMember>(entity =>
             {
-                entity.HasNoKey();
-
                 entity.ToTable("CardMember");
+
+                entity.Property(e => e.Id).ValueGeneratedNever();
 
                 entity.Property(e => e.CreatedDate).HasColumnType("datetime");
 
                 entity.Property(e => e.UpdatedDate).HasColumnType("datetime");
 
                 entity.HasOne(d => d.Card)
-                    .WithMany()
+                    .WithMany(p => p.CardMembers)
                     .HasForeignKey(d => d.CardId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_CardMember_Card");
 
                 entity.HasOne(d => d.User)
-                    .WithMany()
+                    .WithMany(p => p.CardMembers)
                     .HasForeignKey(d => d.UserId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_CardMember_User");
