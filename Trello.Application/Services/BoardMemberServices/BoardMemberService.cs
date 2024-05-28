@@ -30,7 +30,7 @@ namespace Trello.Application.Services.BoardMemberServices
             _mapper = mapper;
             _httpContextAccessor = httpContextAccessor;
         }
-        public async Task<BoardMemberDetail> CreateBoardMemberAsync(BoardMemberDTO requestBody)
+        public async Task<BoardMemberDetail> CreateBoardMemberAsync(CreateBoardMemberDTO requestBody)
         {
             if (requestBody == null)
                 throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.REQUEST_BODY, ErrorMessage.NULL_REQUEST_BODY);
@@ -76,8 +76,6 @@ namespace Trello.Application.Services.BoardMemberServices
             var boardMember = await _unitOfWork.BoardMemberRepository.GetByIdAsync(id)
                 ?? throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.BOARD_MEMBER_FIELD, ErrorMessage.BOARD_MEMBER_NOT_EXIST);
 
-            await IsExistBoard(requestBody.BoardId);
-            await IsExistUser(requestBody.UserId);
 
             var currentUserId = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (currentUserId == null)
@@ -92,6 +90,34 @@ namespace Trello.Application.Services.BoardMemberServices
 
             var boardMemberDetail = _mapper.Map<BoardMemberDetail>(boardMember);
             return boardMemberDetail;
+        }
+        public async Task<BoardMemberDetail> ChangeStatusAsync(Guid Id)
+        {
+            var boardMember = await _unitOfWork.BoardMemberRepository.GetByIdAsync(Id);
+            if (boardMember == null)
+                throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.LIST_FIELD, ErrorMessage.LIST_NOT_EXIST);
+
+            var currentUserId = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (currentUserId == null)
+                throw new ExceptionResponse(HttpStatusCode.Unauthorized, ErrorField.AUTHENTICATION_FIELD, ErrorMessage.UNAUTHORIZED);
+
+            boardMember.UpdatedDate = DateTime.Now;
+            boardMember.UpdatedUser = Guid.Parse(currentUserId);
+
+            if (boardMember.IsActive == true)
+            {
+                boardMember.IsActive = false;
+            }
+            else
+            {
+                boardMember.IsActive = true;
+            }
+
+            _unitOfWork.BoardMemberRepository.Update(boardMember);
+            await _unitOfWork.SaveChangesAsync();
+
+            var mappedBoard = _mapper.Map<BoardMemberDetail>(boardMember);
+            return mappedBoard;
         }
         public async System.Threading.Tasks.Task IsExistBoard(Guid boardId)
         {

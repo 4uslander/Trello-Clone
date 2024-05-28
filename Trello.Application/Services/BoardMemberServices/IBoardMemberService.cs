@@ -11,9 +11,10 @@ namespace Trello.Application.Services.BoardMemberServices
 {
     public interface IBoardMemberService
     {
-        public Task<BoardMemberDetail> CreateBoardMemberAsync(BoardMemberDTO requestBody);
+        public Task<BoardMemberDetail> CreateBoardMemberAsync(CreateBoardMemberDTO requestBody);
         public List<BoardMemberDetail> GetAllBoardMember(string? name);
         public Task<BoardMemberDetail> UpdateBoardMemberAsync(Guid id, BoardMemberDTO requestBody);
+        public Task<BoardMemberDetail> ChangeStatusAsync(Guid Id);
         public Task IsExistBoard(Guid boardId);
         public Task IsExistUser(Guid userId);
     }
