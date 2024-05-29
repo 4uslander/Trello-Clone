@@ -62,8 +62,8 @@ namespace Trello.Application.Services.BoardServices
             // Query to get all boards
             IQueryable<Board> boardsQuery = _unitOfWork.BoardRepository.GetAll();
 
-            // Filter for public boards or boards created by the current user
-            boardsQuery = boardsQuery.Where(u => u.IsActive && (u.IsPublic || u.CreatedUser == currentUserIdGuid));
+            // Filter for active boards and public boards and boards created by the current user
+            boardsQuery = boardsQuery.Where(u => u.IsActive && u.IsPublic && u.CreatedUser == currentUserIdGuid);
 
             // Additional filter by name if provided
             if (!string.IsNullOrEmpty(name))
@@ -75,9 +75,7 @@ namespace Trello.Application.Services.BoardServices
             List<BoardDetail> boards = boardsQuery
                 .Select(u => _mapper.Map<BoardDetail>(u))
                 .ToList();
-
             return boards;
-
         }
 
         public async System.Threading.Tasks.Task IsExistBoardName(string? name)
@@ -136,6 +134,7 @@ namespace Trello.Application.Services.BoardServices
             var mappedBoard = _mapper.Map<BoardDetail>(board);
             return mappedBoard;
         }
+
         public async Task<BoardDetail> ChangeVisibility(Guid Id)
         {
             var board = await _unitOfWork.BoardRepository.GetByIdAsync(Id);
@@ -163,16 +162,6 @@ namespace Trello.Application.Services.BoardServices
 
             var mappedBoard = _mapper.Map<BoardDetail>(board);
             return mappedBoard;
-        }
-        public async Task<int> GetTotalBoardAsync(Guid? Id = null)
-        {
-            var total = 0;
-            var query = _unitOfWork.BoardRepository.GetAll();
-
-            if (Id.HasValue)
-                return total = await query.Where(p => p.Id == Id).CountAsync();
-
-            return total = await query.CountAsync();
         }
     }
 }

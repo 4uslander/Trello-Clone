@@ -40,7 +40,6 @@ namespace Trello.Application.Utilities.ResponseHandler
         {
             public int Page { get; set; }
             public int Size { get; set; }
-            public int Total { get; set; }
         }
 
     }

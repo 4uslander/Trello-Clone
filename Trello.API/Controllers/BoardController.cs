@@ -56,7 +56,7 @@ namespace Trello.API.Controllers
         [Authorize]
         [HttpGet("get-all-board")]
         [ProducesResponseType(typeof(PagedApiResponse<List<BoardDetail>>), StatusCodes.Status200OK)]
-        public async Task<IActionResult> GetAllBoards([FromQuery] PagingQuery query, [FromQuery] string? name)
+        public IActionResult GetAllBoards([FromQuery] PagingQuery query, [FromQuery] string? name)
         {
             if (!ModelState.IsValid)
             {
@@ -70,14 +70,12 @@ namespace Trello.API.Controllers
             List<BoardDetail> result = _boardService.GetAllBoard(name);
 
             var pagingResult = result.PagedItems(query.PageIndex, query.PageSize).ToList();
-            var total = name.AreAllPropertiesNull() ? await _boardService.GetTotalBoardAsync()
-                                                         : result.Count;
+            var total = name.AreAllPropertiesNull();
 
             var paging = new PaginationInfo
             {
                 Page = query.PageIndex,
                 Size = query.PageSize,
-                Total = total
             };
             return Ok(new PagedApiResponse<BoardDetail>()
             {
