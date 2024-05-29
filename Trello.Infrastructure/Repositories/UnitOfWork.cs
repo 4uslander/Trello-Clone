@@ -19,6 +19,7 @@ namespace Trello.Infrastructure.Repositories
         private IGenericRepository<Card> _cardRepository;
         private IGenericRepository<CardActivity> _cardActivityRepository;
         private IGenericRepository<CardLabel> _cardLabelRepository;
+        private IGenericRepository<CardMember> _cardMemberRepository;
         private IGenericRepository<Comment> _commentRepository;
         private IGenericRepository<Label> _labelRepository;
         private IGenericRepository<List> _listRepository;
@@ -43,6 +44,7 @@ namespace Trello.Infrastructure.Repositories
         public IGenericRepository<Comment> CommentRepository => _commentRepository ??= new GenericRepository<Comment>(_context);
 
         public IGenericRepository<Label> LabelRepository => _labelRepository ??= new GenericRepository<Label>(_context);
+        public IGenericRepository<CardMember> CardMemberRepository => _cardMemberRepository ??= new GenericRepository<CardMember>(_context);
 
         public IGenericRepository<List> ListRepository => _listRepository ??= new GenericRepository<List>(_context);
 

@@ -1,11 +1,15 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Net;
+using System.Xml.Linq;
 using Trello.Application.DTOs.Board;
 using Trello.Application.DTOs.User;
 using Trello.Application.Services.BoardServices;
 using Trello.Application.Services.UserServices;
+using Trello.Application.Utilities.ErrorHandler;
 using Trello.Application.Utilities.Helper.CheckNullProperties;
 using Trello.Application.Utilities.Helper.Pagination;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 using static Trello.Application.Utilities.ResponseHandler.ResponseModel;
 
 namespace Trello.API.Controllers
@@ -21,29 +25,50 @@ namespace Trello.API.Controllers
         }
 
         /// <summary>
-        /// Creates a new board.
+        /// Creates a new board with the specified details.
         /// </summary>
         /// <param name="requestBody">The details of the board to be created.</param>
-        /// <returns>Returns the created board details.</returns>
-        /// <response code="201">If the board is created successfully.</response>
+        /// <returns>
+        /// A response indicating the result of the board creation process. If successful, 
+        /// returns a 201 Created status with the details of the created board.
+        /// </returns>
+        /// <response code="201">Returns the created board details.</response>
         /// <response code="400">If the request body is invalid.</response>
         [Authorize]
-        [HttpPost("create-board")]
+        [HttpPost("create")]
         [ProducesResponseType(typeof(ApiResponse<BoardDetail>), StatusCodes.Status201Created)]
-        public async Task<IActionResult> CreateBoardAsync(CreateBoardDTO requestBody)
+        public async Task<IActionResult> CreateBoardAsync(BoardDTO requestBody)
         {
-            if (!ModelState.IsValid)
+            try
             {
-                return BadRequest(ModelState);
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                var result = await _boardService.CreateBoardAsync(requestBody);
+                return Created(string.Empty, new ApiResponse<BoardDetail>
+                {
+                    Code = StatusCodes.Status201Created,
+                    Data = result
+                });
             }
-
-            var result = await _boardService.CreateBoardAsync(requestBody);
-
-            return Created(string.Empty, new ApiResponse<BoardDetail>()
+            catch (ExceptionResponse ex)
             {
-                Code = StatusCodes.Status201Created,
-                Data = result
-            });
+                return StatusCode((int)ex.StatusCode, new ApiResponse<string>
+                {
+                    Code = (int)ex.StatusCode,
+                    Data = ex.ErrorMessage
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode((int)HttpStatusCode.InternalServerError, new ApiResponse<string>
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Data = ex.Message
+                });
+            }
         }
 
         /// <summary>
@@ -54,35 +79,56 @@ namespace Trello.API.Controllers
         /// <response code="200">If the retrieval is successful.</response>
         /// <response code="400">If the request is invalid.</response>
         [Authorize]
-        [HttpGet("get-all-board")]
+        [HttpGet("get-all")]
         [ProducesResponseType(typeof(PagedApiResponse<List<BoardDetail>>), StatusCodes.Status200OK)]
-        public IActionResult GetAllBoards([FromQuery] PagingQuery query, [FromQuery] string? name)
+        public async Task<IActionResult> GetAllBoards([FromQuery] PagingQuery query, [FromQuery] string? name)
         {
-            if (!ModelState.IsValid)
+            try
             {
-                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
-                return BadRequest(new ApiResponse<IEnumerable<string>>
+                if (!ModelState.IsValid)
                 {
-                    Code = StatusCodes.Status400BadRequest,
-                    Data = errors
+                    var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
+                    return BadRequest(new ApiResponse<IEnumerable<string>>
+                    {
+                        Code = StatusCodes.Status400BadRequest,
+                        Data = errors
+                    });
+                }
+
+                List<BoardDetail> result = await _boardService.GetAllBoardAsync(name);
+
+                var pagingResult = result.PagedItems(query.PageIndex, query.PageSize).ToList();
+                var total = result.Count;
+
+                var paging = new PaginationInfo
+                {
+                    Page = query.PageIndex,
+                    Size = query.PageSize,
+                };
+
+                return Ok(new PagedApiResponse<BoardDetail>
+                {
+                    Code = StatusCodes.Status200OK,
+                    Paging = paging,
+                    Data = pagingResult
                 });
             }
-            List<BoardDetail> result = _boardService.GetAllBoard(name);
-
-            var pagingResult = result.PagedItems(query.PageIndex, query.PageSize).ToList();
-            var total = name.AreAllPropertiesNull();
-
-            var paging = new PaginationInfo
+            catch (ExceptionResponse ex)
             {
-                Page = query.PageIndex,
-                Size = query.PageSize,
-            };
-            return Ok(new PagedApiResponse<BoardDetail>()
+                return StatusCode((int)ex.StatusCode, new ApiResponse<string>
+                {
+                    Code = (int)ex.StatusCode,
+                    Data = ex.ErrorMessage
+                });
+            }
+            catch (Exception ex)
             {
-                Code = StatusCodes.Status200OK,
-                Paging = paging,
-                Data = pagingResult
-            });
+                return StatusCode((int)HttpStatusCode.InternalServerError, new ApiResponse<string>
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Data = ex.Message
+                });
+            }
         }
 
         /// <summary>
@@ -98,22 +144,41 @@ namespace Trello.API.Controllers
         [ProducesResponseType(typeof(ApiResponse<BoardDetail>), StatusCodes.Status200OK)]
         public async Task<IActionResult> UpdateBoardAsync(Guid id, [FromForm] BoardDTO requestBody)
         {
-            if (!ModelState.IsValid)
+            try
             {
-                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
-                return BadRequest(new ApiResponse<IEnumerable<string>>
+                if (!ModelState.IsValid)
                 {
-                    Code = StatusCodes.Status400BadRequest,
-                    Data = errors
+                    var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
+                    return BadRequest(new ApiResponse<IEnumerable<string>>
+                    {
+                        Code = StatusCodes.Status400BadRequest,
+                        Data = errors
+                    });
+                }
+                var result = await _boardService.UpdateBoardAsync(id, requestBody);
+
+                return Ok(new ApiResponse<BoardDetail>()
+                {
+                    Code = StatusCodes.Status200OK,
+                    Data = result
                 });
             }
-            var result = await _boardService.UpdateBoardAsync(id, requestBody);
-
-            return Ok(new ApiResponse<BoardDetail>()
+            catch (ExceptionResponse ex)
             {
-                Code = StatusCodes.Status200OK,
-                Data = result
-            });
+                return StatusCode((int)ex.StatusCode, new ApiResponse<string>
+                {
+                    Code = (int)ex.StatusCode,
+                    Data = ex.ErrorMessage
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode((int)HttpStatusCode.InternalServerError, new ApiResponse<string>
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Data = ex.Message
+                });
+            }
         }
 
         /// <summary>
@@ -128,22 +193,41 @@ namespace Trello.API.Controllers
         [ProducesResponseType(typeof(ApiResponse<BoardDetail>), StatusCodes.Status200OK)]
         public async Task<IActionResult> ChangeStatusAsync(Guid id)
         {
-            if (!ModelState.IsValid)
+            try
             {
-                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
-                return BadRequest(new ApiResponse<IEnumerable<string>>
+                if (!ModelState.IsValid)
                 {
-                    Code = StatusCodes.Status400BadRequest,
-                    Data = errors
+                    var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
+                    return BadRequest(new ApiResponse<IEnumerable<string>>
+                    {
+                        Code = StatusCodes.Status400BadRequest,
+                        Data = errors
+                    });
+                }
+                var result = await _boardService.ChangeStatusAsync(id);
+
+                return Ok(new ApiResponse<BoardDetail>()
+                {
+                    Code = StatusCodes.Status200OK,
+                    Data = result
                 });
             }
-            var result = await _boardService.ChangeStatusAsync(id);
-
-            return Ok(new ApiResponse<BoardDetail>()
+            catch (ExceptionResponse ex)
             {
-                Code = StatusCodes.Status200OK,
-                Data = result
-            });
+                return StatusCode((int)ex.StatusCode, new ApiResponse<string>
+                {
+                    Code = (int)ex.StatusCode,
+                    Data = ex.ErrorMessage
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode((int)HttpStatusCode.InternalServerError, new ApiResponse<string>
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Data = ex.Message
+                });
+            }
         }
 
         /// <summary>
@@ -158,22 +242,41 @@ namespace Trello.API.Controllers
         [ProducesResponseType(typeof(ApiResponse<BoardDetail>), StatusCodes.Status200OK)]
         public async Task<IActionResult> ChangeVisibility(Guid id)
         {
-            if (!ModelState.IsValid)
+            try
             {
-                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
-                return BadRequest(new ApiResponse<IEnumerable<string>>
+                if (!ModelState.IsValid)
                 {
-                    Code = StatusCodes.Status400BadRequest,
-                    Data = errors
+                    var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
+                    return BadRequest(new ApiResponse<IEnumerable<string>>
+                    {
+                        Code = StatusCodes.Status400BadRequest,
+                        Data = errors
+                    });
+                }
+                var result = await _boardService.ChangeVisibility(id);
+
+                return Ok(new ApiResponse<BoardDetail>()
+                {
+                    Code = StatusCodes.Status200OK,
+                    Data = result
                 });
             }
-            var result = await _boardService.ChangeVisibility(id);
-
-            return Ok(new ApiResponse<BoardDetail>()
+            catch (ExceptionResponse ex)
             {
-                Code = StatusCodes.Status200OK,
-                Data = result
-            });
+                return StatusCode((int)ex.StatusCode, new ApiResponse<string>
+                {
+                    Code = (int)ex.StatusCode,
+                    Data = ex.ErrorMessage
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode((int)HttpStatusCode.InternalServerError, new ApiResponse<string>
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Data = ex.Message
+                });
+            }
         }
     }
 }

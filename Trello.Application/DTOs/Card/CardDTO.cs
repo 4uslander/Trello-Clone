@@ -10,7 +10,7 @@ namespace Trello.Application.DTOs.Card
     public class CardDTO
     {
         [Required(ErrorMessage = "Title is required")]
-        [MaxLength(50, ErrorMessage = "Title cannot exceed 50 characters")]
+        [MaxLength(150, ErrorMessage = "Title cannot exceed 150 characters")]
         public string Title { get; set; } = null!;
     }
     public class CreateCardDTO : CardDTO

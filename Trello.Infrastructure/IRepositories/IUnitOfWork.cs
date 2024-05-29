@@ -15,6 +15,7 @@ namespace Trello.Infrastructure.IRepositories
         IGenericRepository<Card> CardRepository { get; }
         IGenericRepository<CardActivity> CardActivityRepository { get; }
         IGenericRepository<CardLabel> CardLabelRepository { get; }
+        IGenericRepository<CardMember> CardMemberRepository { get; }
         IGenericRepository<Comment> CommentRepository { get; }
         IGenericRepository<Label> LabelRepository { get; }
         IGenericRepository<List> ListRepository { get; }
