@@ -11,6 +11,7 @@ using System.Xml.Linq;
 using Trello.Application.DTOs.Card;
 using Trello.Application.DTOs.List;
 using Trello.Application.Utilities.ErrorHandler;
+using Trello.Application.Utilities.Helper.GetUserAuthorization;
 using Trello.Domain.Enums;
 using Trello.Domain.Models;
 using Trello.Infrastructure.IRepositories;
@@ -38,16 +39,14 @@ namespace Trello.Application.Services.CardServices
             await IsExistCardTitle(requestBody.Title);
             await IsExistListId(requestBody.ListId);
 
-            var currentUserId = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (currentUserId == null)
-                throw new ExceptionResponse(HttpStatusCode.Unauthorized, ErrorField.AUTHENTICATION_FIELD, ErrorMessage.UNAUTHORIZED);
+            var currentUserIdGuid = GetUserAuthorizationId.GetUserAuthorizationById(_httpContextAccessor.HttpContext);
 
             var card = _mapper.Map<Card>(requestBody);
             card.Id = Guid.NewGuid();
             card.IsActive = true;
             card.ListId = requestBody.ListId;
             card.CreatedDate = DateTime.UtcNow;
-            card.CreatedUser = Guid.Parse(currentUserId);
+            card.CreatedUser = currentUserIdGuid;
 
             await _unitOfWork.CardRepository.InsertAsync(card);
             await _unitOfWork.SaveChangesAsync();
@@ -79,9 +78,7 @@ namespace Trello.Application.Services.CardServices
 
             await IsExistCardTitle(requestBody.Title);
 
-            var currentUserId = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (currentUserId == null)
-                throw new ExceptionResponse(HttpStatusCode.Unauthorized, ErrorField.AUTHENTICATION_FIELD, ErrorMessage.UNAUTHORIZED);
+            var currentUserIdGuid = GetUserAuthorizationId.GetUserAuthorizationById(_httpContextAccessor.HttpContext);
 
             // Validate that EndDate is later than StartDate
             if (requestBody.EndDate.HasValue && requestBody.StartDate.HasValue)
@@ -102,8 +99,8 @@ namespace Trello.Application.Services.CardServices
 
             card = _mapper.Map(requestBody, card);
 
-            card.UpdatedDate = DateTime.UtcNow; 
-            card.UpdatedUser = Guid.Parse(currentUserId);
+            card.UpdatedDate = DateTime.UtcNow;
+            card.UpdatedUser = currentUserIdGuid;
 
             _unitOfWork.CardRepository.Update(card);
             await _unitOfWork.SaveChangesAsync();
@@ -117,12 +114,10 @@ namespace Trello.Application.Services.CardServices
             var card = await _unitOfWork.CardRepository.GetByIdAsync(Id)
                 ?? throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.CARD_FIELD, ErrorMessage.CARD_NOT_EXIST);
 
-            var currentUserId = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (currentUserId == null)
-                throw new ExceptionResponse(HttpStatusCode.Unauthorized, ErrorField.AUTHENTICATION_FIELD, ErrorMessage.UNAUTHORIZED);
+            var currentUserIdGuid = GetUserAuthorizationId.GetUserAuthorizationById(_httpContextAccessor.HttpContext);
 
             card.UpdatedDate = DateTime.Now;
-            card.UpdatedUser = Guid.Parse(currentUserId);
+            card.UpdatedUser = currentUserIdGuid;
 
             if (card.IsActive == true)
             {

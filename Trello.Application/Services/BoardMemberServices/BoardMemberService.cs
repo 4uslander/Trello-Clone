@@ -120,16 +120,6 @@ namespace Trello.Application.Services.BoardMemberServices
             var mappedBoard = _mapper.Map<BoardMemberDetail>(boardMember);
             return mappedBoard;
         }
-        public async Task<int> GetTotalBoardMemberAsync(Guid? Id = null)
-        {
-            var total = 0;
-            var query = _unitOfWork.BoardMemberRepository.GetAll();
-
-            if (Id.HasValue)
-                return total = await query.Where(p => p.Id == Id).CountAsync();
-
-            return total = await query.CountAsync();
-        }
         public async System.Threading.Tasks.Task IsExistBoard(Guid boardId)
         {
             var isExist = await _unitOfWork.BoardRepository.AnyAsync(x => x.Id.Equals(boardId));

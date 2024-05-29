@@ -21,6 +21,7 @@ namespace Trello.Application.Utilities.Helper.Mapping
                 mc.AddProfile(new CardProfile());
                 mc.AddProfile(new BoardMemberProfile());
                 mc.AddProfile(new RoleProfile());
+                mc.AddProfile(new CardMemberProfile());
             });
             IMapper mapper = mappingConfig.CreateMapper();
             services.AddSingleton(mapper);

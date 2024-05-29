@@ -12,6 +12,7 @@ using Trello.Application.DTOs.BoardMember;
 using Trello.Application.DTOs.List;
 using Trello.Application.DTOs.Role;
 using Trello.Application.Utilities.ErrorHandler;
+using Trello.Application.Utilities.Helper.GetUserAuthorization;
 using Trello.Domain.Models;
 using Trello.Infrastructure.IRepositories;
 using static Trello.Application.Utilities.GlobalVariables.GlobalVariable;
@@ -76,13 +77,11 @@ namespace Trello.Application.Services.RoleServices
                 ?? throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.ROLE_FIELD, ErrorMessage.ROLE_NOT_EXIST);
 
 
-            var currentUserId = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (currentUserId == null)
-                throw new ExceptionResponse(HttpStatusCode.Unauthorized, ErrorField.AUTHENTICATION_FIELD, ErrorMessage.UNAUTHORIZED);
+            var currentUserIdGuid = GetUserAuthorizationId.GetUserAuthorizationById(_httpContextAccessor.HttpContext);
 
             role = _mapper.Map(requestBody, role);
             role.UpdatedDate = DateTime.Now;
-            role.UpdatedUser = Guid.Parse(currentUserId);
+            role.UpdatedUser = currentUserIdGuid;
 
             _unitOfWork.RoleRepository.Update(role);
             await _unitOfWork.SaveChangesAsync();
@@ -96,12 +95,10 @@ namespace Trello.Application.Services.RoleServices
             if (role == null)
                 throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.ROLE_FIELD, ErrorMessage.ROLE_NOT_EXIST);
 
-            var currentUserId = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (currentUserId == null)
-                throw new ExceptionResponse(HttpStatusCode.Unauthorized, ErrorField.AUTHENTICATION_FIELD, ErrorMessage.UNAUTHORIZED);
+            var currentUserIdGuid = GetUserAuthorizationId.GetUserAuthorizationById(_httpContextAccessor.HttpContext);
 
             role.UpdatedDate = DateTime.Now;
-            role.UpdatedUser = Guid.Parse(currentUserId);
+            role.UpdatedUser = currentUserIdGuid;
 
             if (role.IsActive == true)
             {

@@ -12,6 +12,7 @@ using System.Xml.Linq;
 using Trello.Application.DTOs.Board;
 using Trello.Application.DTOs.List;
 using Trello.Application.Utilities.ErrorHandler;
+using Trello.Application.Utilities.Helper.GetUserAuthorization;
 using Trello.Domain.Enums;
 using Trello.Domain.Models;
 using Trello.Infrastructure.IRepositories;
@@ -39,16 +40,15 @@ namespace Trello.Application.Services.ListServices
             await IsExistListName(requestBody.Name, requestBody.BoardId);
             await IsExistBoardId(requestBody.BoardId);
 
-            var currentUserId = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (currentUserId == null)
-                throw new ExceptionResponse(HttpStatusCode.Unauthorized, ErrorField.AUTHENTICATION_FIELD, ErrorMessage.UNAUTHORIZED);
+            var currentUserIdGuid = GetUserAuthorizationId.GetUserAuthorizationById(_httpContextAccessor.HttpContext);
+
             var latestPosition = await GetLatestListPositionAsync(requestBody.BoardId);
 
             var list = _mapper.Map<List>(requestBody);
             list.Id = Guid.NewGuid();
             list.IsActive = true;
             list.CreatedDate = DateTime.Now;
-            list.CreatedUser = Guid.Parse(currentUserId);
+            list.CreatedUser = currentUserIdGuid;
             list.Position = latestPosition + 1;
             
 
@@ -82,13 +82,11 @@ namespace Trello.Application.Services.ListServices
 
             await IsExistListName(requestBody.Name, requestBody.BoardId);
 
-            var currentUserId = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (currentUserId == null)
-                throw new ExceptionResponse(HttpStatusCode.Unauthorized, ErrorField.AUTHENTICATION_FIELD, ErrorMessage.UNAUTHORIZED);
+            var currentUserIdGuid = GetUserAuthorizationId.GetUserAuthorizationById(_httpContextAccessor.HttpContext);
 
             list = _mapper.Map(requestBody, list);
             list.UpdatedDate = DateTime.Now;
-            list.UpdatedUser = Guid.Parse(currentUserId);
+            list.UpdatedUser = currentUserIdGuid;
 
             _unitOfWork.ListRepository.Update(list);
             await _unitOfWork.SaveChangesAsync();
@@ -103,12 +101,10 @@ namespace Trello.Application.Services.ListServices
             if (list == null)
                 throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.LIST_FIELD, ErrorMessage.LIST_NOT_EXIST);
 
-            var currentUserId = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (currentUserId == null)
-                throw new ExceptionResponse(HttpStatusCode.Unauthorized, ErrorField.AUTHENTICATION_FIELD, ErrorMessage.UNAUTHORIZED);
+            var currentUserIdGuid = GetUserAuthorizationId.GetUserAuthorizationById(_httpContextAccessor.HttpContext);
 
             list.UpdatedDate = DateTime.Now;
-            list.UpdatedUser = Guid.Parse(currentUserId);
+            list.UpdatedUser = currentUserIdGuid;
 
             if (list.IsActive == true)
             {
