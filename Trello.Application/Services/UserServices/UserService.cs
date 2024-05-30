@@ -119,9 +119,9 @@ namespace Trello.Application.Services.UserServices
             var user = await _unitOfWork.UserRepository.GetByIdAsync(id)
                 ?? throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.USER_FIELD, ErrorMessage.USER_NOT_EXIST);
 
-            var currentUserIdGuid = GetUserAuthorizationId.GetUserAuthorizationById(_httpContextAccessor.HttpContext);
+            var currentUserId = UserAuthorizationHelper.GetUserAuthorizationById(_httpContextAccessor.HttpContext);
 
-            user.UpdatedUser = currentUserIdGuid;
+            user.UpdatedUser = currentUserId;
             user.UpdatedDate = DateTime.UtcNow;
             user = _mapper.Map(requestBody, user);
 
@@ -137,9 +137,9 @@ namespace Trello.Application.Services.UserServices
             if (user == null)
                 throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.USER_FIELD, ErrorMessage.USER_NOT_EXIST);
 
-            var currentUserIdGuid = GetUserAuthorizationId.GetUserAuthorizationById(_httpContextAccessor.HttpContext);
+            var currentUserId = UserAuthorizationHelper.GetUserAuthorizationById(_httpContextAccessor.HttpContext);
 
-            user.UpdatedUser = currentUserIdGuid;
+            user.UpdatedUser = currentUserId;
             user.UpdatedDate = DateTime.UtcNow;
 
 

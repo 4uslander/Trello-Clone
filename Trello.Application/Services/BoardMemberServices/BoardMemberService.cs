@@ -13,6 +13,7 @@ using Trello.Application.DTOs.Board;
 using Trello.Application.DTOs.BoardMember;
 using Trello.Application.DTOs.List;
 using Trello.Application.Utilities.ErrorHandler;
+using Trello.Application.Utilities.Helper.GetUserAuthorization;
 using Trello.Domain.Models;
 using Trello.Infrastructure.IRepositories;
 using static Trello.Application.Utilities.GlobalVariables.GlobalVariable;
@@ -39,14 +40,12 @@ namespace Trello.Application.Services.BoardMemberServices
             await IsExistBoard(requestBody.BoardId);
             await IsExistUser(requestBody.UserId);
 
-            var user = await _unitOfWork.UserRepository.GetByIdAsync(requestBody.CreatedUserId);
-            if (user == null)
-                throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.USER_FIELD, ErrorMessage.USER_NOT_EXIST);
+            var currentUserId = UserAuthorizationHelper.GetUserAuthorizationById(_httpContextAccessor.HttpContext);
 
             var boardMember = _mapper.Map<BoardMember>(requestBody);
             boardMember.Id = Guid.NewGuid();
             boardMember.CreatedDate = DateTime.Now;
-            boardMember.CreatedUser = user.Id;
+            boardMember.CreatedUser = currentUserId;
             boardMember.IsActive = true;
 
             await _unitOfWork.BoardMemberRepository.InsertAsync(boardMember);
@@ -77,14 +76,11 @@ namespace Trello.Application.Services.BoardMemberServices
             var boardMember = await _unitOfWork.BoardMemberRepository.GetByIdAsync(id)
                 ?? throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.BOARD_MEMBER_FIELD, ErrorMessage.BOARD_MEMBER_NOT_EXIST);
 
-
-            var currentUserId = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (currentUserId == null)
-                throw new ExceptionResponse(HttpStatusCode.Unauthorized, ErrorField.AUTHENTICATION_FIELD, ErrorMessage.UNAUTHORIZED);
+            var currentUserId = UserAuthorizationHelper.GetUserAuthorizationById(_httpContextAccessor.HttpContext);
 
             boardMember = _mapper.Map(requestBody, boardMember);
             boardMember.UpdatedDate = DateTime.Now;
-            boardMember.UpdatedUser = Guid.Parse(currentUserId);
+            boardMember.UpdatedUser = currentUserId;
 
             _unitOfWork.BoardMemberRepository.Update(boardMember);
             await _unitOfWork.SaveChangesAsync();
@@ -98,12 +94,10 @@ namespace Trello.Application.Services.BoardMemberServices
             if (boardMember == null)
                 throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.BOARD_MEMBER_FIELD, ErrorMessage.BOARD_MEMBER_NOT_EXIST);
 
-            var currentUserId = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (currentUserId == null)
-                throw new ExceptionResponse(HttpStatusCode.Unauthorized, ErrorField.AUTHENTICATION_FIELD, ErrorMessage.UNAUTHORIZED);
+            var currentUserId = UserAuthorizationHelper.GetUserAuthorizationById(_httpContextAccessor.HttpContext);
 
             boardMember.UpdatedDate = DateTime.Now;
-            boardMember.UpdatedUser = Guid.Parse(currentUserId);
+            boardMember.UpdatedUser = currentUserId;
 
             if (boardMember.IsActive == true)
             {

@@ -1,19 +1,10 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
-using System.Security.Claims;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Linq;
-using Trello.Application.DTOs.Board;
 using Trello.Application.DTOs.List;
 using Trello.Application.Utilities.ErrorHandler;
 using Trello.Application.Utilities.Helper.GetUserAuthorization;
-using Trello.Domain.Enums;
 using Trello.Domain.Models;
 using Trello.Infrastructure.IRepositories;
 using static Trello.Application.Utilities.GlobalVariables.GlobalVariable;
@@ -37,10 +28,19 @@ namespace Trello.Application.Services.ListServices
             if (requestBody == null)
                 throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.REQUEST_BODY, ErrorMessage.NULL_REQUEST_BODY);
 
-            await IsExistListName(requestBody.Name, requestBody.BoardId);
-            await IsExistBoardId(requestBody.BoardId);
+            var existingList = await GetListByName(requestBody.Name, requestBody.BoardId);
+            if (existingList != null)
+            {
+                throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.LIST_FIELD, ErrorMessage.LIST_ALREADY_EXIST);
+            }
 
-            var currentUserIdGuid = GetUserAuthorizationId.GetUserAuthorizationById(_httpContextAccessor.HttpContext);
+            var existingBoard = await GetBoardById(requestBody.BoardId);
+            if (existingBoard == null)
+            {
+                throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.BOARD_FIELD, ErrorMessage.BOARD_NOT_EXIST);
+            }
+
+            var currentUserId = UserAuthorizationHelper.GetUserAuthorizationById(_httpContextAccessor.HttpContext);
 
             var latestPosition = await GetLatestListPositionAsync(requestBody.BoardId);
 
@@ -48,9 +48,8 @@ namespace Trello.Application.Services.ListServices
             list.Id = Guid.NewGuid();
             list.IsActive = true;
             list.CreatedDate = DateTime.Now;
-            list.CreatedUser = currentUserIdGuid;
+            list.CreatedUser = currentUserId;
             list.Position = latestPosition + 1;
-            
 
             await _unitOfWork.ListRepository.InsertAsync(list);
             await _unitOfWork.SaveChangesAsync();
@@ -58,35 +57,39 @@ namespace Trello.Application.Services.ListServices
             var createdListDto = _mapper.Map<ListDetail>(list);
             return createdListDto;
         }
-        public List<ListDetail> GetAllList(string? name)
+        public async Task<List<ListDetail>> GetAllListAsync(Guid boardId, string? name)
         {
             IQueryable<List> listsQuery = _unitOfWork.ListRepository.GetAll();
 
+            listsQuery = listsQuery.Where(u => u.BoardId == boardId);
 
             if (!string.IsNullOrEmpty(name))
             {
                 listsQuery = listsQuery.Where(u => u.Name.Contains(name));
             }
 
-            List<ListDetail> lists = listsQuery
+            List<ListDetail> lists = await listsQuery
                 .Select(u => _mapper.Map<ListDetail>(u))
-                .ToList();
+                .ToListAsync();
 
             return lists;
         }
-        public async Task<ListDetail> UpdateListAsync(Guid id, ListDTO requestBody)
+        public async Task<ListDetail> UpdateListNameAsync(Guid id, ListDTO requestBody)
         {
-
             var list = await _unitOfWork.ListRepository.GetByIdAsync(id)
                 ?? throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.LIST_FIELD, ErrorMessage.LIST_NOT_EXIST);
 
-            await IsExistListName(requestBody.Name, requestBody.BoardId);
+            var existingList = await GetListByName(requestBody.Name, requestBody.BoardId);
+            if (existingList != null)
+            {
+                throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.LIST_FIELD, ErrorMessage.LIST_ALREADY_EXIST);
+            }
 
-            var currentUserIdGuid = GetUserAuthorizationId.GetUserAuthorizationById(_httpContextAccessor.HttpContext);
+            var currentUserId = UserAuthorizationHelper.GetUserAuthorizationById(_httpContextAccessor.HttpContext);
 
             list = _mapper.Map(requestBody, list);
             list.UpdatedDate = DateTime.Now;
-            list.UpdatedUser = currentUserIdGuid;
+            list.UpdatedUser = currentUserId;
 
             _unitOfWork.ListRepository.Update(list);
             await _unitOfWork.SaveChangesAsync();
@@ -95,25 +98,55 @@ namespace Trello.Application.Services.ListServices
             return listDetail;
         }
 
-        public async Task<ListDetail> ChangeStatusAsync(Guid Id)
+        public async Task<ListDetail> SwapListPositionsAsync(Guid firstListId, Guid secondListId)
+        {
+            var firstList = await _unitOfWork.ListRepository.GetByIdAsync(firstListId)
+                ?? throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.LIST_FIELD, ErrorMessage.LIST_NOT_EXIST);
+
+            var secondList = await _unitOfWork.ListRepository.GetByIdAsync(secondListId)
+                ?? throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.LIST_FIELD, ErrorMessage.LIST_NOT_EXIST);
+
+            if (firstList.BoardId != secondList.BoardId)
+            {
+                throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.LIST_FIELD, ErrorMessage.LISTS_IN_DIFFERENT_BOARD);
+            }
+
+            var currentUserId = UserAuthorizationHelper.GetUserAuthorizationById(_httpContextAccessor.HttpContext);
+
+            var tempPosition = firstList.Position;
+
+            // Swap the positions
+            firstList.Position = secondList.Position;
+            secondList.Position = tempPosition;
+
+            // Update the metadata
+            firstList.UpdatedDate = DateTime.Now;
+            firstList.UpdatedUser = currentUserId;
+            secondList.UpdatedDate = DateTime.Now;
+            secondList.UpdatedUser = currentUserId;
+
+            // Update the lists in the repository
+            _unitOfWork.ListRepository.Update(firstList);
+            _unitOfWork.ListRepository.Update(secondList);
+
+            await _unitOfWork.SaveChangesAsync();
+
+            // Map the first list to ListDetail and return
+            var listDetail = _mapper.Map<ListDetail>(firstList);
+            return listDetail;
+        }
+
+        public async Task<ListDetail> ChangeStatusAsync(Guid Id, bool isActive)
         {
             var list = await _unitOfWork.ListRepository.GetByIdAsync(Id);
             if (list == null)
                 throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.LIST_FIELD, ErrorMessage.LIST_NOT_EXIST);
 
-            var currentUserIdGuid = GetUserAuthorizationId.GetUserAuthorizationById(_httpContextAccessor.HttpContext);
+            var currentUserId = UserAuthorizationHelper.GetUserAuthorizationById(_httpContextAccessor.HttpContext);
 
             list.UpdatedDate = DateTime.Now;
-            list.UpdatedUser = currentUserIdGuid;
-
-            if (list.IsActive == true)
-            {
-                list.IsActive = false;
-            }
-            else
-            {
-                list.IsActive = true;
-            }
+            list.UpdatedUser = currentUserId;
+            list.IsActive = isActive;
 
             _unitOfWork.ListRepository.Update(list);
             await _unitOfWork.SaveChangesAsync();
@@ -122,17 +155,13 @@ namespace Trello.Application.Services.ListServices
             return mappedList;
         }
 
-        public async System.Threading.Tasks.Task IsExistListName(string? name, Guid boardId)
+        public async Task<List> GetListByName(string? name, Guid boardId)
         {
-            var isExist = await _unitOfWork.ListRepository.AnyAsync(x => x.Name == name && x.BoardId == boardId);
-            if (isExist)
-                throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.LIST_FIELD, ErrorMessage.LIST_ALREADY_EXIST);
+            return await _unitOfWork.ListRepository.FirstOrDefaultAsync(x => x.Name.ToLower().Equals(name.ToLower()) && x.BoardId == boardId);
         }
-        public async System.Threading.Tasks.Task IsExistBoardId(Guid? id)
+        public async Task<Board> GetBoardById(Guid? id)
         {
-            var boardExists = await _unitOfWork.BoardRepository.AnyAsync(x => x.Id.Equals(id));
-            if (!boardExists)
-                throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.BOARD_FIELD, ErrorMessage.BOARD_NOT_EXIST);
+            return await _unitOfWork.BoardRepository.GetByIdAsync(id);
         }
         public async Task<int> GetLatestListPositionAsync(Guid boardId)
         {

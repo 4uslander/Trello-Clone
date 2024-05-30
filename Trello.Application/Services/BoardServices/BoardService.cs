@@ -1,13 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
-using System.Security.Claims;
-using System.Text;
-using System.Threading.Tasks;
 using Trello.Application.DTOs.Board;
 using Trello.Application.Utilities.ErrorHandler;
 using Trello.Application.Utilities.Helper.GetUserAuthorization;
@@ -35,14 +29,18 @@ namespace Trello.Application.Services.BoardServices
             if (requestBody == null)
                 throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.REQUEST_BODY, ErrorMessage.NULL_REQUEST_BODY);
 
-            await IsExistBoardName(requestBody.Name);
+            var existingBoard = await GetBoardByName(requestBody.Name);
+            if (existingBoard != null)
+            {
+                throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.BOARD_FIELD, ErrorMessage.BOARD_ALREADY_EXIST);
+            }
 
-            var currentUserIdGuid = GetUserAuthorizationId.GetUserAuthorizationById(_httpContextAccessor.HttpContext);
+            var currentUserId = UserAuthorizationHelper.GetUserAuthorizationById(_httpContextAccessor.HttpContext);
 
             var board = _mapper.Map<Board>(requestBody);
             board.Id = Guid.NewGuid();
             board.CreatedDate = DateTime.Now;
-            board.CreatedUser = currentUserIdGuid;
+            board.CreatedUser = currentUserId;
             board.IsPublic = true;
             board.IsActive = true;
             await _unitOfWork.BoardRepository.InsertAsync(board);
@@ -55,13 +53,13 @@ namespace Trello.Application.Services.BoardServices
         public async Task<List<BoardDetail>> GetAllBoardAsync(string? name)
         {
             // Get the current user
-            var currentUserIdGuid = GetUserAuthorizationId.GetUserAuthorizationById(_httpContextAccessor.HttpContext);
+            var currentUserId = UserAuthorizationHelper.GetUserAuthorizationById(_httpContextAccessor.HttpContext);
 
             // Query to get all boards
             IQueryable<Board> boardsQuery = _unitOfWork.BoardRepository.GetAll();
 
             // Filter for active boards and either public boards or private boards created by the current user
-            boardsQuery = boardsQuery.Where(u => u.IsActive && (u.IsPublic || u.CreatedUser == currentUserIdGuid));
+            boardsQuery = boardsQuery.Where(u => u.IsActive && (u.IsPublic || u.CreatedUser == currentUserId));
 
             // Additional filter by name if provided
             if (!string.IsNullOrEmpty(name))
@@ -78,19 +76,25 @@ namespace Trello.Application.Services.BoardServices
 
         public async Task<BoardDetail> UpdateBoardAsync(Guid id, BoardDTO requestBody)
         {
-            var board = await IsExistBoardId(id);
+            var board = await GetBoardById(id);
+            if (board == null)
+                throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.BOARD_ID_FIELD, ErrorMessage.BOARD_NOT_EXIST);
 
-            await IsExistBoardName(requestBody.Name);
+            var existingBoard = await GetBoardByName(requestBody.Name);
+            if (existingBoard != null)
+            {
+                throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.BOARD_FIELD, ErrorMessage.BOARD_ALREADY_EXIST);
+            }
 
-            var currentUserIdGuid = GetUserAuthorizationId.GetUserAuthorizationById(_httpContextAccessor.HttpContext);
-            if (board.CreatedUser != currentUserIdGuid)
+            var currentUserId = UserAuthorizationHelper.GetUserAuthorizationById(_httpContextAccessor.HttpContext);
+            if (board.CreatedUser != currentUserId)
             {
                 throw new UnauthorizedAccessException("You do not have permission to update this board");
             }
 
             board = _mapper.Map(requestBody, board);
             board.UpdatedDate = DateTime.Now;
-            board.UpdatedUser = currentUserIdGuid;
+            board.UpdatedUser = currentUserId;
             _unitOfWork.BoardRepository.Update(board);
             await _unitOfWork.SaveChangesAsync();
 
@@ -98,75 +102,61 @@ namespace Trello.Application.Services.BoardServices
             return boardDetail;
         }
 
-        public async Task<BoardDetail> ChangeStatusAsync(Guid Id)
+        public async Task<BoardDetail> ChangeStatusAsync(Guid Id, bool isActive)
         {
-            var board = await IsExistBoardId(Id);
-
-            var currentUserIdGuid = GetUserAuthorizationId.GetUserAuthorizationById(_httpContextAccessor.HttpContext);
-            if (board.CreatedUser != currentUserIdGuid)
-            {
-                throw new UnauthorizedAccessException("You do not have permission to update this board");
-            }
-
-            board.UpdatedDate = DateTime.Now;
-            board.UpdatedUser = currentUserIdGuid;
-            if (board.IsActive == true)
-            {
-                board.IsActive = false;
-            }
-            else
-            {
-                board.IsActive = true;
-            }
-
-            _unitOfWork.BoardRepository.Update(board);
-            await _unitOfWork.SaveChangesAsync();
-
-            var mappedBoard = _mapper.Map<BoardDetail>(board);
-            return mappedBoard;
-        }
-
-        public async Task<BoardDetail> ChangeVisibility(Guid Id)
-        {
-            var board = await IsExistBoardId(Id);
-
-            var currentUserIdGuid = GetUserAuthorizationId.GetUserAuthorizationById(_httpContextAccessor.HttpContext);
-            if (board.CreatedUser != currentUserIdGuid)
-            {
-                throw new UnauthorizedAccessException("You do not have permission to update this board");
-            }
-
-            board.UpdatedDate = DateTime.Now;
-            board.UpdatedUser = currentUserIdGuid;
-            if (board.IsPublic == true)
-            {
-                board.IsPublic = false;
-            }
-            else
-            {
-                board.IsPublic = true;
-            }
-
-            _unitOfWork.BoardRepository.Update(board);
-            await _unitOfWork.SaveChangesAsync();
-
-            var mappedBoard = _mapper.Map<BoardDetail>(board);
-            return mappedBoard;
-        }
-
-        public async System.Threading.Tasks.Task IsExistBoardName(string? name)
-        {
-            var isExist = await _unitOfWork.BoardRepository.AnyAsync(x => x.Name.ToLower().Equals(name.ToLower()));
-            if (isExist)
-                throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.BOARD_FIELD, ErrorMessage.BOARD_ALREADY_EXIST);
-        }
-
-        public async Task<Board> IsExistBoardId(Guid? id)
-        {
-            var board = await _unitOfWork.BoardRepository.GetByIdAsync(id);
+            var board = await GetBoardById(Id);
             if (board == null)
                 throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.BOARD_ID_FIELD, ErrorMessage.BOARD_NOT_EXIST);
-            return board;
+
+            var currentUserId = UserAuthorizationHelper.GetUserAuthorizationById(_httpContextAccessor.HttpContext);
+            if (board.CreatedUser != currentUserId)
+            {
+                throw new UnauthorizedAccessException("You do not have permission to update this board");
+            }
+
+            board.UpdatedDate = DateTime.Now;
+            board.UpdatedUser = currentUserId;
+            board.IsActive = isActive;
+
+            _unitOfWork.BoardRepository.Update(board);
+            await _unitOfWork.SaveChangesAsync();
+
+            var mappedBoard = _mapper.Map<BoardDetail>(board);
+            return mappedBoard;
+        }
+
+        public async Task<BoardDetail> ChangeVisibilityAsync(Guid id, bool isPublic)
+        {
+            var board = await GetBoardById(id);
+            if (board == null)
+                throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.BOARD_ID_FIELD, ErrorMessage.BOARD_NOT_EXIST);
+
+            var currentUserId = UserAuthorizationHelper.GetUserAuthorizationById(_httpContextAccessor.HttpContext);
+            if (board.CreatedUser != currentUserId)
+            {
+                throw new UnauthorizedAccessException("You do not have permission to update this board");
+            }
+
+            board.UpdatedDate = DateTime.Now;
+            board.UpdatedUser = currentUserId;
+            board.IsPublic = isPublic;
+
+            _unitOfWork.BoardRepository.Update(board);
+            await _unitOfWork.SaveChangesAsync();
+
+            var mappedBoard = _mapper.Map<BoardDetail>(board);
+            return mappedBoard;
+        }
+
+
+        public async Task<Board> GetBoardByName(string? name)
+        {
+            return await _unitOfWork.BoardRepository.FirstOrDefaultAsync(x => x.Name.ToLower().Equals(name.ToLower()));
+        }
+
+        public async Task<Board> GetBoardById(Guid? id)
+        {
+            return await _unitOfWork.BoardRepository.GetByIdAsync(id);
         }
     }
 }

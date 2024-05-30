@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Trello.Application.Utilities.Helper.GetUserAuthorization
 {
-    public static class GetUserAuthorizationId
+    public static class UserAuthorizationHelper
     {
         public static Guid GetUserAuthorizationById(HttpContext httpContext)
         {
