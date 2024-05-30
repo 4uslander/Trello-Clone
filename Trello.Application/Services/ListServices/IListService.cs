@@ -5,16 +5,18 @@ using System.Text;
 using System.Threading.Tasks;
 using Trello.Application.DTOs.Board;
 using Trello.Application.DTOs.List;
+using Trello.Domain.Models;
 
 namespace Trello.Application.Services.ListServices
 {
     public interface IListService
     {
         public Task<ListDetail> CreateListAsync(ListDTO requestBody);
-        public List<ListDetail> GetAllList(string? name);
-        public Task<ListDetail> UpdateListAsync(Guid id, ListDTO requestBody);
-        public Task<ListDetail> ChangeStatusAsync(Guid Id);
-        public Task IsExistListName(string? name, Guid boardId);
-        public Task IsExistBoardId(Guid? id);
+        Task<List<ListDetail>> GetAllListAsync(Guid boardId, string? name);
+        public Task<ListDetail> UpdateListNameAsync(Guid id, ListDTO requestBody);
+        public Task<ListDetail> SwapListPositionsAsync(Guid firstListId, Guid secondListId);
+        public Task<ListDetail> ChangeStatusAsync(Guid Id, bool isActive);
+        public Task<List> GetListByName(string? name, Guid boardId);
+        public Task<Board> GetBoardById(Guid? id);
     }
 }

@@ -77,11 +77,11 @@ namespace Trello.Application.Services.RoleServices
                 ?? throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.ROLE_FIELD, ErrorMessage.ROLE_NOT_EXIST);
 
 
-            var currentUserIdGuid = GetUserAuthorizationId.GetUserAuthorizationById(_httpContextAccessor.HttpContext);
+            var currentUserId = UserAuthorizationHelper.GetUserAuthorizationById(_httpContextAccessor.HttpContext);
 
             role = _mapper.Map(requestBody, role);
             role.UpdatedDate = DateTime.Now;
-            role.UpdatedUser = currentUserIdGuid;
+            role.UpdatedUser = currentUserId;
 
             _unitOfWork.RoleRepository.Update(role);
             await _unitOfWork.SaveChangesAsync();
@@ -95,10 +95,10 @@ namespace Trello.Application.Services.RoleServices
             if (role == null)
                 throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.ROLE_FIELD, ErrorMessage.ROLE_NOT_EXIST);
 
-            var currentUserIdGuid = GetUserAuthorizationId.GetUserAuthorizationById(_httpContextAccessor.HttpContext);
+            var currentUserId = UserAuthorizationHelper.GetUserAuthorizationById(_httpContextAccessor.HttpContext);
 
             role.UpdatedDate = DateTime.Now;
-            role.UpdatedUser = currentUserIdGuid;
+            role.UpdatedUser = currentUserId;
 
             if (role.IsActive == true)
             {

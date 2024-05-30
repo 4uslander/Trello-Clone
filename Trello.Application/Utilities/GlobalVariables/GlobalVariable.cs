@@ -43,6 +43,7 @@ namespace Trello.Application.Utilities.GlobalVariables
             public const string ROLE_NOT_EXIST = "This role does not exist!";
             public const string BOARD_MEMBER_NOT_EXIST = "This board member does not exist!";
             public const string LIST_NOT_EXIST = "This list does not exist!";
+            public const string LISTS_IN_DIFFERENT_BOARD = "Lists belong to different boards";
             public const string CARD_NOT_EXIST = "This card does not exist!";
             public const string INVALID_EMAIL_PASSWORD = "Invalid Email or Password";
             public const string INACTIVE_USER = "This user is inactive";

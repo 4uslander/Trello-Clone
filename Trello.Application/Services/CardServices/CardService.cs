@@ -39,14 +39,14 @@ namespace Trello.Application.Services.CardServices
             await IsExistCardTitle(requestBody.Title);
             await IsExistListId(requestBody.ListId);
 
-            var currentUserIdGuid = GetUserAuthorizationId.GetUserAuthorizationById(_httpContextAccessor.HttpContext);
+            var currentUserId = UserAuthorizationHelper.GetUserAuthorizationById(_httpContextAccessor.HttpContext);
 
             var card = _mapper.Map<Card>(requestBody);
             card.Id = Guid.NewGuid();
             card.IsActive = true;
             card.ListId = requestBody.ListId;
             card.CreatedDate = DateTime.UtcNow;
-            card.CreatedUser = currentUserIdGuid;
+            card.CreatedUser = currentUserId;
 
             await _unitOfWork.CardRepository.InsertAsync(card);
             await _unitOfWork.SaveChangesAsync();
@@ -78,7 +78,7 @@ namespace Trello.Application.Services.CardServices
 
             await IsExistCardTitle(requestBody.Title);
 
-            var currentUserIdGuid = GetUserAuthorizationId.GetUserAuthorizationById(_httpContextAccessor.HttpContext);
+            var currentUserId = UserAuthorizationHelper.GetUserAuthorizationById(_httpContextAccessor.HttpContext);
 
             // Validate that EndDate is later than StartDate
             if (requestBody.EndDate.HasValue && requestBody.StartDate.HasValue)
@@ -100,7 +100,7 @@ namespace Trello.Application.Services.CardServices
             card = _mapper.Map(requestBody, card);
 
             card.UpdatedDate = DateTime.UtcNow;
-            card.UpdatedUser = currentUserIdGuid;
+            card.UpdatedUser = currentUserId;
 
             _unitOfWork.CardRepository.Update(card);
             await _unitOfWork.SaveChangesAsync();
@@ -114,10 +114,10 @@ namespace Trello.Application.Services.CardServices
             var card = await _unitOfWork.CardRepository.GetByIdAsync(Id)
                 ?? throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.CARD_FIELD, ErrorMessage.CARD_NOT_EXIST);
 
-            var currentUserIdGuid = GetUserAuthorizationId.GetUserAuthorizationById(_httpContextAccessor.HttpContext);
+            var currentUserId = UserAuthorizationHelper.GetUserAuthorizationById(_httpContextAccessor.HttpContext);
 
             card.UpdatedDate = DateTime.Now;
-            card.UpdatedUser = currentUserIdGuid;
+            card.UpdatedUser = currentUserId;
 
             if (card.IsActive == true)
             {

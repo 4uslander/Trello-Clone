@@ -5,13 +5,16 @@ using System.Text;
 using System.Threading.Tasks;
 using Trello.Application.DTOs.Board;
 using Trello.Application.DTOs.CardMember;
+using Trello.Domain.Models;
 
 namespace Trello.Application.Services.CardMemberServices
 {
     public interface ICardMemberService
     {
         public Task<CardMemberDetail> CreateCardMemberAsync(CardMemberDTO requestBody);
-        public Task IsExistCard(Guid cardId);
-        public Task IsExistUser(Guid userId);
+        Task<List<CardMemberDetail>> GetAllCardMemberAsync(Guid cardId, string? userName);
+        public Task<Card> GetCardById(Guid cardId);
+        public Task<User> GetUserById(Guid userId);
+        public Task<User> GetUserByUserName(string userName);
     }
 }

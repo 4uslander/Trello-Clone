@@ -140,7 +140,7 @@ namespace Trello.API.Controllers
         /// <response code="200">If the board is updated successfully.</response>
         /// <response code="400">If the request is invalid.</response>
         [Authorize]
-        [HttpPut("update-board/{id}")]
+        [HttpPut("update/{id}")]
         [ProducesResponseType(typeof(ApiResponse<BoardDetail>), StatusCodes.Status200OK)]
         public async Task<IActionResult> UpdateBoardAsync(Guid id, [FromForm] BoardDTO requestBody)
         {
@@ -189,9 +189,9 @@ namespace Trello.API.Controllers
         /// <response code="200">If the board status is changed successfully.</response>
         /// <response code="400">If the request is invalid.</response>
         [Authorize/*(Roles = "Admin")*/]
-        [HttpPut("change-board/{id}")]
+        [HttpPut("change-status/{id}")]
         [ProducesResponseType(typeof(ApiResponse<BoardDetail>), StatusCodes.Status200OK)]
-        public async Task<IActionResult> ChangeStatusAsync(Guid id)
+        public async Task<IActionResult> ChangeStatusAsync(Guid id, [FromQuery] bool isActive)
         {
             try
             {
@@ -204,7 +204,7 @@ namespace Trello.API.Controllers
                         Data = errors
                     });
                 }
-                var result = await _boardService.ChangeStatusAsync(id);
+                var result = await _boardService.ChangeStatusAsync(id, isActive);
 
                 return Ok(new ApiResponse<BoardDetail>()
                 {
@@ -240,7 +240,7 @@ namespace Trello.API.Controllers
         [Authorize]
         [HttpPut("change-visibility/{id}")]
         [ProducesResponseType(typeof(ApiResponse<BoardDetail>), StatusCodes.Status200OK)]
-        public async Task<IActionResult> ChangeVisibility(Guid id)
+        public async Task<IActionResult> ChangeVisibilityAsync(Guid id, [FromQuery] bool isPublic)
         {
             try
             {
@@ -253,7 +253,7 @@ namespace Trello.API.Controllers
                         Data = errors
                     });
                 }
-                var result = await _boardService.ChangeVisibility(id);
+                var result = await _boardService.ChangeVisibilityAsync(id, isPublic);
 
                 return Ok(new ApiResponse<BoardDetail>()
                 {
