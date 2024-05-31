@@ -6,6 +6,11 @@ using Trello.Application.Services.BoardServices;
 using Trello.Application.Services.RoleServices;
 using Trello.Application.DTOs.Role;
 using Trello.Application.DTOs.BoardMember;
+using System.Net;
+using Trello.Application.DTOs.List;
+using Trello.Application.Utilities.ErrorHandler;
+using Trello.Application.Utilities.Helper.Pagination;
+using Trello.Domain.Models;
 
 namespace Trello.API.Controllers
 {
@@ -31,18 +36,37 @@ namespace Trello.API.Controllers
         [ProducesResponseType(typeof(ApiResponse<RoleDetail>), StatusCodes.Status201Created)]
         public async Task<IActionResult> CreateRoleAsync(RoleDTO requestBody)
         {
-            if (!ModelState.IsValid)
+            try
             {
-                return BadRequest(ModelState);
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                var result = await _roleService.CreateRoleAsync(requestBody);
+
+                return Created(string.Empty, new ApiResponse<RoleDetail>()
+                {
+                    Code = StatusCodes.Status201Created,
+                    Data = result
+                });
             }
-
-            var result = await _roleService.CreateRoleAsync(requestBody);
-
-            return Created(string.Empty, new ApiResponse<RoleDetail>()
+            catch (ExceptionResponse ex)
             {
-                Code = StatusCodes.Status201Created,
-                Data = result
-            });
+                return StatusCode((int)ex.StatusCode, new ApiResponse<string>
+                {
+                    Code = (int)ex.StatusCode,
+                    Data = ex.ErrorMessage
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode((int)HttpStatusCode.InternalServerError, new ApiResponse<string>
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Data = ex.Message
+                });
+            }
         }
 
         /// <summary>
@@ -54,25 +78,54 @@ namespace Trello.API.Controllers
         /// <response code="400">If the request is invalid.</response>
         [Authorize]
         [HttpGet("get-all")]
-        [ProducesResponseType(typeof(ApiResponse<List<RoleDetail>>), StatusCodes.Status200OK)]
-        public IActionResult GetAllRoles([FromQuery] string? name)
+        [ProducesResponseType(typeof(PagedApiResponse<List<RoleDetail>>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetRolesAsync([FromQuery] PagingQuery query, [FromQuery] string? name)
         {
-            if (!ModelState.IsValid)
+            try
             {
-                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
-                return BadRequest(new ApiResponse<IEnumerable<string>>
+                if (!ModelState.IsValid)
                 {
-                    Code = StatusCodes.Status400BadRequest,
-                    Data = errors
+                    var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
+                    return BadRequest(new ApiResponse<IEnumerable<string>>
+                    {
+                        Code = StatusCodes.Status400BadRequest,
+                        Data = errors
+                    });
+                }
+                List<RoleDetail> result = await _roleService.GetAllRoleAsync(name);
+
+                var pagingResult = result.PagedItems(query.PageIndex, query.PageSize).ToList();
+                var total = result.Count;
+
+                var paging = new PaginationInfo
+                {
+                    Page = query.PageIndex,
+                    Size = query.PageSize,
+                };
+
+                return Ok(new PagedApiResponse<RoleDetail>
+                {
+                    Code = StatusCodes.Status200OK,
+                    Paging = paging,
+                    Data = pagingResult
                 });
             }
-            List<RoleDetail> result = _roleService.GetAllRole(name);
-
-            return Ok(new ApiResponse<List<RoleDetail>>
+            catch (ExceptionResponse ex)
             {
-                Code = StatusCodes.Status200OK,
-                Data = result
-            });
+                return StatusCode((int)ex.StatusCode, new ApiResponse<string>
+                {
+                    Code = (int)ex.StatusCode,
+                    Data = ex.ErrorMessage
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode((int)HttpStatusCode.InternalServerError, new ApiResponse<string>
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Data = ex.Message
+                });
+            }
         }
 
         /// <summary>
@@ -88,22 +141,41 @@ namespace Trello.API.Controllers
         [ProducesResponseType(typeof(ApiResponse<RoleDetail>), StatusCodes.Status200OK)]
         public async Task<IActionResult> UpdateRoleAsync(Guid id, [FromForm] RoleDTO requestBody)
         {
-            if (!ModelState.IsValid)
+            try
             {
-                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
-                return BadRequest(new ApiResponse<IEnumerable<string>>
+                if (!ModelState.IsValid)
                 {
-                    Code = StatusCodes.Status400BadRequest,
-                    Data = errors
+                    var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
+                    return BadRequest(new ApiResponse<IEnumerable<string>>
+                    {
+                        Code = StatusCodes.Status400BadRequest,
+                        Data = errors
+                    });
+                }
+                var result = await _roleService.UpdateRoleAsync(id, requestBody);
+
+                return Ok(new ApiResponse<RoleDetail>()
+                {
+                    Code = StatusCodes.Status200OK,
+                    Data = result
                 });
             }
-            var result = await _roleService.UpdateRoleAsync(id, requestBody);
-
-            return Ok(new ApiResponse<RoleDetail>()
+            catch (ExceptionResponse ex)
             {
-                Code = StatusCodes.Status200OK,
-                Data = result
-            });
+                return StatusCode((int)ex.StatusCode, new ApiResponse<string>
+                {
+                    Code = (int)ex.StatusCode,
+                    Data = ex.ErrorMessage
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode((int)HttpStatusCode.InternalServerError, new ApiResponse<string>
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Data = ex.Message
+                });
+            }
         }
 
         /// <summary>
@@ -116,24 +188,44 @@ namespace Trello.API.Controllers
         [Authorize/*(Roles = "Admin")*/]
         [HttpPut("change-status/{id}")]
         [ProducesResponseType(typeof(ApiResponse<RoleDetail>), StatusCodes.Status200OK)]
-        public async Task<IActionResult> ChangeStatusAsync(Guid id)
+        public async Task<IActionResult> ChangeStatusAsync(Guid id, bool isActive)
         {
-            if (!ModelState.IsValid)
+
+            try
             {
-                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
-                return BadRequest(new ApiResponse<IEnumerable<string>>
+                if (!ModelState.IsValid)
                 {
-                    Code = StatusCodes.Status400BadRequest,
-                    Data = errors
+                    var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
+                    return BadRequest(new ApiResponse<IEnumerable<string>>
+                    {
+                        Code = StatusCodes.Status400BadRequest,
+                        Data = errors
+                    });
+                }
+                var result = await _roleService.ChangeStatusAsync(id, isActive);
+
+                return Ok(new ApiResponse<RoleDetail>()
+                {
+                    Code = StatusCodes.Status200OK,
+                    Data = result
                 });
             }
-            var result = await _roleService.ChangeStatusAsync(id);
-
-            return Ok(new ApiResponse<RoleDetail>()
+            catch (ExceptionResponse ex)
             {
-                Code = StatusCodes.Status200OK,
-                Data = result
-            });
+                return StatusCode((int)ex.StatusCode, new ApiResponse<string>
+                {
+                    Code = (int)ex.StatusCode,
+                    Data = ex.ErrorMessage
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode((int)HttpStatusCode.InternalServerError, new ApiResponse<string>
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Data = ex.Message
+                });
+            }
         }
     }
 }

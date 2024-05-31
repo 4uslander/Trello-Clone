@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 using System.Security.Claims;
+using System.Xml.Linq;
 using Trello.Application.DTOs.User;
 using Trello.Application.Utilities.ErrorHandler;
 using Trello.Application.Utilities.Helper.GetUserAuthorization;
@@ -36,7 +37,11 @@ namespace Trello.Application.Services.UserServices
             if (requestBody == null)
                 throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.REQUEST_BODY, ErrorMessage.NULL_REQUEST_BODY);
 
-            await IsExistEmail(requestBody.Email);
+            var existingEmail = await GetUserByEmail(requestBody.Email);
+            if (existingEmail != null)
+            {
+                throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.EMAIL_FIELD, ErrorMessage.EMAIL_ALREADY_EXIST);
+            }
 
             // Hash the password with the salt
             var hashedPasswordWithSalt = PasswordHelper.HashPasswordWithSalt(requestBody.Password);
@@ -79,6 +84,7 @@ namespace Trello.Application.Services.UserServices
             var token = _jwtHelper.generateJwtToken(claims);
             return token;
         }
+
         public async Task<List<UserDetail>> GetAllUserAsync(string? email, string? name, string? gender)
         {
             
@@ -103,7 +109,8 @@ namespace Trello.Application.Services.UserServices
                 .ToListAsync();
             return users;
         }
-        public async Task<object> GetUserLoginAsync(Guid userId)
+
+        public async Task<object> GetUserProfileAsync(Guid userId)
         {
             var user = await _unitOfWork.UserRepository.Get(u => u.Id == userId).SingleOrDefaultAsync()
                 ?? throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.USER_FIELD, ErrorMessage.USER_NOT_EXIST);
@@ -131,7 +138,8 @@ namespace Trello.Application.Services.UserServices
             var userDetail = _mapper.Map<UserDetail>(user);
             return userDetail;
         }
-        public async Task<UserDetail> ChangeStatusAsync(Guid userId)
+
+        public async Task<UserDetail> ChangeStatusAsync(Guid userId, bool isActive)
         {
             var user = await _unitOfWork.UserRepository.GetByIdAsync(userId);
             if (user == null)
@@ -141,16 +149,7 @@ namespace Trello.Application.Services.UserServices
 
             user.UpdatedUser = currentUserId;
             user.UpdatedDate = DateTime.UtcNow;
-
-
-            if (user.IsActive == true)
-            {
-                user.IsActive = false;
-            }
-            else
-            {
-                user.IsActive = true;
-            }
+            user.IsActive = isActive;
 
             _unitOfWork.UserRepository.Update(user);
             await _unitOfWork.SaveChangesAsync();
@@ -159,11 +158,9 @@ namespace Trello.Application.Services.UserServices
             return mappedUser;
         }
 
-        public async System.Threading.Tasks.Task IsExistEmail(string? Email)
+        public async Task<User> GetUserByEmail(string email)
         {
-            var isExist = await _unitOfWork.UserRepository.AnyAsync(x => x.Email.Equals(Email));
-            if (isExist)
-                throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.EMAIL_FIELD, ErrorMessage.EMAIL_ALREADY_EXIST);
+            return await _unitOfWork.UserRepository.FirstOrDefaultAsync(x => x.Email.Equals(email));
         }
     }
 }

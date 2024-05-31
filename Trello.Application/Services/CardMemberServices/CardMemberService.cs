@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Trello.Application.DTOs.Board;
 using Trello.Application.DTOs.BoardMember;
+using Trello.Application.DTOs.Card;
 using Trello.Application.DTOs.CardMember;
 using Trello.Application.DTOs.List;
 using Trello.Application.Utilities.ErrorHandler;
@@ -86,6 +87,23 @@ namespace Trello.Application.Services.CardMemberServices
 
             return lists;
         }
+        public async Task<CardMemberDetail> ChangeStatusAsync(Guid Id, bool isActive)
+        {
+            var cardMember = await _unitOfWork.CardMemberRepository.GetByIdAsync(Id)
+                ?? throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.CARD_MEMBER_FIELD, ErrorMessage.CARD_MEMBER_NOT_EXIST);
+
+            var currentUserId = UserAuthorizationHelper.GetUserAuthorizationById(_httpContextAccessor.HttpContext);
+
+            cardMember.UpdatedDate = DateTime.Now;
+            cardMember.UpdatedUser = currentUserId;
+            cardMember.IsActive = isActive;
+
+            _unitOfWork.CardMemberRepository.Update(cardMember);
+            await _unitOfWork.SaveChangesAsync();
+
+            var mappedCardMember = _mapper.Map<CardMemberDetail>(cardMember);
+            return mappedCardMember;
+        }
 
         public async Task<Card> GetCardById(Guid cardId)
         {
@@ -95,7 +113,7 @@ namespace Trello.Application.Services.CardMemberServices
         {
             return await _unitOfWork.UserRepository.GetByIdAsync(userId);
         }
-        public async Task<User?> GetUserByUserName(string userName)
+        public async Task<User> GetUserByUserName(string userName)
         {
             return await _unitOfWork.UserRepository.GetAll()
                 .FirstOrDefaultAsync(u => u.Name.Equals(userName, StringComparison.OrdinalIgnoreCase));
