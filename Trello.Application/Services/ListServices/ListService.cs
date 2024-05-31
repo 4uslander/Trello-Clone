@@ -155,11 +155,11 @@ namespace Trello.Application.Services.ListServices
             return mappedList;
         }
 
-        public async Task<List> GetListByName(string? name, Guid boardId)
+        public async Task<List> GetListByName(string name, Guid boardId)
         {
             return await _unitOfWork.ListRepository.FirstOrDefaultAsync(x => x.Name.ToLower().Equals(name.ToLower()) && x.BoardId == boardId);
         }
-        public async Task<Board> GetBoardById(Guid? id)
+        public async Task<Board> GetBoardById(Guid id)
         {
             return await _unitOfWork.BoardRepository.GetByIdAsync(id);
         }

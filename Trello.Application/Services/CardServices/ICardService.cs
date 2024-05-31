@@ -5,16 +5,16 @@ using System.Text;
 using System.Threading.Tasks;
 using Trello.Application.DTOs.Card;
 using Trello.Application.DTOs.List;
+using Trello.Domain.Models;
 
 namespace Trello.Application.Services.CardServices
 {
     public interface ICardService
     {
         public Task<CardDetail> CreateCardAsync(CreateCardDTO requestBody);
-        public List<CardDetail> GetAllList(string? title);
+        Task<List<CardDetail>> GetAllCardAsync(Guid listId, string? title);
         public Task<CardDetail> UpdateCardAsync(Guid id, UpdateCardDTO requestBody);
-        public Task<CardDetail> ChangeStatusAsync(Guid Id);
-        public Task IsExistCardTitle(string? title);
-        public Task IsExistListId(Guid? id);
+        public Task<CardDetail> ChangeStatusAsync(Guid Id, bool isActive);
+        public Task<List> GetListById(Guid id);
     }
 }
