@@ -20,7 +20,7 @@ namespace Trello.Application.Utilities.GlobalVariables
             public const string LIST_FIELD = "List";
             public const string CARD_FIELD = "Card";
             public const string TITLE_FIELD = "Title";
-            public const string ROLE_FIELD = "Title";
+            public const string ROLE_FIELD = "Role";
             public const string LOGIN_FIELD = "Login";
             public const string USER_ID_FIELD = "User Id";
             public const string BOARD_ID_FIELD = "Board Id";

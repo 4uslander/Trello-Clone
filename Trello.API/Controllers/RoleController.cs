@@ -190,7 +190,6 @@ namespace Trello.API.Controllers
         [ProducesResponseType(typeof(ApiResponse<RoleDetail>), StatusCodes.Status200OK)]
         public async Task<IActionResult> ChangeStatusAsync(Guid id, bool isActive)
         {
-
             try
             {
                 if (!ModelState.IsValid)

@@ -42,14 +42,12 @@ namespace Trello.Application.Services.RoleServices
                 throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.ROLE_FIELD, ErrorMessage.ROLE_ALREADY_EXIST);
             }
 
-            var user = await _unitOfWork.UserRepository.GetByIdAsync(requestBody.CreatedUserId);
-            if (user == null)
-                throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.USER_FIELD, ErrorMessage.USER_NOT_EXIST);
+            var currentUserId = UserAuthorizationHelper.GetUserAuthorizationById(_httpContextAccessor.HttpContext);
 
             var role = _mapper.Map<Role>(requestBody);
             role.Id = Guid.NewGuid();
             role.CreatedDate = DateTime.Now;
-            role.CreatedUser = user.Id;
+            role.CreatedUser = currentUserId;
             role.IsActive = true;
 
             await _unitOfWork.RoleRepository.InsertAsync(role);

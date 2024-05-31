@@ -12,7 +12,7 @@ namespace Trello.Application.Services.CardServices
     public interface ICardService
     {
         public Task<CardDetail> CreateCardAsync(CreateCardDTO requestBody);
-        Task<List<CardDetail>> GetAllCardAsync(Guid listId, string? title);
+        public Task<List<CardDetail>> GetAllCardAsync(Guid listId, string? title);
         public Task<CardDetail> UpdateCardAsync(Guid id, UpdateCardDTO requestBody);
         public Task<CardDetail> ChangeStatusAsync(Guid Id, bool isActive);
         public Task<List> GetListById(Guid id);
