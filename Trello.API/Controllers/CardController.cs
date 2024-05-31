@@ -1,9 +1,12 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Net;
 using Trello.Application.DTOs.Card;
 using Trello.Application.DTOs.List;
 using Trello.Application.Services.CardServices;
 using Trello.Application.Services.ListServices;
+using Trello.Application.Utilities.ErrorHandler;
+using Trello.Application.Utilities.Helper.Pagination;
 using static Trello.Application.Utilities.ResponseHandler.ResponseModel;
 
 namespace Trello.API.Controllers
@@ -30,48 +33,98 @@ namespace Trello.API.Controllers
         [ProducesResponseType(typeof(ApiResponse<CardDetail>), StatusCodes.Status201Created)]
         public async Task<IActionResult> CreateCardAsync(CreateCardDTO requestBody)
         {
-            if (!ModelState.IsValid)
+            try
             {
-                return BadRequest(ModelState);
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                var result = await _cardService.CreateCardAsync(requestBody);
+
+                return Created(string.Empty, new ApiResponse<CardDetail>()
+                {
+                    Code = StatusCodes.Status201Created,
+                    Data = result
+                });
             }
-
-            var result = await _cardService.CreateCardAsync(requestBody);
-
-            return Created(string.Empty, new ApiResponse<CardDetail>()
+            catch (ExceptionResponse ex)
             {
-                Code = StatusCodes.Status201Created,
-                Data = result
-            });
+                return StatusCode((int)ex.StatusCode, new ApiResponse<string>
+                {
+                    Code = (int)ex.StatusCode,
+                    Data = ex.ErrorMessage
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode((int)HttpStatusCode.InternalServerError, new ApiResponse<string>
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Data = ex.Message
+                });
+            }
         }
 
         /// <summary>
         /// Retrieves all cards, optionally filtered by title.
         /// </summary>
+        /// <param name="listId">The ID of the list to get.</param>
+        /// <param name="query">The pagination query parameters including page index and page size.</param>
         /// <param name="title">The optional title filter for cards.</param>
         /// <returns>Returns a list of card details.</returns>
         /// <response code="200">If the retrieval is successful.</response>
         /// <response code="400">If the request is invalid.</response>
         [Authorize]
         [HttpGet("get-all")]
-        [ProducesResponseType(typeof(ApiResponse<List<CardDetail>>), StatusCodes.Status200OK)]
-        public IActionResult GetAllCards([FromQuery] string? title)
+        [ProducesResponseType(typeof(PagedApiResponse<List<CardDetail>>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetAllCards([FromQuery] Guid listId, [FromQuery] PagingQuery query, [FromQuery] string? title)
         {
-            if (!ModelState.IsValid)
+            try
             {
-                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
-                return BadRequest(new ApiResponse<IEnumerable<string>>
+                if (!ModelState.IsValid)
                 {
-                    Code = StatusCodes.Status400BadRequest,
-                    Data = errors
+                    var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
+                    return BadRequest(new ApiResponse<IEnumerable<string>>
+                    {
+                        Code = StatusCodes.Status400BadRequest,
+                        Data = errors
+                    });
+                }
+                List<CardDetail> result = await _cardService.GetAllCardAsync(listId, title);
+
+                var pagingResult = result.PagedItems(query.PageIndex, query.PageSize).ToList();
+                var total = result.Count;
+
+                var paging = new PaginationInfo
+                {
+                    Page = query.PageIndex,
+                    Size = query.PageSize,
+                };
+
+                return Ok(new PagedApiResponse<CardDetail>
+                {
+                    Code = StatusCodes.Status200OK,
+                    Paging = paging,
+                    Data = pagingResult
                 });
             }
-            List<CardDetail> result = _cardService.GetAllList(title);
-
-            return Ok(new ApiResponse<List<CardDetail>>
+            catch (ExceptionResponse ex)
             {
-                Code = StatusCodes.Status200OK,
-                Data = result
-            });
+                return StatusCode((int)ex.StatusCode, new ApiResponse<string>
+                {
+                    Code = (int)ex.StatusCode,
+                    Data = ex.ErrorMessage
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode((int)HttpStatusCode.InternalServerError, new ApiResponse<string>
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Data = ex.Message
+                });
+            }
         }
 
         /// <summary>
@@ -87,52 +140,91 @@ namespace Trello.API.Controllers
         [ProducesResponseType(typeof(ApiResponse<CardDetail>), StatusCodes.Status200OK)]
         public async Task<IActionResult> UpdateCardAsync(Guid id, [FromForm] UpdateCardDTO requestBody)
         {
-            if (!ModelState.IsValid)
+            try
             {
-                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
-                return BadRequest(new ApiResponse<IEnumerable<string>>
+                if (!ModelState.IsValid)
                 {
-                    Code = StatusCodes.Status400BadRequest,
-                    Data = errors
+                    var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
+                    return BadRequest(new ApiResponse<IEnumerable<string>>
+                    {
+                        Code = StatusCodes.Status400BadRequest,
+                        Data = errors
+                    });
+                }
+                var result = await _cardService.UpdateCardAsync(id, requestBody);
+
+                return Ok(new ApiResponse<CardDetail>()
+                {
+                    Code = StatusCodes.Status200OK,
+                    Data = result
                 });
             }
-            var result = await _cardService.UpdateCardAsync(id, requestBody);
-
-            return Ok(new ApiResponse<CardDetail>()
+            catch (ExceptionResponse ex)
             {
-                Code = StatusCodes.Status200OK,
-                Data = result
-            });
+                return StatusCode((int)ex.StatusCode, new ApiResponse<string>
+                {
+                    Code = (int)ex.StatusCode,
+                    Data = ex.ErrorMessage
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode((int)HttpStatusCode.InternalServerError, new ApiResponse<string>
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Data = ex.Message
+                });
+            }
         }
 
         /// <summary>
         /// Changes the status of an existing card.
         /// </summary>
         /// <param name="id">The ID of the card whose status is to be changed.</param>
+        /// <param name="isActive">The status of the card to update.</param>
         /// <returns>Returns the updated card details.</returns>
         /// <response code="200">If the card status is changed successfully.</response>
         /// <response code="400">If the request is invalid.</response>
         [Authorize/*(Roles = "Admin")*/]
         [HttpPut("change-status/{id}")]
         [ProducesResponseType(typeof(ApiResponse<CardDetail>), StatusCodes.Status200OK)]
-        public async Task<IActionResult> ChangeStatusAsync(Guid id)
+        public async Task<IActionResult> ChangeStatusAsync(Guid id, [FromQuery] bool isActive)
         {
-            if (!ModelState.IsValid)
+            try
             {
-                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
-                return BadRequest(new ApiResponse<IEnumerable<string>>
+                if (!ModelState.IsValid)
                 {
-                    Code = StatusCodes.Status400BadRequest,
-                    Data = errors
+                    var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
+                    return BadRequest(new ApiResponse<IEnumerable<string>>
+                    {
+                        Code = StatusCodes.Status400BadRequest,
+                        Data = errors
+                    });
+                }
+                var result = await _cardService.ChangeStatusAsync(id, isActive);
+
+                return Ok(new ApiResponse<CardDetail>()
+                {
+                    Code = StatusCodes.Status200OK,
+                    Data = result
                 });
             }
-            var result = await _cardService.ChangeStatusAsync(id);
-
-            return Ok(new ApiResponse<CardDetail>()
+            catch (ExceptionResponse ex)
             {
-                Code = StatusCodes.Status200OK,
-                Data = result
-            });
+                return StatusCode((int)ex.StatusCode, new ApiResponse<string>
+                {
+                    Code = (int)ex.StatusCode,
+                    Data = ex.ErrorMessage
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode((int)HttpStatusCode.InternalServerError, new ApiResponse<string>
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Data = ex.Message
+                });
+            }
         }
     }
 }

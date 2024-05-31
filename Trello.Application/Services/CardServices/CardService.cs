@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -36,8 +37,11 @@ namespace Trello.Application.Services.CardServices
             if (requestBody == null)
                 throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.REQUEST_BODY, ErrorMessage.NULL_REQUEST_BODY);
 
-            await IsExistCardTitle(requestBody.Title);
-            await IsExistListId(requestBody.ListId);
+            var existingList = await GetListById(requestBody.ListId);
+            if (existingList == null)
+            {
+                throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.LIST_FIELD, ErrorMessage.LIST_NOT_EXIST);
+            }
 
             var currentUserId = UserAuthorizationHelper.GetUserAuthorizationById(_httpContextAccessor.HttpContext);
 
@@ -55,19 +59,20 @@ namespace Trello.Application.Services.CardServices
             return createdCardDto;
         }
 
-        public List<CardDetail> GetAllList(string? title)
+        public async Task<List<CardDetail>> GetAllCardAsync(Guid listId, string? title)
         {
             IQueryable<Card> cardsQuery = _unitOfWork.CardRepository.GetAll();
 
+            cardsQuery = cardsQuery.Where(u => u.ListId == listId);
 
             if (!string.IsNullOrEmpty(title))
             {
                 cardsQuery = cardsQuery.Where(u => u.Title.Contains(title));
             }
 
-            List<CardDetail> cards = cardsQuery
+            List<CardDetail> cards = await cardsQuery
                 .Select(u => _mapper.Map<CardDetail>(u))
-                .ToList();
+                .ToListAsync();
 
             return cards;
         }
@@ -76,7 +81,6 @@ namespace Trello.Application.Services.CardServices
             var card = await _unitOfWork.CardRepository.GetByIdAsync(id)
                 ?? throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.CARD_FIELD, ErrorMessage.CARD_NOT_EXIST);
 
-            await IsExistCardTitle(requestBody.Title);
 
             var currentUserId = UserAuthorizationHelper.GetUserAuthorizationById(_httpContextAccessor.HttpContext);
 
@@ -109,7 +113,7 @@ namespace Trello.Application.Services.CardServices
             return cardDetail;
         }
 
-        public async Task<CardDetail> ChangeStatusAsync(Guid Id)
+        public async Task<CardDetail> ChangeStatusAsync(Guid Id, bool isActive)
         {
             var card = await _unitOfWork.CardRepository.GetByIdAsync(Id)
                 ?? throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.CARD_FIELD, ErrorMessage.CARD_NOT_EXIST);
@@ -118,15 +122,7 @@ namespace Trello.Application.Services.CardServices
 
             card.UpdatedDate = DateTime.Now;
             card.UpdatedUser = currentUserId;
-
-            if (card.IsActive == true)
-            {
-                card.IsActive = false;
-            }
-            else
-            {
-                card.IsActive = true;
-            }
+            card.IsActive = isActive;
 
             _unitOfWork.CardRepository.Update(card);
             await _unitOfWork.SaveChangesAsync();
@@ -135,18 +131,9 @@ namespace Trello.Application.Services.CardServices
             return mappedList;
         }
 
-        public async System.Threading.Tasks.Task IsExistCardTitle(string? title)
+        public async Task<List> GetListById(Guid id)
         {
-            var isExist = await _unitOfWork.CardRepository.AnyAsync(x => x.Title.Equals(title));
-            if (isExist)
-                throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.TITLE_FIELD, ErrorMessage.TITLE_ALREADY_EXIST);
-        }
-
-        public async System.Threading.Tasks.Task IsExistListId(Guid? id)
-        {
-            var listExists = await _unitOfWork.ListRepository.AnyAsync(x => x.Id.Equals(id));
-            if (!listExists)
-                throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.LIST_FIELD, ErrorMessage.LIST_NOT_EXIST);
+            return await _unitOfWork.ListRepository.GetByIdAsync(id);
         }
     }
 }
