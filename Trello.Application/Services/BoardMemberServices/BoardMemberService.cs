@@ -37,8 +37,17 @@ namespace Trello.Application.Services.BoardMemberServices
             if (requestBody == null)
                 throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.REQUEST_BODY, ErrorMessage.NULL_REQUEST_BODY);
 
-            await IsExistBoard(requestBody.BoardId);
-            await IsExistUser(requestBody.UserId);
+            var existingBoard = await GetBoardById(requestBody.BoardId);
+            if (existingBoard == null)
+            {
+                throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.BOARD_FIELD, ErrorMessage.BOARD_NOT_EXIST);
+            }
+
+            var existingUser = await GetUserById(requestBody.UserId);
+            if (existingUser == null)
+            {
+                throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.USER_FIELD, ErrorMessage.USER_NOT_EXIST);
+            }
 
             var currentUserId = UserAuthorizationHelper.GetUserAuthorizationById(_httpContextAccessor.HttpContext);
 
@@ -55,18 +64,20 @@ namespace Trello.Application.Services.BoardMemberServices
 
             return createdBoardMemberDto;
         }
-        public List<BoardMemberDetail> GetAllBoardMember(string? name)
+        public async Task<List<BoardMemberDetail>> GetAllBoardMemberAsync(Guid boardId, string? name)
         {
             IQueryable<BoardMember> boardMembersQuery = _unitOfWork.BoardMemberRepository.GetAll();
+
+            boardMembersQuery = boardMembersQuery.Where(u => u.BoardId == boardId);
 
             if (!string.IsNullOrEmpty(name))
             {
                 boardMembersQuery = boardMembersQuery.Where(bm => bm.User.Name.Contains(name));
             }
 
-            List<BoardMemberDetail> lists = boardMembersQuery
+            List<BoardMemberDetail> lists = await boardMembersQuery
                 .Select(bm => _mapper.Map<BoardMemberDetail>(bm))
-                .ToList();
+                .ToListAsync();
 
             return lists;
         }
@@ -88,7 +99,7 @@ namespace Trello.Application.Services.BoardMemberServices
             var boardMemberDetail = _mapper.Map<BoardMemberDetail>(boardMember);
             return boardMemberDetail;
         }
-        public async Task<BoardMemberDetail> ChangeStatusAsync(Guid Id)
+        public async Task<BoardMemberDetail> ChangeStatusAsync(Guid Id, bool isActive)
         {
             var boardMember = await _unitOfWork.BoardMemberRepository.GetByIdAsync(Id);
             if (boardMember == null)
@@ -98,15 +109,7 @@ namespace Trello.Application.Services.BoardMemberServices
 
             boardMember.UpdatedDate = DateTime.Now;
             boardMember.UpdatedUser = currentUserId;
-
-            if (boardMember.IsActive == true)
-            {
-                boardMember.IsActive = false;
-            }
-            else
-            {
-                boardMember.IsActive = true;
-            }
+            boardMember.IsActive = isActive;
 
             _unitOfWork.BoardMemberRepository.Update(boardMember);
             await _unitOfWork.SaveChangesAsync();
@@ -114,17 +117,13 @@ namespace Trello.Application.Services.BoardMemberServices
             var mappedBoard = _mapper.Map<BoardMemberDetail>(boardMember);
             return mappedBoard;
         }
-        public async System.Threading.Tasks.Task IsExistBoard(Guid boardId)
+        public async Task<Board> GetBoardById(Guid boardId)
         {
-            var isExist = await _unitOfWork.BoardRepository.AnyAsync(x => x.Id.Equals(boardId));
-            if (!isExist)
-                throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.BOARD_FIELD, ErrorMessage.BOARD_NOT_EXIST);
+            return await _unitOfWork.BoardRepository.GetByIdAsync(boardId);
         }
-        public async System.Threading.Tasks.Task IsExistUser(Guid userId)
+        public async Task<User> GetUserById(Guid userId)
         {
-            var isExist = await _unitOfWork.UserRepository.AnyAsync(x => x.Id.Equals(userId));
-            if (!isExist)
-                throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.USER_FIELD, ErrorMessage.USER_NOT_EXIST);
+            return await _unitOfWork.UserRepository.GetByIdAsync(userId);
         }
     }
 }

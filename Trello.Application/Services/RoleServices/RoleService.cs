@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -35,7 +36,11 @@ namespace Trello.Application.Services.RoleServices
         {
             if (requestBody == null)
                 throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.REQUEST_BODY, ErrorMessage.NULL_REQUEST_BODY);
-            await IsExistRoleName(requestBody.Name);
+            var existingRoleName = await GetRoleByName(requestBody.Name);
+            if (existingRoleName != null)
+            {
+                throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.ROLE_FIELD, ErrorMessage.ROLE_ALREADY_EXIST);
+            }
 
             var user = await _unitOfWork.UserRepository.GetByIdAsync(requestBody.CreatedUserId);
             if (user == null)
@@ -54,7 +59,7 @@ namespace Trello.Application.Services.RoleServices
 
             return createdRoleDto;
         }
-        public List<RoleDetail> GetAllRole(string? name)
+        public async Task<List<RoleDetail>> GetAllRoleAsync(string? name)
         {
             IQueryable<Role> rolesQuery = _unitOfWork.RoleRepository.GetAll();
 
@@ -64,9 +69,9 @@ namespace Trello.Application.Services.RoleServices
                 rolesQuery = rolesQuery.Where(u => u.Name.Contains(name));
             }
 
-            List<RoleDetail> lists = rolesQuery
+            List<RoleDetail> lists = await rolesQuery
                 .Select(u => _mapper.Map<RoleDetail>(u))
-                .ToList();
+                .ToListAsync();
 
             return lists;
         }
@@ -89,7 +94,7 @@ namespace Trello.Application.Services.RoleServices
             var roleDetail = _mapper.Map<RoleDetail>(role);
             return roleDetail;
         }
-        public async Task<RoleDetail> ChangeStatusAsync(Guid Id)
+        public async Task<RoleDetail> ChangeStatusAsync(Guid Id, bool isActive)
         {
             var role = await _unitOfWork.RoleRepository.GetByIdAsync(Id);
             if (role == null)
@@ -99,15 +104,7 @@ namespace Trello.Application.Services.RoleServices
 
             role.UpdatedDate = DateTime.Now;
             role.UpdatedUser = currentUserId;
-
-            if (role.IsActive == true)
-            {
-                role.IsActive = false;
-            }
-            else
-            {
-                role.IsActive = true;
-            }
+            role.IsActive = isActive;
 
             _unitOfWork.RoleRepository.Update(role);
             await _unitOfWork.SaveChangesAsync();
@@ -115,11 +112,9 @@ namespace Trello.Application.Services.RoleServices
             var mappedBoardRole = _mapper.Map<RoleDetail>(role);
             return mappedBoardRole;
         }
-        public async System.Threading.Tasks.Task IsExistRoleName(string? name)
+        public async Task<Role> GetRoleByName(string name)
         {
-            var isExist = await _unitOfWork.RoleRepository.AnyAsync(x => x.Name.Equals(name));
-            if (isExist)
-                throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.ROLE_FIELD, ErrorMessage.ROLE_ALREADY_EXIST);
+            return await _unitOfWork.RoleRepository.FirstOrDefaultAsync(x => x.Name.ToLower().Equals(name.ToLower()));
         }
     }
 }

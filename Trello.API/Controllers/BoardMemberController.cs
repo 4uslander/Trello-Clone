@@ -1,10 +1,13 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Net;
 using Trello.Application.DTOs.Board;
 using Trello.Application.DTOs.BoardMember;
 using Trello.Application.DTOs.List;
 using Trello.Application.Services.BoardMemberServices;
 using Trello.Application.Services.BoardServices;
+using Trello.Application.Utilities.ErrorHandler;
+using Trello.Application.Utilities.Helper.Pagination;
 using static Trello.Application.Utilities.ResponseHandler.ResponseModel;
 
 namespace Trello.API.Controllers
@@ -26,53 +29,105 @@ namespace Trello.API.Controllers
         /// <returns>Returns the created board member details.</returns>
         /// <response code="201">If the board member is created successfully.</response>
         /// <response code="400">If the request body is invalid.</response>
+        /// <response code="500">If an unexpected error occurs, returns an error message.</response>
         [Authorize]
         [HttpPost("create")]
         [ProducesResponseType(typeof(ApiResponse<BoardMemberDetail>), StatusCodes.Status201Created)]
         public async Task<IActionResult> CreateBoardMemberAsync(CreateBoardMemberDTO requestBody)
         {
-            if (!ModelState.IsValid)
+            try
             {
-                return BadRequest(ModelState);
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                var result = await _boardMemberService.CreateBoardMemberAsync(requestBody);
+
+                return Created(string.Empty, new ApiResponse<BoardMemberDetail>()
+                {
+                    Code = StatusCodes.Status201Created,
+                    Data = result
+                });
             }
-
-            var result = await _boardMemberService.CreateBoardMemberAsync(requestBody);
-
-            return Created(string.Empty, new ApiResponse<BoardMemberDetail>()
+            catch (ExceptionResponse ex)
             {
-                Code = StatusCodes.Status201Created,
-                Data = result
-            });
+                return StatusCode((int)ex.StatusCode, new ApiResponse<string>
+                {
+                    Code = (int)ex.StatusCode,
+                    Data = ex.ErrorMessage
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode((int)HttpStatusCode.InternalServerError, new ApiResponse<string>
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Data = ex.Message
+                });
+            }
         }
 
         /// <summary>
         /// Retrieves all board members, optionally filtered by name.
         /// </summary>
+        /// <param name="boardId">The ID of the board.</param>
+        /// <param name="query">The pagination query parameters including page index and page size.</param>
         /// <param name="name">The optional name filter for board members.</param>
         /// <returns>Returns a list of board member details.</returns>
         /// <response code="200">If the retrieval is successful.</response>
         /// <response code="400">If the request is invalid.</response>
+        /// <response code="500">If an unexpected error occurs, returns an error message.</response>
         [Authorize]
         [HttpGet("get-all")]
-        [ProducesResponseType(typeof(ApiResponse<List<BoardMemberDetail>>), StatusCodes.Status200OK)]
-        public IActionResult GetAllBoardMembers([FromQuery] string? name)
+        [ProducesResponseType(typeof(PagedApiResponse<List<BoardMemberDetail>>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetBoardMembersAsync([FromQuery] Guid boardId, [FromQuery] PagingQuery query, [FromQuery] string? name)
         {
-            if (!ModelState.IsValid)
+            try
             {
-                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
-                return BadRequest(new ApiResponse<IEnumerable<string>>
+                if (!ModelState.IsValid)
                 {
-                    Code = StatusCodes.Status400BadRequest,
-                    Data = errors
+                    var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
+                    return BadRequest(new ApiResponse<IEnumerable<string>>
+                    {
+                        Code = StatusCodes.Status400BadRequest,
+                        Data = errors
+                    });
+                }
+                List<BoardMemberDetail> result = await _boardMemberService.GetAllBoardMemberAsync(boardId, name);
+
+                var pagingResult = result.PagedItems(query.PageIndex, query.PageSize).ToList();
+                var total = result.Count;
+
+                var paging = new PaginationInfo
+                {
+                    Page = query.PageIndex,
+                    Size = query.PageSize,
+                };
+
+                return Ok(new PagedApiResponse<BoardMemberDetail>
+                {
+                    Code = StatusCodes.Status200OK,
+                    Paging = paging,
+                    Data = pagingResult
                 });
             }
-            List<BoardMemberDetail> result = _boardMemberService.GetAllBoardMember(name);
-
-            return Ok(new ApiResponse<List<BoardMemberDetail>>
+            catch (ExceptionResponse ex)
             {
-                Code = StatusCodes.Status200OK,
-                Data = result
-            });
+                return StatusCode((int)ex.StatusCode, new ApiResponse<string>
+                {
+                    Code = (int)ex.StatusCode,
+                    Data = ex.ErrorMessage
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode((int)HttpStatusCode.InternalServerError, new ApiResponse<string>
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Data = ex.Message
+                });
+            }
         }
 
         /// <summary>
@@ -83,57 +138,98 @@ namespace Trello.API.Controllers
         /// <returns>Returns the updated board member details.</returns>
         /// <response code="200">If the board member is updated successfully.</response>
         /// <response code="400">If the request is invalid.</response>
+        /// <response code="500">If an unexpected error occurs, returns an error message.</response>
         [Authorize]
         [HttpPut("update/{id}")]
         [ProducesResponseType(typeof(ApiResponse<BoardMemberDetail>), StatusCodes.Status200OK)]
         public async Task<IActionResult> UpdateBoardMemberAsync(Guid id, [FromForm] BoardMemberDTO requestBody)
         {
-            if (!ModelState.IsValid)
+            try
             {
-                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
-                return BadRequest(new ApiResponse<IEnumerable<string>>
+                if (!ModelState.IsValid)
                 {
-                    Code = StatusCodes.Status400BadRequest,
-                    Data = errors
+                    var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
+                    return BadRequest(new ApiResponse<IEnumerable<string>>
+                    {
+                        Code = StatusCodes.Status400BadRequest,
+                        Data = errors
+                    });
+                }
+                var result = await _boardMemberService.UpdateBoardMemberAsync(id, requestBody);
+
+                return Ok(new ApiResponse<BoardMemberDetail>()
+                {
+                    Code = StatusCodes.Status200OK,
+                    Data = result
                 });
             }
-            var result = await _boardMemberService.UpdateBoardMemberAsync(id, requestBody);
-
-            return Ok(new ApiResponse<BoardMemberDetail>()
+            catch (ExceptionResponse ex)
             {
-                Code = StatusCodes.Status200OK,
-                Data = result
-            });
+                return StatusCode((int)ex.StatusCode, new ApiResponse<string>
+                {
+                    Code = (int)ex.StatusCode,
+                    Data = ex.ErrorMessage
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode((int)HttpStatusCode.InternalServerError, new ApiResponse<string>
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Data = ex.Message
+                });
+            }
         }
 
         /// <summary>
         /// Changes the status of an existing board member.
         /// </summary>
         /// <param name="id">The ID of the board member whose status is to be changed.</param>
+        /// <param name="isActive">The status of the list to update.</param>
         /// <returns>Returns the updated board member details.</returns>
         /// <response code="200">If the board member status is changed successfully.</response>
         /// <response code="400">If the request is invalid.</response>
+        /// <response code="500">If an unexpected error occurs, returns an error message.</response>
         [Authorize/*(Roles = "Admin")*/]
         [HttpPut("change-status/{id}")]
         [ProducesResponseType(typeof(ApiResponse<BoardMemberDetail>), StatusCodes.Status200OK)]
-        public async Task<IActionResult> ChangeStatusAsync(Guid id)
+        public async Task<IActionResult> ChangeStatusAsync(Guid id, [FromQuery] bool isActive)
         {
-            if (!ModelState.IsValid)
+            try
             {
-                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
-                return BadRequest(new ApiResponse<IEnumerable<string>>
+                if (!ModelState.IsValid)
                 {
-                    Code = StatusCodes.Status400BadRequest,
-                    Data = errors
+                    var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
+                    return BadRequest(new ApiResponse<IEnumerable<string>>
+                    {
+                        Code = StatusCodes.Status400BadRequest,
+                        Data = errors
+                    });
+                }
+                var result = await _boardMemberService.ChangeStatusAsync(id, isActive);
+
+                return Ok(new ApiResponse<BoardMemberDetail>()
+                {
+                    Code = StatusCodes.Status200OK,
+                    Data = result
                 });
             }
-            var result = await _boardMemberService.ChangeStatusAsync(id);
-
-            return Ok(new ApiResponse<BoardMemberDetail>()
+            catch (ExceptionResponse ex)
             {
-                Code = StatusCodes.Status200OK,
-                Data = result
-            });
+                return StatusCode((int)ex.StatusCode, new ApiResponse<string>
+                {
+                    Code = (int)ex.StatusCode,
+                    Data = ex.ErrorMessage
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode((int)HttpStatusCode.InternalServerError, new ApiResponse<string>
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Data = ex.Message
+                });
+            }
         }
     }
 }

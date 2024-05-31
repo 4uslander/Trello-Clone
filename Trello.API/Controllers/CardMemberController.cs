@@ -128,5 +128,56 @@ namespace Trello.API.Controllers
                 });
             }
         }
+
+        /// <summary>
+        /// Changes the status of an existing card member.
+        /// </summary>
+        /// <param name="id">The ID of the card member whose status is to be changed.</param>
+        /// <param name="isActive">The status of the card member to update.</param>
+        /// <returns>Returns the updated card member details.</returns>
+        /// <response code="200">If the card member status is changed successfully.</response>
+        /// <response code="400">If the request is invalid.</response>
+        /// <response code="500">If an unexpected error occurs, returns an error message.</response>
+        [Authorize/*(Roles = "Admin")*/]
+        [HttpPut("change-status/{id}")]
+        [ProducesResponseType(typeof(ApiResponse<CardMemberDetail>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> ChangeStatusAsync(Guid id, [FromQuery] bool isActive)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
+                    return BadRequest(new ApiResponse<IEnumerable<string>>
+                    {
+                        Code = StatusCodes.Status400BadRequest,
+                        Data = errors
+                    });
+                }
+                var result = await _cardMemberService.ChangeStatusAsync(id, isActive);
+
+                return Ok(new ApiResponse<CardMemberDetail>()
+                {
+                    Code = StatusCodes.Status200OK,
+                    Data = result
+                });
+            }
+            catch (ExceptionResponse ex)
+            {
+                return StatusCode((int)ex.StatusCode, new ApiResponse<string>
+                {
+                    Code = (int)ex.StatusCode,
+                    Data = ex.ErrorMessage
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode((int)HttpStatusCode.InternalServerError, new ApiResponse<string>
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Data = ex.Message
+                });
+            }
+        }
     }
 }

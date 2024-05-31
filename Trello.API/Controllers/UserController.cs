@@ -188,7 +188,7 @@ namespace Trello.API.Controllers
         [Authorize]
         [HttpGet("get/{id}")]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
-        public async Task<IActionResult> GetUserLoginAsync(Guid id)
+        public async Task<IActionResult> GetUserProfileAsync(Guid id)
         {
             try
             {
@@ -201,7 +201,7 @@ namespace Trello.API.Controllers
                         Data = errors
                     });
                 }
-                var result = await _userService.GetUserLoginAsync(id);
+                var result = await _userService.GetUserProfileAsync(id);
 
                 return Ok(new ApiResponse<object>()
                 {
@@ -287,7 +287,7 @@ namespace Trello.API.Controllers
         [Authorize/*(Roles = "Admin")*/]
         [HttpPut("change-status/{id}")]
         [ProducesResponseType(typeof(ApiResponse<UserDetail>), StatusCodes.Status200OK)]
-        public async Task<IActionResult> ChangeStatusAsync(Guid id)
+        public async Task<IActionResult> ChangeStatusAsync(Guid id, bool isActive)
         {
             try
             {
@@ -300,7 +300,7 @@ namespace Trello.API.Controllers
                         Data = errors
                     });
                 }
-                var result = await _userService.ChangeStatusAsync(id);
+                var result = await _userService.ChangeStatusAsync(id, isActive);
 
                 return Ok(new ApiResponse<UserDetail>()
                 {

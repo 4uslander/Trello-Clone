@@ -149,12 +149,12 @@ namespace Trello.Application.Services.BoardServices
         }
 
 
-        public async Task<Board> GetBoardByName(string? name)
+        public async Task<Board> GetBoardByName(string name)
         {
             return await _unitOfWork.BoardRepository.FirstOrDefaultAsync(x => x.Name.ToLower().Equals(name.ToLower()));
         }
 
-        public async Task<Board> GetBoardById(Guid? id)
+        public async Task<Board> GetBoardById(Guid id)
         {
             return await _unitOfWork.BoardRepository.GetByIdAsync(id);
         }
