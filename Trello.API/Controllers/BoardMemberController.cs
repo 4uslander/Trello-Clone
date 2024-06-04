@@ -33,7 +33,7 @@ namespace Trello.API.Controllers
         [Authorize]
         [HttpPost("create")]
         [ProducesResponseType(typeof(ApiResponse<BoardMemberDetail>), StatusCodes.Status201Created)]
-        public async Task<IActionResult> CreateBoardMemberAsync(CreateBoardMemberDTO requestBody)
+        public async Task<IActionResult> CreateBoardMemberAsync(BoardMemberDTO requestBody)
         {
             try
             {
@@ -142,7 +142,7 @@ namespace Trello.API.Controllers
         [Authorize]
         [HttpPut("update/{id}")]
         [ProducesResponseType(typeof(ApiResponse<BoardMemberDetail>), StatusCodes.Status200OK)]
-        public async Task<IActionResult> UpdateBoardMemberAsync(Guid id, [FromForm] BoardMemberDTO requestBody)
+        public async Task<IActionResult> UpdateBoardMemberAsync(Guid id, [FromQuery] Guid roleId)
         {
             try
             {
@@ -155,7 +155,7 @@ namespace Trello.API.Controllers
                         Data = errors
                     });
                 }
-                var result = await _boardMemberService.UpdateBoardMemberAsync(id, requestBody);
+                var result = await _boardMemberService.UpdateBoardMemberAsync(id, roleId);
 
                 return Ok(new ApiResponse<BoardMemberDetail>()
                 {
@@ -171,14 +171,14 @@ namespace Trello.API.Controllers
                     Data = ex.ErrorMessage
                 });
             }
-            catch (Exception ex)
-            {
-                return StatusCode((int)HttpStatusCode.InternalServerError, new ApiResponse<string>
-                {
-                    Code = StatusCodes.Status500InternalServerError,
-                    Data = ex.Message
-                });
-            }
+            //catch (Exception ex)
+            //{
+            //    return StatusCode((int)HttpStatusCode.InternalServerError, new ApiResponse<string>
+            //    {
+            //        Code = StatusCodes.Status500InternalServerError,
+            //        Data = ex.Message
+            //    });
+            //}
         }
 
         /// <summary>

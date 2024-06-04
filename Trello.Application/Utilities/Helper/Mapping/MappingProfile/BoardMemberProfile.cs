@@ -16,7 +16,6 @@ namespace Trello.Application.Utilities.Helper.Mapping.MappingProfile
         {
             CreateMap<BoardMember, BoardMemberDetail>().ReverseMap();
             CreateMap<BoardMemberDTO, BoardMember>().ReverseMap();
-            CreateMap<CreateBoardMemberDTO, BoardMember>().ReverseMap();
         }
     }
 }
