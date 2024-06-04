@@ -38,12 +38,12 @@ namespace Trello.Application.Services.CardMemberServices
             if (requestBody == null)
                 throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.REQUEST_BODY, ErrorMessage.NULL_REQUEST_BODY);
 
-            var existingCard = await GetCardById(requestBody.CardId);
+            var existingCard = await GetCardByIdAsync(requestBody.CardId);
             if (existingCard == null)
             {
                 throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.CARD_FIELD, ErrorMessage.CARD_NOT_EXIST);
             }
-            var existingUser = await GetUserById(requestBody.UserId);
+            var existingUser = await GetUserByIdAsync(requestBody.UserId);
             if (existingUser == null)
             {
                 throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.USER_FIELD, ErrorMessage.USER_NOT_EXIST);
@@ -73,7 +73,7 @@ namespace Trello.Application.Services.CardMemberServices
 
             if (!string.IsNullOrEmpty(userName))
             {
-                var user = await GetUserByUserName(userName);
+                var user = await GetUserByUserNameAsync(userName);
                 if (user == null)
                 {
                     return new List<CardMemberDetail>();
@@ -105,15 +105,15 @@ namespace Trello.Application.Services.CardMemberServices
             return mappedCardMember;
         }
 
-        public async Task<Card> GetCardById(Guid cardId)
+        public async Task<Card> GetCardByIdAsync(Guid cardId)
         {
             return await _unitOfWork.CardRepository.GetByIdAsync(cardId);
         }
-        public async Task<User> GetUserById(Guid userId)
+        public async Task<User> GetUserByIdAsync(Guid userId)
         {
             return await _unitOfWork.UserRepository.GetByIdAsync(userId);
         }
-        public async Task<User> GetUserByUserName(string userName)
+        public async Task<User> GetUserByUserNameAsync(string userName)
         {
             return await _unitOfWork.UserRepository.GetAll()
                 .FirstOrDefaultAsync(u => u.Name.Equals(userName, StringComparison.OrdinalIgnoreCase));

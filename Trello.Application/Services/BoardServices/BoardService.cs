@@ -29,7 +29,7 @@ namespace Trello.Application.Services.BoardServices
             if (requestBody == null)
                 throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.REQUEST_BODY, ErrorMessage.NULL_REQUEST_BODY);
 
-            var existingBoard = await GetBoardByName(requestBody.Name);
+            var existingBoard = await GetBoardByNameAsync(requestBody.Name);
             if (existingBoard != null)
             {
                 throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.BOARD_FIELD, ErrorMessage.BOARD_ALREADY_EXIST);
@@ -76,11 +76,11 @@ namespace Trello.Application.Services.BoardServices
 
         public async Task<BoardDetail> UpdateBoardAsync(Guid id, BoardDTO requestBody)
         {
-            var board = await GetBoardById(id);
+            var board = await GetBoardByIdAsync(id);
             if (board == null)
                 throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.BOARD_ID_FIELD, ErrorMessage.BOARD_NOT_EXIST);
 
-            var existingBoard = await GetBoardByName(requestBody.Name);
+            var existingBoard = await GetBoardByNameAsync(requestBody.Name);
             if (existingBoard != null)
             {
                 throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.BOARD_FIELD, ErrorMessage.BOARD_ALREADY_EXIST);
@@ -104,7 +104,7 @@ namespace Trello.Application.Services.BoardServices
 
         public async Task<BoardDetail> ChangeStatusAsync(Guid Id, bool isActive)
         {
-            var board = await GetBoardById(Id);
+            var board = await GetBoardByIdAsync(Id);
             if (board == null)
                 throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.BOARD_ID_FIELD, ErrorMessage.BOARD_NOT_EXIST);
 
@@ -127,7 +127,7 @@ namespace Trello.Application.Services.BoardServices
 
         public async Task<BoardDetail> ChangeVisibilityAsync(Guid id, bool isPublic)
         {
-            var board = await GetBoardById(id);
+            var board = await GetBoardByIdAsync(id);
             if (board == null)
                 throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.BOARD_ID_FIELD, ErrorMessage.BOARD_NOT_EXIST);
 
@@ -149,12 +149,12 @@ namespace Trello.Application.Services.BoardServices
         }
 
 
-        public async Task<Board> GetBoardByName(string name)
+        public async Task<Board> GetBoardByNameAsync(string name)
         {
             return await _unitOfWork.BoardRepository.FirstOrDefaultAsync(x => x.Name.ToLower().Equals(name.ToLower()));
         }
 
-        public async Task<Board> GetBoardById(Guid id)
+        public async Task<Board> GetBoardByIdAsync(Guid id)
         {
             return await _unitOfWork.BoardRepository.GetByIdAsync(id);
         }

@@ -37,7 +37,7 @@ namespace Trello.Application.Services.CardServices
             if (requestBody == null)
                 throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.REQUEST_BODY, ErrorMessage.NULL_REQUEST_BODY);
 
-            var existingList = await GetListById(requestBody.ListId);
+            var existingList = await GetListByIdAsync(requestBody.ListId);
             if (existingList == null)
             {
                 throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.LIST_FIELD, ErrorMessage.LIST_NOT_EXIST);
@@ -131,7 +131,7 @@ namespace Trello.Application.Services.CardServices
             return mappedList;
         }
 
-        public async Task<List> GetListById(Guid id)
+        public async Task<List> GetListByIdAsync(Guid id)
         {
             return await _unitOfWork.ListRepository.GetByIdAsync(id);
         }
