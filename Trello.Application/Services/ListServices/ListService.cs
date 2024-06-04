@@ -28,13 +28,13 @@ namespace Trello.Application.Services.ListServices
             if (requestBody == null)
                 throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.REQUEST_BODY, ErrorMessage.NULL_REQUEST_BODY);
 
-            var existingList = await GetListByName(requestBody.Name, requestBody.BoardId);
+            var existingList = await GetListByNameAsync(requestBody.Name, requestBody.BoardId);
             if (existingList != null)
             {
                 throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.LIST_FIELD, ErrorMessage.LIST_ALREADY_EXIST);
             }
 
-            var existingBoard = await GetBoardById(requestBody.BoardId);
+            var existingBoard = await GetBoardByIdAsync(requestBody.BoardId);
             if (existingBoard == null)
             {
                 throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.BOARD_FIELD, ErrorMessage.BOARD_NOT_EXIST);
@@ -79,7 +79,7 @@ namespace Trello.Application.Services.ListServices
             var list = await _unitOfWork.ListRepository.GetByIdAsync(id)
                 ?? throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.LIST_FIELD, ErrorMessage.LIST_NOT_EXIST);
 
-            var existingList = await GetListByName(requestBody.Name, requestBody.BoardId);
+            var existingList = await GetListByNameAsync(requestBody.Name, requestBody.BoardId);
             if (existingList != null)
             {
                 throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.LIST_FIELD, ErrorMessage.LIST_ALREADY_EXIST);
@@ -155,11 +155,11 @@ namespace Trello.Application.Services.ListServices
             return mappedList;
         }
 
-        public async Task<List> GetListByName(string name, Guid boardId)
+        public async Task<List> GetListByNameAsync(string name, Guid boardId)
         {
             return await _unitOfWork.ListRepository.FirstOrDefaultAsync(x => x.Name.ToLower().Equals(name.ToLower()) && x.BoardId == boardId);
         }
-        public async Task<Board> GetBoardById(Guid id)
+        public async Task<Board> GetBoardByIdAsync(Guid id)
         {
             return await _unitOfWork.BoardRepository.GetByIdAsync(id);
         }

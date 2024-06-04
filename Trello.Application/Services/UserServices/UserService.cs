@@ -37,7 +37,7 @@ namespace Trello.Application.Services.UserServices
             if (requestBody == null)
                 throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.REQUEST_BODY, ErrorMessage.NULL_REQUEST_BODY);
 
-            var existingEmail = await GetUserByEmail(requestBody.Email);
+            var existingEmail = await GetUserByEmailAsync(requestBody.Email);
             if (existingEmail != null)
             {
                 throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.EMAIL_FIELD, ErrorMessage.EMAIL_ALREADY_EXIST);
@@ -158,11 +158,11 @@ namespace Trello.Application.Services.UserServices
             return mappedUser;
         }
 
-        public async Task<User> GetUserByEmail(string email)
+        public async Task<User> GetUserByEmailAsync(string email)
         {
             return await _unitOfWork.UserRepository.FirstOrDefaultAsync(x => x.Email.Equals(email));
         }
-        public async Task<User> GetUserById(Guid userId)
+        public async Task<User> GetUserByIdAsync(Guid userId)
         {
             return await _unitOfWork.UserRepository.GetByIdAsync(userId);
         }

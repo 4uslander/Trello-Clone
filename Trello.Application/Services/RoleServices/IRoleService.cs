@@ -16,6 +16,6 @@ namespace Trello.Application.Services.RoleServices
         Task<List<RoleDetail>> GetAllRoleAsync(string? name);
         public Task<RoleDetail> UpdateRoleAsync(Guid id, RoleDTO requestBody);
         public Task<RoleDetail> ChangeStatusAsync(Guid Id, bool isActive);
-        public Task<Role> GetRoleByName(string name);
+        public Task<Role> GetRoleByNameAsync(string name);
     }
 }

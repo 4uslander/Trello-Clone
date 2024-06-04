@@ -36,7 +36,7 @@ namespace Trello.Application.Services.RoleServices
         {
             if (requestBody == null)
                 throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.REQUEST_BODY, ErrorMessage.NULL_REQUEST_BODY);
-            var existingRoleName = await GetRoleByName(requestBody.Name);
+            var existingRoleName = await GetRoleByNameAsync(requestBody.Name);
             if (existingRoleName != null)
             {
                 throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.ROLE_FIELD, ErrorMessage.ROLE_ALREADY_EXIST);
@@ -110,7 +110,7 @@ namespace Trello.Application.Services.RoleServices
             var mappedBoardRole = _mapper.Map<RoleDetail>(role);
             return mappedBoardRole;
         }
-        public async Task<Role> GetRoleByName(string name)
+        public async Task<Role> GetRoleByNameAsync(string name)
         {
             return await _unitOfWork.RoleRepository.FirstOrDefaultAsync(x => x.Name.ToLower().Equals(name.ToLower()));
         }

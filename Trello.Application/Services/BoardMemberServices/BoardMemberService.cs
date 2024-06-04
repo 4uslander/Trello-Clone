@@ -17,6 +17,7 @@ using Trello.Application.Services.RoleServices;
 using Trello.Application.Services.UserServices;
 using Trello.Application.Utilities.ErrorHandler;
 using Trello.Application.Utilities.Helper.GetUserAuthorization;
+using Trello.Domain.Enums;
 using Trello.Domain.Models;
 using Trello.Infrastructure.IRepositories;
 using static Trello.Application.Utilities.GlobalVariables.GlobalVariable;
@@ -47,19 +48,19 @@ namespace Trello.Application.Services.BoardMemberServices
             if (requestBody == null)
                 throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.REQUEST_BODY, ErrorMessage.NULL_REQUEST_BODY);
 
-            var existingBoard = await _boardService.GetBoardById(requestBody.BoardId);
+            var existingBoard = await _boardService.GetBoardByIdAsync(requestBody.BoardId);
             if (existingBoard == null)
             {
                 throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.BOARD_FIELD, ErrorMessage.BOARD_NOT_EXIST);
             }
 
-            var existingUser = await _userService.GetUserById(requestBody.UserId);
+            var existingUser = await _userService.GetUserByIdAsync(requestBody.UserId);
             if (existingUser == null)
             {
                 throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.USER_FIELD, ErrorMessage.USER_NOT_EXIST);
             }
 
-            var memberRole = await _roleService.GetRoleByName("Member");
+            var memberRole = await _roleService.GetRoleByNameAsync(BoardMemberRoleEnum.Member.ToString());
             if (memberRole == null)
             {
                 throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.ROLE_FIELD, ErrorMessage.ROLE_NOT_EXIST);
