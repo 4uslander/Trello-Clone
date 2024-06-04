@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -57,6 +58,55 @@ namespace Trello.Application.Services.CommentServices
 
             var createdCommentDto = _mapper.Map<CommentDetail>(comment);
             return createdCommentDto;
+        }
+
+        public async Task<List<CommentDetail>> GetAllCommentAsync(Guid cardId)
+        {
+            IQueryable<Comment> commentsQuery = _unitOfWork.CommentRepository.GetAll();
+
+            commentsQuery = commentsQuery.Where(u => u.CardId == cardId);
+
+            List<CommentDetail> lists = await commentsQuery
+                .Select(u => _mapper.Map<CommentDetail>(u))
+                .ToListAsync();
+
+            return lists;
+        }
+
+        public async Task<CommentDetail> UpdateCommentAsync(Guid id, string content)
+        {
+            var comment = await _unitOfWork.CommentRepository.GetByIdAsync(id)
+                ?? throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.COMMENT_FIELD, ErrorMessage.COMMENT_NOT_EXIST);
+
+            var currentUserId = UserAuthorizationHelper.GetUserAuthorizationById(_httpContextAccessor.HttpContext);
+
+            comment.UpdatedDate = DateTime.Now;
+            comment.UpdatedUser = currentUserId;
+
+            _unitOfWork.CommentRepository.Update(comment);
+            await _unitOfWork.SaveChangesAsync();
+
+            var commentDetail = _mapper.Map<CommentDetail>(comment);
+            return commentDetail;
+        }
+
+        public async Task<CommentDetail> ChangeStatusAsync(Guid id, bool isActive)
+        {
+            var comment = await _unitOfWork.CommentRepository.GetByIdAsync(id);
+            if (comment == null)
+                throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.COMMENT_FIELD, ErrorMessage.COMMENT_NOT_EXIST);
+
+            var currentUserId = UserAuthorizationHelper.GetUserAuthorizationById(_httpContextAccessor.HttpContext);
+
+            comment.UpdatedDate = DateTime.Now;
+            comment.UpdatedUser = currentUserId;
+            comment.IsActive = isActive;
+
+            _unitOfWork.CommentRepository.Update(comment);
+            await _unitOfWork.SaveChangesAsync();
+
+            var mappedComment = _mapper.Map<CommentDetail>(comment);
+            return mappedComment;
         }
     }
 }

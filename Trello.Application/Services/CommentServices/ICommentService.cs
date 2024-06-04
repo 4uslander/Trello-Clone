@@ -11,5 +11,8 @@ namespace Trello.Application.Services.CommentServices
     public interface ICommentService
     {
         public Task<CommentDetail> CreateCommentAsync(CommentDTO requestBody);
+        public Task<List<CommentDetail>> GetAllCommentAsync(Guid cardId);
+        public Task<CommentDetail> UpdateCommentAsync(Guid id, string content);
+        public Task<CommentDetail> ChangeStatusAsync(Guid id, bool isActive);
     }
 }
