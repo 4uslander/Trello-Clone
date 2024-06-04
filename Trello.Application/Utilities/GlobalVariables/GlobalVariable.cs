@@ -26,7 +26,7 @@ namespace Trello.Application.Utilities.GlobalVariables
             public const string BOARD_ID_FIELD = "Board Id";
             public const string AUTHENTICATION_FIELD = "Authentication";
             public const string CARD_MEMBER_FIELD = "Card Member";
-
+            public const string COMMENT_FIELD = "Comment";
         }
         public static class ErrorMessage
         {
@@ -52,6 +52,7 @@ namespace Trello.Application.Utilities.GlobalVariables
             public const string LIST_POSITION_ALREADY_EXIST = "List position already exists within the same board.";
             public const string UNAUTHORIZED = "Unauthorized";
             public const string CARD_MEMBER_NOT_EXIST = "This card member does not exist!";
+            public const string COMMENT_NOT_EXIST = "This comment does not exist!";
         }
     }
 }
