@@ -162,5 +162,9 @@ namespace Trello.Application.Services.UserServices
         {
             return await _unitOfWork.UserRepository.FirstOrDefaultAsync(x => x.Email.Equals(email));
         }
+        public async Task<User> GetUserById(Guid userId)
+        {
+            return await _unitOfWork.UserRepository.GetByIdAsync(userId);
+        }
     }
 }
