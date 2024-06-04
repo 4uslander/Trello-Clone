@@ -16,5 +16,6 @@ namespace Trello.Application.Services.BoardMemberServices
         public Task<List<BoardMemberDetail>> GetAllBoardMemberAsync(Guid boardId, string? name);
         public Task<BoardMemberDetail> UpdateBoardMemberAsync(Guid id, Guid roleId);
         public Task<BoardMemberDetail> ChangeStatusAsync(Guid Id, bool isActive);
+        public Task<BoardMember> GetBoardMemberByUserIdAsync(Guid userId);
     }
 }
