@@ -135,5 +135,10 @@ namespace Trello.Application.Services.BoardMemberServices
             var mappedBoard = _mapper.Map<BoardMemberDetail>(boardMember);
             return mappedBoard;
         }
+
+        public async Task<BoardMember> GetBoardMemberByUserIdAsync(Guid userId)
+        {
+            return await _unitOfWork.BoardMemberRepository.FirstOrDefaultAsync(x => x.UserId.Equals(userId));
+        }
     }
 }

@@ -135,5 +135,10 @@ namespace Trello.Application.Services.CardServices
         {
             return await _unitOfWork.ListRepository.GetByIdAsync(id);
         }
+
+        public async Task<Card> GetCardByIdAsync(Guid cardId)
+        {
+            return await _unitOfWork.CardRepository.GetByIdAsync(cardId);
+        }
     }
 }

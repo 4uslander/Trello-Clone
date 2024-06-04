@@ -12,6 +12,9 @@ using Trello.Application.DTOs.BoardMember;
 using Trello.Application.DTOs.Card;
 using Trello.Application.DTOs.CardMember;
 using Trello.Application.DTOs.List;
+using Trello.Application.Services.BoardMemberServices;
+using Trello.Application.Services.CardServices;
+using Trello.Application.Services.UserServices;
 using Trello.Application.Utilities.ErrorHandler;
 using Trello.Application.Utilities.Helper.GetUserAuthorization;
 using Trello.Domain.Models;
@@ -25,12 +28,19 @@ namespace Trello.Application.Services.CardMemberServices
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly ICardService _cardService;
+        private readonly IUserService _userService;
+        private readonly IBoardMemberService _boardMemberService;
 
-        public CardMemberService(IUnitOfWork unitOfWork, IMapper mapper, IHttpContextAccessor httpContextAccessor)
+        public CardMemberService(IUnitOfWork unitOfWork, IMapper mapper, IHttpContextAccessor httpContextAccessor,
+            ICardService cardService, IUserService userService, IBoardMemberService boardMemberService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _httpContextAccessor = httpContextAccessor;
+            _cardService = cardService;
+            _userService = userService;
+            _boardMemberService = boardMemberService;
         }
 
         public async Task<CardMemberDetail> CreateCardMemberAsync(CardMemberDTO requestBody)
@@ -38,15 +48,22 @@ namespace Trello.Application.Services.CardMemberServices
             if (requestBody == null)
                 throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.REQUEST_BODY, ErrorMessage.NULL_REQUEST_BODY);
 
-            var existingCard = await GetCardByIdAsync(requestBody.CardId);
+            var existingCard = await _cardService.GetCardByIdAsync(requestBody.CardId);
             if (existingCard == null)
             {
                 throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.CARD_FIELD, ErrorMessage.CARD_NOT_EXIST);
             }
-            var existingUser = await GetUserByIdAsync(requestBody.UserId);
+
+            var existingUser = await _userService.GetUserByIdAsync(requestBody.UserId);
             if (existingUser == null)
             {
                 throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.USER_FIELD, ErrorMessage.USER_NOT_EXIST);
+            }
+
+            var existingBoardMember = await _boardMemberService.GetBoardMemberByUserIdAsync(requestBody.UserId);
+            if (existingBoardMember == null)
+            {
+                throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.BOARD_MEMBER_FIELD, ErrorMessage.BOARD_MEMBER_NOT_EXIST);
             }
 
             var currentUserId = UserAuthorizationHelper.GetUserAuthorizationById(_httpContextAccessor.HttpContext);
@@ -73,12 +90,7 @@ namespace Trello.Application.Services.CardMemberServices
 
             if (!string.IsNullOrEmpty(userName))
             {
-                var user = await GetUserByUserNameAsync(userName);
-                if (user == null)
-                {
-                    return new List<CardMemberDetail>();
-                }
-                cardsQuery = cardsQuery.Where(u => u.UserId == user.Id);
+                cardsQuery = cardsQuery.Where(bm => bm.User.Name.Contains(userName));
             }
 
             List<CardMemberDetail> lists = await cardsQuery
@@ -103,20 +115,6 @@ namespace Trello.Application.Services.CardMemberServices
 
             var mappedCardMember = _mapper.Map<CardMemberDetail>(cardMember);
             return mappedCardMember;
-        }
-
-        public async Task<Card> GetCardByIdAsync(Guid cardId)
-        {
-            return await _unitOfWork.CardRepository.GetByIdAsync(cardId);
-        }
-        public async Task<User> GetUserByIdAsync(Guid userId)
-        {
-            return await _unitOfWork.UserRepository.GetByIdAsync(userId);
-        }
-        public async Task<User> GetUserByUserNameAsync(string userName)
-        {
-            return await _unitOfWork.UserRepository.GetAll()
-                .FirstOrDefaultAsync(u => u.Name.Equals(userName, StringComparison.OrdinalIgnoreCase));
         }
     }
 }
