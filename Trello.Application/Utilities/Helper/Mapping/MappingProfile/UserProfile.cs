@@ -9,9 +9,8 @@ namespace Trello.Application.Utilities.Helper.Mapping.MappingProfile
         public UserProfile()
         {
             CreateMap<User, UserDetail>().ReverseMap();
-            CreateMap<User, UserDTO>().ReverseMap();
             CreateMap<CreateUserDTO, User>().ReverseMap();
-            CreateMap<User, UpdateUserDTO>().ReverseMap();
+            CreateMap<UpdateUserDTO, User>().ReverseMap();
         }
     }
 }

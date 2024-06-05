@@ -37,6 +37,7 @@ namespace Trello.Application.Services.UserServices
             if (requestBody == null)
                 throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.REQUEST_BODY, ErrorMessage.NULL_REQUEST_BODY);
 
+            //check exist email
             var existingEmail = await GetUserByEmailAsync(requestBody.Email);
             if (existingEmail != null)
             {
@@ -46,30 +47,29 @@ namespace Trello.Application.Services.UserServices
             // Hash the password with the salt
             var hashedPasswordWithSalt = PasswordHelper.HashPasswordWithSalt(requestBody.Password);
 
-
             var user = _mapper.Map<User>(requestBody);
             user.Id = Guid.NewGuid();
             user.IsActive = true;
             user.Password = hashedPasswordWithSalt;
             user.CreatedDate = DateTime.UtcNow;
             user.CreatedUser = user.Id;
-
             await _unitOfWork.UserRepository.InsertAsync(user);
             await _unitOfWork.SaveChangesAsync();
 
             var newUser = _mapper.Map<UserDetail>(user);
             return newUser;
         }
-        public async Task<string> LoginAsync(UserLoginDTO loginRequest)
+        public async Task<string> LoginAsync(string email, string password)
         {
-            var user = await _unitOfWork.UserRepository.FirstOrDefaultAsync(x => x.Email == loginRequest.Email);
-
+            var user = await _unitOfWork.UserRepository.FirstOrDefaultAsync(x => x.Email == email);
             if (user == null)
-                throw new ExceptionResponse(HttpStatusCode.Unauthorized,ErrorField.LOGIN_FIELD, ErrorMessage.INVALID_EMAIL_PASSWORD);
-
-            if (user == null || !PasswordHelper.VerifyPassword(loginRequest.Password, user.Password))
             {
-                throw new ExceptionResponse(HttpStatusCode.Unauthorized, ErrorField.LOGIN_FIELD, ErrorMessage.INVALID_EMAIL_PASSWORD);
+                throw new ExceptionResponse(HttpStatusCode.Unauthorized, ErrorField.LOGIN_FIELD, ErrorMessage.INVALID_EMAIL);
+            }
+
+            if (!PasswordHelper.VerifyPassword(password, user.Password))
+            {
+                throw new ExceptionResponse(HttpStatusCode.Unauthorized, ErrorField.LOGIN_FIELD, ErrorMessage.INVALID_PASSWORD);
             }
 
             if (user.IsActive != true)
@@ -87,10 +87,9 @@ namespace Trello.Application.Services.UserServices
 
         public async Task<List<UserDetail>> GetAllUserAsync(string? email, string? name, string? gender)
         {
-            
+
             IQueryable<User> usersQuery = _unitOfWork.UserRepository.GetAll();
 
-            
             if (!string.IsNullOrEmpty(email))
             {
                 usersQuery = usersQuery.Where(u => u.Email.Contains(email));
@@ -112,11 +111,13 @@ namespace Trello.Application.Services.UserServices
 
         public async Task<object> GetUserProfileAsync(Guid userId)
         {
-            var user = await _unitOfWork.UserRepository.Get(u => u.Id == userId).SingleOrDefaultAsync()
-                ?? throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.USER_FIELD, ErrorMessage.USER_NOT_EXIST);
+            var user = await GetUserByIdAsync(userId);
+            if (user == null)
+            {
+                throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.USER_FIELD, ErrorMessage.USER_NOT_EXIST);
+            }
 
             object userDetail = null!;
-
             userDetail = _mapper.Map<UserDetail>(user);
 
             return userDetail;
@@ -127,6 +128,10 @@ namespace Trello.Application.Services.UserServices
                 ?? throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.USER_FIELD, ErrorMessage.USER_NOT_EXIST);
 
             var currentUserId = UserAuthorizationHelper.GetUserAuthorizationById(_httpContextAccessor.HttpContext);
+            if (currentUserId != id)
+            {
+                throw new ExceptionResponse(HttpStatusCode.Unauthorized, ErrorField.AUTHENTICATION_FIELD, ErrorMessage.UNAUTHORIZED);
+            }
 
             user.UpdatedUser = currentUserId;
             user.UpdatedDate = DateTime.UtcNow;
@@ -146,6 +151,10 @@ namespace Trello.Application.Services.UserServices
                 throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.USER_FIELD, ErrorMessage.USER_NOT_EXIST);
 
             var currentUserId = UserAuthorizationHelper.GetUserAuthorizationById(_httpContextAccessor.HttpContext);
+            if (currentUserId != userId)
+            {
+                throw new ExceptionResponse(HttpStatusCode.Unauthorized, ErrorField.AUTHENTICATION_FIELD, ErrorMessage.UNAUTHORIZED);
+            }
 
             user.UpdatedUser = currentUserId;
             user.UpdatedDate = DateTime.UtcNow;

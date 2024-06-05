@@ -9,8 +9,6 @@ namespace Trello.Application.DTOs.Role
 {
     public class RoleDTO
     {
-        [Required(ErrorMessage = "Role Id is required")]
-        public Guid CreatedUserId { get; set; }
         [Required(ErrorMessage = "Role Name is required")]
         public string Name { get; set; } = null!;
     }

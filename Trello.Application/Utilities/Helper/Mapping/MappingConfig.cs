@@ -18,9 +18,9 @@ namespace Trello.Application.Utilities.Helper.Mapping
                 mc.AddProfile(new UserProfile());
                 mc.AddProfile(new BoardProfile());
                 mc.AddProfile(new ListProfile());
+                mc.AddProfile(new RoleProfile());
                 mc.AddProfile(new CardProfile());
                 mc.AddProfile(new BoardMemberProfile());
-                mc.AddProfile(new RoleProfile());
                 mc.AddProfile(new CardMemberProfile());
                 mc.AddProfile(new CommentProfile());
             });

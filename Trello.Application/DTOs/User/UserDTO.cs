@@ -4,16 +4,15 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Trello.Domain.Enums;
 
 namespace Trello.Application.DTOs.User
 {
     public class UserDTO
     {
-
         [Required(ErrorMessage = "Name is required")]
-        [MaxLength(50, ErrorMessage = "Name cannot exceed 50 characters")]
+        [MaxLength(150, ErrorMessage = "Name cannot exceed 150 characters")]
         public string Name { get; set; } = null!;
-
     }
     public class CreateUserDTO : UserDTO
     {
@@ -30,7 +29,7 @@ namespace Trello.Application.DTOs.User
     {
 
         [Required(ErrorMessage = "Gender is required")]
-        [MaxLength(50, ErrorMessage = "Gender cannot exceed 50 characters")]
+        [EnumDataType(typeof(GenderEnum))]
         public string Gender { get; set; } = null!;
     }
 }

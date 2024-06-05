@@ -23,8 +23,8 @@ namespace Trello.Application.Services
             services.AddScoped<IBoardService, BoardService>();
             services.AddScoped<IListService, ListService>();
             services.AddScoped<ICardService, CardService>();
-            services.AddScoped<IBoardMemberService, BoardMemberService>();
             services.AddScoped<IRoleService, RoleService>();
+            services.AddScoped<IBoardMemberService, BoardMemberService>();
             services.AddScoped<ICardMemberService, CardMemberService>();
             services.AddScoped<ICommentService, CommentService>();
         }

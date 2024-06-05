@@ -80,7 +80,7 @@ namespace Trello.API.Controllers
         [Authorize]
         [HttpGet("get-all")]
         [ProducesResponseType(typeof(PagedApiResponse<List<CardMemberDetail>>), StatusCodes.Status200OK)]
-        public async Task<IActionResult> GetAllCardsAsync([FromQuery] Guid cardId, [FromQuery] PagingQuery query, [FromQuery] string? userName)
+        public async Task<IActionResult> GetAllCardMemberAsync([FromQuery] Guid cardId, [FromQuery] PagingQuery query, [FromQuery] string? userName)
         {
             try
             {
@@ -96,7 +96,6 @@ namespace Trello.API.Controllers
                 List<CardMemberDetail> result = await _cardMemberService.GetAllCardMemberAsync(cardId, userName);
 
                 var pagingResult = result.PagedItems(query.PageIndex, query.PageSize).ToList();
-                var total = result.Count;
 
                 var paging = new PaginationInfo
                 {

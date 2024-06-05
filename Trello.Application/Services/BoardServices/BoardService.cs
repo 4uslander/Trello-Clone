@@ -148,7 +148,6 @@ namespace Trello.Application.Services.BoardServices
             return mappedBoard;
         }
 
-
         public async Task<Board> GetBoardByNameAsync(string name)
         {
             return await _unitOfWork.BoardRepository.FirstOrDefaultAsync(x => x.Name.ToLower().Equals(name.ToLower()));
