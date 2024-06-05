@@ -97,7 +97,6 @@ namespace Trello.API.Controllers
                 List<BoardMemberDetail> result = await _boardMemberService.GetAllBoardMemberAsync(boardId, name);
 
                 var pagingResult = result.PagedItems(query.PageIndex, query.PageSize).ToList();
-                var total = result.Count;
 
                 var paging = new PaginationInfo
                 {
@@ -171,14 +170,14 @@ namespace Trello.API.Controllers
                     Data = ex.ErrorMessage
                 });
             }
-            //catch (Exception ex)
-            //{
-            //    return StatusCode((int)HttpStatusCode.InternalServerError, new ApiResponse<string>
-            //    {
-            //        Code = StatusCodes.Status500InternalServerError,
-            //        Data = ex.Message
-            //    });
-            //}
+            catch (Exception ex)
+            {
+                return StatusCode((int)HttpStatusCode.InternalServerError, new ApiResponse<string>
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Data = ex.Message
+                });
+            }
         }
 
         /// <summary>

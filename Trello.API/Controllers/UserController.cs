@@ -77,7 +77,7 @@ namespace Trello.API.Controllers
         /// <response code="403">If the user account is inactive.</response>
         [HttpPost("login")]
         [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status200OK)]
-        public async Task<IActionResult> LoginAsync(UserLoginDTO requestbody)
+        public async Task<IActionResult> LoginAsync(string email, string password)
         {
             try
             {
@@ -91,7 +91,7 @@ namespace Trello.API.Controllers
                     });
                 }
 
-                var token = await _userService.LoginAsync(requestbody);
+                var token = await _userService.LoginAsync(email, password);
                 return Ok(new LoginResponse<string>
                 {
                     Code = StatusCodes.Status200OK,
@@ -128,7 +128,7 @@ namespace Trello.API.Controllers
         [Authorize]
         [HttpGet("get-all")]
         [ProducesResponseType(typeof(PagedApiResponse<List<UserDetail>>), StatusCodes.Status200OK)]
-        public async Task<IActionResult> GetAllUsers([FromQuery] PagingQuery query, [FromQuery] string? email, string? name, string? gender)
+        public async Task<IActionResult> GetAllUserAsync([FromQuery] PagingQuery query, [FromQuery] string? email, string? name, string? gender)
         {
             try
             {
@@ -145,7 +145,6 @@ namespace Trello.API.Controllers
                 List<UserDetail> result = await _userService.GetAllUserAsync(email, name, gender);
 
                 var pagingResult = result.PagedItems(query.PageIndex, query.PageSize).ToList();
-                var total = result.Count;
 
                 var paging = new PaginationInfo
                 {
