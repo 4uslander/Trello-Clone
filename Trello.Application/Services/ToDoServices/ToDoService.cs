@@ -124,5 +124,10 @@ namespace Trello.Application.Services.ToDoServices
             var mappedList = _mapper.Map<ToDoDetail>(todo);
             return mappedList;
         }
+
+        public async Task<ToDo> GetTodoListByIdAsync(Guid todoId)
+        {
+            return await _unitOfWork.ToDoRepository.GetByIdAsync(todoId);
+        }
     }
 }

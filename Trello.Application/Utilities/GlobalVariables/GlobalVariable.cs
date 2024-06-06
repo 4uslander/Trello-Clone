@@ -28,6 +28,7 @@ namespace Trello.Application.Utilities.GlobalVariables
             public const string CARD_MEMBER_FIELD = "Card Member";
             public const string COMMENT_FIELD = "Comment";
             public const string TODO_FIELD = "ToDo";
+            public const string TASK_FIELD = "Task";
         }
         public static class ErrorMessage
         {
@@ -57,6 +58,7 @@ namespace Trello.Application.Utilities.GlobalVariables
             public const string CARD_MEMBER_NOT_EXIST = "This card member does not exist!";
             public const string COMMENT_NOT_EXIST = "This comment does not exist!";
             public const string TODO_NOT_EXIST = "This ToDo list does not exist!";
+            public const string TASK_NOT_EXIST = "This task does not exist!";
         }
     }
 }
