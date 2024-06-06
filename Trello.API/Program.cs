@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Builder.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Trello.API.Configurations;
 using Trello.Application;
+using Trello.Application.Utilities.Helper.SignalRHub;
 using Trello.Application.Utilities.Middleware;
 using Trello.Domain.Models;
 
@@ -14,7 +15,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy(name: apiCorsPolicy,
         builder =>
         {
-            builder.WithOrigins("https://localhost:3000", "http://localhost:3000")
+            builder.WithOrigins("https://localhost:3000", "http://localhost:3000", "http://127.0.0.1:5500")
                 .AllowAnyHeader()
                 .AllowAnyMethod()
                 .AllowCredentials();
@@ -32,6 +33,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddHttpContextAccessor();
+builder.Services.AddSignalR();
 
 var app = builder.Build();
 
@@ -46,6 +48,7 @@ app.UseApplicationSwagger();
 app.UseApplicationJwt();
 app.UseCors(apiCorsPolicy);
 app.UseHttpsRedirection();
+app.MapHub<CommentHub>("/commentHub");
 
 app.UseAuthorization();
 
