@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -12,6 +13,7 @@ using Trello.Application.DTOs.List;
 using Trello.Application.Services.CardServices;
 using Trello.Application.Utilities.ErrorHandler;
 using Trello.Application.Utilities.Helper.GetUserAuthorization;
+using Trello.Application.Utilities.Helper.SignalRHub;
 using Trello.Domain.Models;
 using Trello.Infrastructure.IRepositories;
 using static Trello.Application.Utilities.GlobalVariables.GlobalVariable;
@@ -24,13 +26,15 @@ namespace Trello.Application.Services.CommentServices
         private readonly IMapper _mapper;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ICardService _cardService;
+        private readonly IHubContext<CommentHub> _hubContext;
 
-        public CommentService(IUnitOfWork unitOfWork, IMapper mapper, IHttpContextAccessor httpContextAccessor, ICardService cardService)
+        public CommentService(IUnitOfWork unitOfWork, IMapper mapper, IHttpContextAccessor httpContextAccessor, ICardService cardService, IHubContext<CommentHub> hubContext)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _httpContextAccessor = httpContextAccessor;
             _cardService = cardService;
+            _hubContext = hubContext;
         }
 
         public async Task<CommentDetail> CreateCommentAsync(CommentDTO requestBody)
@@ -57,6 +61,9 @@ namespace Trello.Application.Services.CommentServices
             await _unitOfWork.SaveChangesAsync();
 
             var createdCommentDto = _mapper.Map<CommentDetail>(comment);
+
+            await _hubContext.Clients.All.SendAsync("ReceiveComment", createdCommentDto);
+
             return createdCommentDto;
         }
 
@@ -82,11 +89,15 @@ namespace Trello.Application.Services.CommentServices
 
             comment.UpdatedDate = DateTime.Now;
             comment.UpdatedUser = currentUserId;
+            comment.Content = content;
 
             _unitOfWork.CommentRepository.Update(comment);
             await _unitOfWork.SaveChangesAsync();
 
             var commentDetail = _mapper.Map<CommentDetail>(comment);
+
+            await _hubContext.Clients.All.SendAsync("UpdateComment", commentDetail);
+
             return commentDetail;
         }
 
@@ -106,6 +117,9 @@ namespace Trello.Application.Services.CommentServices
             await _unitOfWork.SaveChangesAsync();
 
             var mappedComment = _mapper.Map<CommentDetail>(comment);
+
+            await _hubContext.Clients.All.SendAsync("UpdateComment", mappedComment);
+
             return mappedComment;
         }
     }
