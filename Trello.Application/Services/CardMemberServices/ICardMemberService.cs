@@ -15,5 +15,6 @@ namespace Trello.Application.Services.CardMemberServices
         public Task<CardMemberDetail> CreateCardMemberAsync(CardMemberDTO requestBody);
         public Task<List<CardMemberDetail>> GetAllCardMemberAsync(Guid cardId, string? userName);
         public Task<CardMemberDetail> ChangeStatusAsync(Guid Id, bool isActive);
+        public Task<CardMember> GetCardMemberByUserIdAsync(Guid cardId, Guid userId);
     }
 }

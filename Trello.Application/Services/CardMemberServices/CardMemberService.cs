@@ -116,5 +116,10 @@ namespace Trello.Application.Services.CardMemberServices
             var mappedCardMember = _mapper.Map<CardMemberDetail>(cardMember);
             return mappedCardMember;
         }
+
+        public async Task<CardMember> GetCardMemberByUserIdAsync(Guid cardId, Guid userId)
+        {
+            return await _unitOfWork.CardMemberRepository.FirstOrDefaultAsync(x => x.UserId.Equals(userId) && x.CardId == cardId);
+        }
     }
 }
