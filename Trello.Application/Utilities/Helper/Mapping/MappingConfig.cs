@@ -24,10 +24,10 @@ namespace Trello.Application.Utilities.Helper.Mapping
                 mc.AddProfile(new CardMemberProfile());
                 mc.AddProfile(new CommentProfile());
                 mc.AddProfile(new ToDoProfile());
+                mc.AddProfile(new TaskProfile());
             });
             IMapper mapper = mappingConfig.CreateMapper();
             services.AddSingleton(mapper);
         }
-
     }
 }
