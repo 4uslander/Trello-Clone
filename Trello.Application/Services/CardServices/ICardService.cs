@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Trello.Application.DTOs.Card;
-using Trello.Application.DTOs.List;
 using Trello.Domain.Models;
 
 namespace Trello.Application.Services.CardServices
@@ -15,7 +14,6 @@ namespace Trello.Application.Services.CardServices
         public Task<List<CardDetail>> GetAllCardAsync(Guid listId, string? title);
         public Task<CardDetail> UpdateCardAsync(Guid id, UpdateCardDTO requestBody);
         public Task<CardDetail> ChangeStatusAsync(Guid Id, bool isActive);
-        public Task<List> GetListByIdAsync(Guid id);
         public Task<Card> GetCardByIdAsync(Guid cardId);
     }
 }

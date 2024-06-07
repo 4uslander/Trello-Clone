@@ -188,7 +188,7 @@ namespace Trello.API.Controllers
         /// <response code="200">If the comment status is changed successfully.</response>
         /// <response code="400">If the request is invalid.</response>
         /// <response code="500">If an unexpected error occurs, returns an error message.</response>
-        [Authorize/*(Roles = "Admin")*/]
+        [Authorize]
         [HttpPut("change-status/{id}")]
         [ProducesResponseType(typeof(ApiResponse<CommentDetail>), StatusCodes.Status200OK)]
         public async Task<IActionResult> ChangeStatusAsync(Guid id, [FromQuery] bool isActive)

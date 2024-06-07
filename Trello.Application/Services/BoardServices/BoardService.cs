@@ -1,8 +1,16 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net;
+using System.Security.Claims;
+using System.Text;
+using System.Threading.Tasks;
 using Trello.Application.DTOs.Board;
+using Trello.Application.Services.CardServices;
+using Trello.Application.Services.ListServices;
 using Trello.Application.Utilities.ErrorHandler;
 using Trello.Application.Utilities.Helper.GetUserAuthorization;
 using Trello.Domain.Models;
@@ -16,12 +24,17 @@ namespace Trello.Application.Services.BoardServices
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly ICardService _cardService;
+        private readonly IListService _listService;
 
-        public BoardService(IUnitOfWork unitOfWork, IMapper mapper, IHttpContextAccessor httpContextAccessor)
+        public BoardService(IUnitOfWork unitOfWork, IMapper mapper, IHttpContextAccessor httpContextAccessor,
+            ICardService cardService, IListService listService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _httpContextAccessor = httpContextAccessor;
+            _cardService = cardService;
+            _listService = listService;
         }
 
         public async Task<BoardDetail> CreateBoardAsync(BoardDTO requestBody)
@@ -148,6 +161,7 @@ namespace Trello.Application.Services.BoardServices
             return mappedBoard;
         }
 
+
         public async Task<Board> GetBoardByNameAsync(string name)
         {
             return await _unitOfWork.BoardRepository.FirstOrDefaultAsync(x => x.Name.ToLower().Equals(name.ToLower()));
@@ -157,5 +171,23 @@ namespace Trello.Application.Services.BoardServices
         {
             return await _unitOfWork.BoardRepository.GetByIdAsync(id);
         }
+
+        public async Task<Board> GetBoardByCardIdAsync(Guid cardId)
+        {
+            var card = await _cardService.GetCardByIdAsync(cardId);
+            if (card == null)
+            {
+                throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.CARD_FIELD, ErrorMessage.CARD_NOT_EXIST);
+            }
+
+            var list = await _listService.GetListByIdAsync(card.ListId);
+            if (list == null)
+            {
+                throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.LIST_FIELD, ErrorMessage.LIST_NOT_EXIST);
+            }
+
+            return await GetBoardByIdAsync(list.BoardId);
+        }
+
     }
 }

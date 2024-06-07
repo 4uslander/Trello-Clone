@@ -1,22 +1,24 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.SignalR;
-using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using static Trello.Application.Utilities.GlobalVariables.GlobalVariable;
 using Trello.Application.DTOs.Comment;
-using Trello.Application.DTOs.List;
 using Trello.Application.Services.CardServices;
 using Trello.Application.Utilities.ErrorHandler;
 using Trello.Application.Utilities.Helper.GetUserAuthorization;
-using Trello.Application.Utilities.Helper.SignalRHub;
 using Trello.Domain.Models;
 using Trello.Infrastructure.IRepositories;
-using static Trello.Application.Utilities.GlobalVariables.GlobalVariable;
+using Microsoft.EntityFrameworkCore;
+using Trello.Application.Utilities.Helper.SignalRHub;
+using Microsoft.AspNetCore.SignalR;
+using Trello.Domain.Enums;
+using Trello.Application.Services.BoardServices;
+using Trello.Application.Services.BoardMemberServices;
 
 namespace Trello.Application.Services.CommentServices
 {
@@ -26,15 +28,20 @@ namespace Trello.Application.Services.CommentServices
         private readonly IMapper _mapper;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ICardService _cardService;
-        private readonly IHubContext<CommentHub> _hubContext;
+        private readonly IBoardService _boardService;
+        private readonly IBoardMemberService _boardMemberService;
+        private readonly IHubContext<SignalHub> _hubContext;
 
-        public CommentService(IUnitOfWork unitOfWork, IMapper mapper, IHttpContextAccessor httpContextAccessor, ICardService cardService, IHubContext<CommentHub> hubContext)
+        public CommentService(IUnitOfWork unitOfWork, IMapper mapper, IHttpContextAccessor httpContextAccessor, ICardService cardService,
+            IHubContext<SignalHub> hubContext, IBoardService boardService, IBoardMemberService boardMemberService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _httpContextAccessor = httpContextAccessor;
             _cardService = cardService;
             _hubContext = hubContext;
+            _boardService = boardService;
+            _boardMemberService = boardMemberService;
         }
 
         public async Task<CommentDetail> CreateCommentAsync(CommentDTO requestBody)
@@ -62,7 +69,18 @@ namespace Trello.Application.Services.CommentServices
 
             var createdCommentDto = _mapper.Map<CommentDetail>(comment);
 
-            await _hubContext.Clients.All.SendAsync("ReceiveComment", createdCommentDto);
+            var board = await _boardService.GetBoardByCardIdAsync(existingCard.Id);
+            if (board == null)
+            {
+                throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.BOARD_FIELD, ErrorMessage.BOARD_NOT_EXIST);
+            }
+
+            var boardMembers = await _boardMemberService.GetAllBoardMemberAsync(board.Id, null);
+
+            foreach (var member in boardMembers)
+            {
+                await _hubContext.Clients.User(member.UserId.ToString()).SendAsync(SignalRHubEnum.ReceiveComment.ToString(), createdCommentDto);
+            }
 
             return createdCommentDto;
         }
@@ -96,7 +114,19 @@ namespace Trello.Application.Services.CommentServices
 
             var commentDetail = _mapper.Map<CommentDetail>(comment);
 
-            await _hubContext.Clients.All.SendAsync("UpdateComment", commentDetail);
+            var existingCard = await _cardService.GetCardByIdAsync(comment.CardId);
+            var board = await _boardService.GetBoardByCardIdAsync(existingCard.Id);
+            if (board == null)
+            {
+                throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.BOARD_FIELD, ErrorMessage.BOARD_NOT_EXIST);
+            }
+
+            var boardMembers = await _boardMemberService.GetAllBoardMemberAsync(board.Id, null);
+
+            foreach (var member in boardMembers)
+            {
+                await _hubContext.Clients.User(member.UserId.ToString()).SendAsync(SignalRHubEnum.UpdateComment.ToString(), commentDetail);
+            }
 
             return commentDetail;
         }
@@ -118,7 +148,19 @@ namespace Trello.Application.Services.CommentServices
 
             var mappedComment = _mapper.Map<CommentDetail>(comment);
 
-            await _hubContext.Clients.All.SendAsync("UpdateComment", mappedComment);
+            var existingCard = await _cardService.GetCardByIdAsync(comment.CardId);
+            var board = await _boardService.GetBoardByCardIdAsync(existingCard.Id);
+            if (board == null)
+            {
+                throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.BOARD_FIELD, ErrorMessage.BOARD_NOT_EXIST);
+            }
+
+            var boardMembers = await _boardMemberService.GetAllBoardMemberAsync(board.Id, null);
+
+            foreach (var member in boardMembers)
+            {
+                await _hubContext.Clients.User(member.UserId.ToString()).SendAsync(SignalRHubEnum.UpdateComment.ToString(), mappedComment);
+            }
 
             return mappedComment;
         }

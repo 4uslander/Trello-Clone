@@ -1,13 +1,19 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Http;
-using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net;
+using System.Text;
+using System.Threading.Tasks;
+using static Trello.Application.Utilities.GlobalVariables.GlobalVariable;
 using Trello.Application.DTOs.List;
 using Trello.Application.Utilities.ErrorHandler;
 using Trello.Application.Utilities.Helper.GetUserAuthorization;
 using Trello.Domain.Models;
 using Trello.Infrastructure.IRepositories;
-using static Trello.Application.Utilities.GlobalVariables.GlobalVariable;
+using Microsoft.EntityFrameworkCore;
+using Trello.Application.Services.BoardServices;
 
 namespace Trello.Application.Services.ListServices
 {
@@ -170,6 +176,11 @@ namespace Trello.Application.Services.ListServices
                 .FirstOrDefaultAsync();
 
             return latestPosition;
+        }
+
+        public async Task<List> GetListByIdAsync(Guid id)
+        {
+            return await _unitOfWork.ListRepository.GetByIdAsync(id);
         }
     }
 }

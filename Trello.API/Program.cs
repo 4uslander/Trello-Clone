@@ -48,7 +48,7 @@ app.UseApplicationSwagger();
 app.UseApplicationJwt();
 app.UseCors(apiCorsPolicy);
 app.UseHttpsRedirection();
-app.MapHub<CommentHub>("/commentHub");
+app.MapHub<SignalHub>("/signalHub");
 
 app.UseAuthorization();
 

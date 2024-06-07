@@ -5,24 +5,20 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Trello.Application.DTOs.Comment;
+using Trello.Domain.Enums;
 
 namespace Trello.Application.Utilities.Helper.SignalRHub
 {
-    public class CommentHub : Hub
+    public class SignalHub : Hub
     {
         public async Task SendComment(CommentDetail comment)
         {
-            await Clients.All.SendAsync("ReceiveComment", comment);
+            await Clients.All.SendAsync(SignalRHubEnum.ReceiveComment.ToString(), comment);
         }
 
         public async Task UpdateComment(CommentDetail comment)
         {
-            await Clients.All.SendAsync("UpdateComment", comment);
-        }
-
-        public async Task DeleteComment(Guid commentId)
-        {
-            await Clients.All.SendAsync("DeleteComment", commentId);
+            await Clients.All.SendAsync(SignalRHubEnum.UpdateComment.ToString(), comment);
         }
     }
 }
