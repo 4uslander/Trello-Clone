@@ -1,22 +1,20 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Http;
-using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
-using System.Xml.Linq;
+using static Trello.Application.Utilities.GlobalVariables.GlobalVariable;
 using Trello.Application.DTOs.Card;
-using Trello.Application.DTOs.List;
 using Trello.Application.Utilities.ErrorHandler;
 using Trello.Application.Utilities.Helper.GetUserAuthorization;
-using Trello.Domain.Enums;
 using Trello.Domain.Models;
 using Trello.Infrastructure.IRepositories;
-using static Trello.Application.Utilities.GlobalVariables.GlobalVariable;
+using System.Xml.Linq;
+using Microsoft.EntityFrameworkCore;
+using Trello.Application.Services.ListServices;
 
 namespace Trello.Application.Services.CardServices
 {
@@ -25,19 +23,21 @@ namespace Trello.Application.Services.CardServices
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IListService _listService;
 
-        public CardService(IUnitOfWork unitOfWork, IMapper mapper, IHttpContextAccessor httpContextAccessor)
+        public CardService(IUnitOfWork unitOfWork, IMapper mapper, IHttpContextAccessor httpContextAccessor, IListService listService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _httpContextAccessor = httpContextAccessor;
+            _listService = listService;
         }
         public async Task<CardDetail> CreateCardAsync(CreateCardDTO requestBody)
         {
             if (requestBody == null)
                 throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.REQUEST_BODY, ErrorMessage.NULL_REQUEST_BODY);
 
-            var existingList = await GetListByIdAsync(requestBody.ListId);
+            var existingList = await _listService.GetListByIdAsync(requestBody.ListId);
             if (existingList == null)
             {
                 throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.LIST_FIELD, ErrorMessage.LIST_NOT_EXIST);
@@ -131,10 +131,6 @@ namespace Trello.Application.Services.CardServices
             return mappedList;
         }
 
-        public async Task<List> GetListByIdAsync(Guid id)
-        {
-            return await _unitOfWork.ListRepository.GetByIdAsync(id);
-        }
         public async Task<Card> GetCardByIdAsync(Guid cardId)
         {
             return await _unitOfWork.CardRepository.GetByIdAsync(cardId);

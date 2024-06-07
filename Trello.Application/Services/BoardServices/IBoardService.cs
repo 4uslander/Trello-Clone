@@ -17,5 +17,6 @@ namespace Trello.Application.Services.BoardServices
         public Task<BoardDetail> ChangeVisibilityAsync(Guid Id, bool isPublic);
         public Task<Board> GetBoardByNameAsync(string name);
         public Task<Board> GetBoardByIdAsync(Guid id);
+        public Task<Board> GetBoardByCardIdAsync(Guid cardId);
     }
 }
