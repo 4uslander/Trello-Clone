@@ -77,7 +77,7 @@ namespace Trello.API.Controllers
         /// <response code="403">If the user account is inactive.</response>
         [HttpPost("login")]
         [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status200OK)]
-        public async Task<IActionResult> LoginAsync(string email, string password)
+        public async Task<IActionResult> LoginAsync(UserLoginDTO requestBody)
         {
             try
             {
@@ -91,7 +91,7 @@ namespace Trello.API.Controllers
                     });
                 }
 
-                var token = await _userService.LoginAsync(email, password);
+                var token = await _userService.LoginAsync(requestBody);
                 return Ok(new LoginResponse<string>
                 {
                     Code = StatusCodes.Status200OK,
