@@ -59,15 +59,15 @@ namespace Trello.Application.Services.UserServices
             var newUser = _mapper.Map<UserDetail>(user);
             return newUser;
         }
-        public async Task<string> LoginAsync(string email, string password)
+        public async Task<string> LoginAsync(UserLoginDTO requestBody)
         {
-            var user = await _unitOfWork.UserRepository.FirstOrDefaultAsync(x => x.Email == email);
+            var user = await _unitOfWork.UserRepository.FirstOrDefaultAsync(x => x.Email == requestBody.Email);
             if (user == null)
             {
                 throw new ExceptionResponse(HttpStatusCode.Unauthorized, ErrorField.LOGIN_FIELD, ErrorMessage.INVALID_EMAIL);
             }
 
-            if (!PasswordHelper.VerifyPassword(password, user.Password))
+            if (!PasswordHelper.VerifyPassword(requestBody.Password, user.Password))
             {
                 throw new ExceptionResponse(HttpStatusCode.Unauthorized, ErrorField.LOGIN_FIELD, ErrorMessage.INVALID_PASSWORD);
             }

@@ -10,12 +10,13 @@ namespace Trello.Application.DTOs.User
 {
     public class UserDTO
     {
-        [Required(ErrorMessage = "Name is required")]
-        [MaxLength(150, ErrorMessage = "Name cannot exceed 150 characters")]
-        public string Name { get; set; } = null!;
+
     }
     public class CreateUserDTO : UserDTO
     {
+        [Required(ErrorMessage = "Name is required")]
+        [MaxLength(150, ErrorMessage = "Name cannot exceed 150 characters")]
+        public string Name { get; set; } = null!;
         [Required(ErrorMessage = "Email is required")]
         [RegularExpression(@"^[\w\.-]+@[\w\.-]+\.[\w\.-]+$", ErrorMessage = "Email is invalid")]
         public string Email { get; set; } = null!;
@@ -27,9 +28,21 @@ namespace Trello.Application.DTOs.User
     }
     public class UpdateUserDTO : UserDTO
     {
+        [Required(ErrorMessage = "Name is required")]
+        [MaxLength(150, ErrorMessage = "Name cannot exceed 150 characters")]
+        public string Name { get; set; } = null!;
 
         [Required(ErrorMessage = "Gender is required")]
         [EnumDataType(typeof(GenderEnum))]
         public string Gender { get; set; } = null!;
+    }
+    public class UserLoginDTO : UserDTO
+    {
+        [EmailAddress]
+        [Required(ErrorMessage = "Email is required")]
+        public string Email { get; set; }
+
+        [Required(ErrorMessage = "Password is required")]
+        public string Password { get; set; }
     }
 }
