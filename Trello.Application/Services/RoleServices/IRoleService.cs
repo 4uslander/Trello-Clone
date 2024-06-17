@@ -13,7 +13,7 @@ namespace Trello.Application.Services.RoleServices
     public interface IRoleService
     {
         public Task<RoleDetail> CreateRoleAsync(RoleDTO requestBody);
-        public Task<List<RoleDetail>> GetAllRoleAsync(string? name);
+        public Task<List<RoleDetail>> GetAllRoleAsync(Guid? Id, string? name);
         public Task<RoleDetail> UpdateRoleAsync(Guid id, RoleDTO requestBody);
         public Task<RoleDetail> ChangeStatusAsync(Guid Id, bool isActive);
         public Task<Role> GetRoleByNameAsync(string name);

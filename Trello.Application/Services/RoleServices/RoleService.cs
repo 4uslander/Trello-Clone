@@ -58,7 +58,7 @@ namespace Trello.Application.Services.RoleServices
 
             return createdRoleDto;
         }
-        public async Task<List<RoleDetail>> GetAllRoleAsync(string? name)
+        public async Task<List<RoleDetail>> GetAllRoleAsync(Guid? Id, string? name)
         {
             IQueryable<Role> rolesQuery = _unitOfWork.RoleRepository.GetAll();
 
@@ -66,6 +66,11 @@ namespace Trello.Application.Services.RoleServices
             if (!string.IsNullOrEmpty(name))
             {
                 rolesQuery = rolesQuery.Where(u => u.Name.Contains(name));
+            }
+
+            if (Id.HasValue)
+            {
+                rolesQuery = rolesQuery.Where(u => u.Id == Id);
             }
 
             List<RoleDetail> lists = await rolesQuery

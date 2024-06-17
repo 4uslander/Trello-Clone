@@ -79,7 +79,7 @@ namespace Trello.API.Controllers
         [Authorize]
         [HttpGet("get-all")]
         [ProducesResponseType(typeof(PagedApiResponse<List<RoleDetail>>), StatusCodes.Status200OK)]
-        public async Task<IActionResult> GetRolesAsync([FromQuery] PagingQuery query, [FromQuery] string? name)
+        public async Task<IActionResult> GetRolesAsync([FromQuery] PagingQuery query, [FromQuery] Guid? Id, [FromQuery] string? name)
         {
             try
             {
@@ -92,7 +92,7 @@ namespace Trello.API.Controllers
                         Data = errors
                     });
                 }
-                List<RoleDetail> result = await _roleService.GetAllRoleAsync(name);
+                List<RoleDetail> result = await _roleService.GetAllRoleAsync(Id, name);
 
                 var pagingResult = result.PagedItems(query.PageIndex, query.PageSize).ToList();
                 var total = result.Count;
