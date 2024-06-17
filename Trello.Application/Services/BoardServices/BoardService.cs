@@ -11,8 +11,10 @@ using System.Threading.Tasks;
 using Trello.Application.DTOs.Board;
 using Trello.Application.Services.CardServices;
 using Trello.Application.Services.ListServices;
+using Trello.Application.Services.RoleServices;
 using Trello.Application.Utilities.ErrorHandler;
 using Trello.Application.Utilities.Helper.GetUserAuthorization;
+using Trello.Domain.Enums;
 using Trello.Domain.Models;
 using Trello.Infrastructure.IRepositories;
 using static Trello.Application.Utilities.GlobalVariables.GlobalVariable;
@@ -26,15 +28,17 @@ namespace Trello.Application.Services.BoardServices
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ICardService _cardService;
         private readonly IListService _listService;
+        private readonly IRoleService _roleService;
 
         public BoardService(IUnitOfWork unitOfWork, IMapper mapper, IHttpContextAccessor httpContextAccessor,
-            ICardService cardService, IListService listService)
+            ICardService cardService, IListService listService, IRoleService roleService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _httpContextAccessor = httpContextAccessor;
             _cardService = cardService;
             _listService = listService;
+            _roleService = roleService;
         }
 
         public async Task<BoardDetail> CreateBoardAsync(BoardDTO requestBody)
@@ -57,6 +61,26 @@ namespace Trello.Application.Services.BoardServices
             board.IsPublic = true;
             board.IsActive = true;
             await _unitOfWork.BoardRepository.InsertAsync(board);
+            await _unitOfWork.SaveChangesAsync();
+
+            var adminRole = await _roleService.GetRoleByNameAsync(BoardMemberRoleEnum.Admin.ToString());
+            if (adminRole == null)
+            {
+                throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.ROLE_FIELD, ErrorMessage.ROLE_NOT_EXIST);
+            }
+
+            var boardMember = new BoardMember
+            {
+                Id = Guid.NewGuid(),
+                BoardId = board.Id,
+                UserId = currentUserId,
+                RoleId = adminRole.Id,
+                IsActive = true,
+                CreatedDate = DateTime.Now,
+                CreatedUser = currentUserId
+            };
+
+            await _unitOfWork.BoardMemberRepository.InsertAsync(boardMember);
             await _unitOfWork.SaveChangesAsync();
 
             var createdBoardDto = _mapper.Map<BoardDetail>(board);
