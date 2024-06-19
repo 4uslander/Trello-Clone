@@ -230,5 +230,55 @@ namespace Trello.API.Controllers
                 });
             }
         }
+        /// <summary>
+        /// Gets the current role of the board member for a specific board.
+        /// </summary>
+        /// <param name="boardId">The ID of the board.</param>
+        /// <returns>Returns the role name of the current board member.</returns>
+        /// <response code="200">If the retrieval is successful.</response>
+        /// <response code="400">If the request is invalid.</response>
+        /// <response code="500">If an unexpected error occurs, returns an error message.</response>
+        [Authorize]
+        [HttpGet("get-current-role")]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetCurrentBoardMemberRoleAsync([FromQuery] Guid boardId)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
+                    return BadRequest(new ApiResponse<IEnumerable<string>>
+                    {
+                        Code = StatusCodes.Status400BadRequest,
+                        Data = errors
+                    });
+                }
+
+                var result = await _boardMemberService.GetCurrentRoleAsync(boardId);
+
+                return Ok(new ApiResponse<string>
+                {
+                    Code = StatusCodes.Status200OK,
+                    Data = result
+                });
+            }
+            catch (ExceptionResponse ex)
+            {
+                return StatusCode((int)ex.StatusCode, new ApiResponse<string>
+                {
+                    Code = (int)ex.StatusCode,
+                    Data = ex.ErrorMessage
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode((int)HttpStatusCode.InternalServerError, new ApiResponse<string>
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Data = ex.Message
+                });
+            }
+        }
     }
 }
