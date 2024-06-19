@@ -135,6 +135,21 @@ namespace Trello.Application.Services.BoardMemberServices
             var mappedBoard = _mapper.Map<BoardMemberDetail>(boardMember);
             return mappedBoard;
         }
+        public async Task<string> GetCurrentRoleAsync(Guid boardId)
+        {
+            var currentUserId = UserAuthorizationHelper.GetUserAuthorizationById(_httpContextAccessor.HttpContext);
+
+            var boardMember = await _unitOfWork.BoardMemberRepository.FirstOrDefaultAsync(bm => bm.UserId == currentUserId && bm.BoardId == boardId && bm.IsActive);
+
+            if (boardMember == null)
+            {
+                throw new ExceptionResponse(HttpStatusCode.NotFound, ErrorField.BOARD_MEMBER_FIELD, ErrorMessage.BOARD_MEMBER_NOT_EXIST);
+            }
+
+            var role = await _unitOfWork.RoleRepository.GetByIdAsync(boardMember.RoleId);
+
+            return role.Name;
+        }
         public async Task<BoardMember> GetBoardMemberByUserIdAsync(Guid userId)
         {
             return await _unitOfWork.BoardMemberRepository.FirstOrDefaultAsync(x => x.UserId.Equals(userId));
