@@ -46,12 +46,6 @@ namespace Trello.Application.Services.BoardServices
             if (requestBody == null)
                 throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.REQUEST_BODY, ErrorMessage.NULL_REQUEST_BODY);
 
-            var existingBoard = await GetBoardByNameAsync(requestBody.Name);
-            if (existingBoard != null)
-            {
-                throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.BOARD_FIELD, ErrorMessage.BOARD_ALREADY_EXIST);
-            }
-
             var currentUserId = UserAuthorizationHelper.GetUserAuthorizationById(_httpContextAccessor.HttpContext);
 
             var board = _mapper.Map<Board>(requestBody);
