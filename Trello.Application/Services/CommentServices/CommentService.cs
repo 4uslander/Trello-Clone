@@ -89,7 +89,7 @@ namespace Trello.Application.Services.CommentServices
         {
             IQueryable<Comment> commentsQuery = _unitOfWork.CommentRepository.GetAll();
 
-            commentsQuery = commentsQuery.Where(u => u.CardId == cardId);
+            commentsQuery = commentsQuery.Where(u => u.CardId == cardId && u.IsActive);
 
             List<CommentDetail> lists = await commentsQuery
                 .Select(u => _mapper.Map<CommentDetail>(u))
