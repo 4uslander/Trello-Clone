@@ -75,7 +75,7 @@ namespace Trello.Application.Services.ToDoServices
         {
             IQueryable<ToDo> todoListsQuery = _unitOfWork.ToDoRepository.GetAll();
 
-            todoListsQuery = todoListsQuery.Where(u => u.CardId == cardId);
+            todoListsQuery = todoListsQuery.Where(u => u.CardId == cardId && u.IsActive);
 
             if (!string.IsNullOrEmpty(title))
             {
