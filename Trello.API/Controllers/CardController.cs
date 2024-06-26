@@ -67,18 +67,17 @@ namespace Trello.API.Controllers
         }
 
         /// <summary>
-        /// Retrieves all cards, optionally filtered by title.
+        /// Retrieves all cards
         /// </summary>
         /// <param name="listId">The ID of the list to get.</param>
         /// <param name="query">The pagination query parameters including page index and page size.</param>
-        /// <param name="title">The optional title filter for cards.</param>
         /// <returns>Returns a list of card details.</returns>
         /// <response code="200">If the retrieval is successful.</response>
         /// <response code="400">If the request is invalid.</response>
         [Authorize]
         [HttpGet("get-all")]
         [ProducesResponseType(typeof(PagedApiResponse<List<CardDetail>>), StatusCodes.Status200OK)]
-        public async Task<IActionResult> GetCardsAsync([FromQuery] Guid listId, [FromQuery] PagingQuery query, [FromQuery] string? title)
+        public async Task<IActionResult> GetCardsAsync([FromQuery] Guid listId, [FromQuery] PagingQuery query)
         {
             try
             {
@@ -91,7 +90,77 @@ namespace Trello.API.Controllers
                         Data = errors
                     });
                 }
-                List<CardDetail> result = await _cardService.GetAllCardAsync(listId, title);
+                List<CardDetail> result = await _cardService.GetAllCardAsync(listId);
+
+                var pagingResult = result.PagedItems(query.PageIndex, query.PageSize).ToList();
+
+                var paging = new PaginationInfo
+                {
+                    Page = query.PageIndex,
+                    Size = query.PageSize,
+                };
+
+                return Ok(new PagedApiResponse<CardDetail>
+                {
+                    Code = StatusCodes.Status200OK,
+                    Paging = paging,
+                    Data = pagingResult
+                });
+            }
+            catch (ExceptionResponse ex)
+            {
+                return StatusCode((int)ex.StatusCode, new ApiResponse<string>
+                {
+                    Code = (int)ex.StatusCode,
+                    Data = ex.ErrorMessage
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode((int)HttpStatusCode.InternalServerError, new ApiResponse<string>
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Data = ex.Message
+                });
+            }
+        }
+
+        /// <summary>
+        /// Retrieves all cards, optionally filtered by title.
+        /// </summary>
+        /// <param name="listId">The ID of the list to get.</param>
+        /// <param name="query">The pagination query parameters including page index and page size.</param>
+        /// <param name="title">The optional title filter for cards.</param>
+        /// <param name="createdUser">The optional createdUser filter.</param>
+        /// <param name="updatedUser">The optional updatedUser filter.</param>
+        /// <param name="createdDate">The optional createdDate filter.</param>
+        /// <param name="updatedDate">The optional updatedDate filter.</param>
+        /// <param name="startDate">The optional startDate filter.</param>
+        /// <param name="endDate">The optional endDate filter.</param>
+        /// <param name="reminderDate">The optional reminderDate filter.</param>
+        /// <param name="isActive">The optional isActive filter.</param>
+        /// <returns>Returns a list of card details.</returns>
+        /// <response code="200">If the retrieval is successful.</response>
+        /// <response code="400">If the request is invalid.</response>
+        [Authorize]
+        [HttpGet("get-by-filter")]
+        [ProducesResponseType(typeof(PagedApiResponse<List<CardDetail>>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetCardByFilterAsync([FromQuery] Guid listId, [FromQuery] PagingQuery query, [FromQuery] string? title, Guid? createdUser,
+            Guid? updatedUser, DateTime? createdDate, DateTime? updatedDate, DateTime? startDate, DateTime? endDate, DateTime? reminderDate, bool? isActive)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
+                    return BadRequest(new ApiResponse<IEnumerable<string>>
+                    {
+                        Code = StatusCodes.Status400BadRequest,
+                        Data = errors
+                    });
+                }
+                List<CardDetail> result = await _cardService.GetCardByFilterAsync(listId, title, createdUser, updatedUser, createdDate, updatedDate,
+                    startDate, endDate, reminderDate, isActive);
 
                 var pagingResult = result.PagedItems(query.PageIndex, query.PageSize).ToList();
 

@@ -81,7 +81,7 @@ namespace Trello.Application.Services.BoardServices
             return createdBoardDto;
         }
 
-        public async Task<List<BoardDetail>> GetAllBoardAsync(string? name)
+        public async Task<List<BoardDetail>> GetBoardAsync()
         {
             // Get the current user
             var currentUserId = UserAuthorizationHelper.GetUserAuthorizationById(_httpContextAccessor.HttpContext);
@@ -92,15 +92,57 @@ namespace Trello.Application.Services.BoardServices
             // Filter for active boards and either public boards or private boards created by the current user
             boardsQuery = boardsQuery.Where(u => u.IsActive && (u.IsPublic || u.CreatedUser == currentUserId));
 
-            // Additional filter by name if provided
+            // Map the boards to the BoardDetail DTO
+            List<BoardDetail> boards = await boardsQuery
+                .Select(u => _mapper.Map<BoardDetail>(u))
+                .ToListAsync();
+            return boards;
+        }
+
+        public async Task<List<BoardDetail>> GetBoardByFilterAsync(string? name, Guid? createdUser, Guid? updatedUser,
+            DateTime? createdDate, DateTime? updatedDate, bool? isPublic, bool? isActive)
+        {
+            var currentUserId = UserAuthorizationHelper.GetUserAuthorizationById(_httpContextAccessor.HttpContext);
+
+            IQueryable<Board> boardsQuery = _unitOfWork.BoardRepository.GetAll();
+
             if (!string.IsNullOrEmpty(name))
             {
                 boardsQuery = boardsQuery.Where(u => u.Name.Contains(name));
             }
 
-            // Map the boards to the BoardDetail DTO
+            if (createdUser.HasValue)
+            {
+                boardsQuery = boardsQuery.Where(u => u.CreatedUser == createdUser.Value);
+            }
+
+            if (updatedUser.HasValue)
+            {
+                boardsQuery = boardsQuery.Where(u => u.UpdatedUser == updatedUser.Value);
+            }
+
+            if (createdDate.HasValue)
+            {
+                boardsQuery = boardsQuery.Where(u => u.CreatedDate.Date == createdDate.Value.Date);
+            }
+
+            if (updatedDate.HasValue)
+            {
+                boardsQuery = boardsQuery.Where(u => u.UpdatedDate.Value.Date == updatedDate.Value.Date);
+            }
+
+            if (isPublic.HasValue)
+            {
+                boardsQuery = boardsQuery.Where(u => u.IsPublic == isPublic.Value);
+            }
+
+            if (isActive.HasValue)
+            {
+                boardsQuery = boardsQuery.Where(u => u.IsActive == isActive.Value);
+            }
+
             List<BoardDetail> boards = await boardsQuery
-                .Select(u => _mapper.Map<BoardDetail>(u))
+                .Select(b => _mapper.Map<BoardDetail>(b))
                 .ToListAsync();
             return boards;
         }

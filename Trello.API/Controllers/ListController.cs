@@ -69,10 +69,9 @@ namespace Trello.API.Controllers
         }
 
         /// <summary>
-        /// Retrieves all lists with optional name filtering and pagination support.
+        /// Retrieves all lists.
         /// </summary>
         /// <param name="query">The pagination query parameters including page index and page size.</param>
-        /// <param name="name">The optional name filter for lists.</param>
         /// <returns>Returns an action result containing a paged response of list details.</returns>
         /// <response code="200">If the retrieval is successful, returns a paged list of list details.</response>
         /// <response code="400">If the request is invalid, returns a list of validation errors.</response>
@@ -80,7 +79,7 @@ namespace Trello.API.Controllers
         [Authorize]
         [HttpGet("get-all")]
         [ProducesResponseType(typeof(PagedApiResponse<List<ListDetail>>), StatusCodes.Status200OK)]
-        public async Task<IActionResult> GetAllListAsync([FromQuery] Guid boardId, [FromQuery] PagingQuery query, [FromQuery] string? name)
+        public async Task<IActionResult> GetAllListAsync([FromQuery] Guid boardId, [FromQuery] PagingQuery query)
         {
             try
             {
@@ -93,7 +92,69 @@ namespace Trello.API.Controllers
                         Data = errors
                     });
                 }
-                List<ListDetail> result = await _listService.GetAllListAsync(boardId, name);
+                List<ListDetail> result = await _listService.GetAllListAsync(boardId);
+
+                var pagingResult = result.PagedItems(query.PageIndex, query.PageSize).ToList();
+
+                var paging = new PaginationInfo
+                {
+                    Page = query.PageIndex,
+                    Size = query.PageSize,
+                };
+
+                return Ok(new PagedApiResponse<ListDetail>
+                {
+                    Code = StatusCodes.Status200OK,
+                    Paging = paging,
+                    Data = pagingResult
+                });
+            }
+            catch (ExceptionResponse ex)
+            {
+                return StatusCode((int)ex.StatusCode, new ApiResponse<string>
+                {
+                    Code = (int)ex.StatusCode,
+                    Data = ex.ErrorMessage
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode((int)HttpStatusCode.InternalServerError, new ApiResponse<string>
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Data = ex.Message
+                });
+            }
+        }
+
+        /// <summary>
+        /// Retrieves all lists with optional name filtering and pagination support.
+        /// </summary>
+        /// <param name="query">The pagination query parameters including page index and page size.</param>
+        /// <param name="name">The optional name filter for lists.</param>
+        /// <returns>Returns an action result containing a paged response of list details.</returns>
+        /// <response code="200">If the retrieval is successful, returns a paged list of list details.</response>
+        /// <response code="400">If the request is invalid, returns a list of validation errors.</response>
+        /// <response code="500">If an unexpected error occurs, returns an error message.</response>
+        [Authorize]
+        [HttpGet("get-by-filter")]
+        [ProducesResponseType(typeof(PagedApiResponse<List<ListDetail>>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetListByFilterAsync([FromQuery] Guid boardId, [FromQuery] PagingQuery query, [FromQuery] string? name, int? position,
+            Guid? createdUser, Guid? updatedUser, DateTime? createdDate, DateTime? updatedDate, bool? isActive)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
+                    return BadRequest(new ApiResponse<IEnumerable<string>>
+                    {
+                        Code = StatusCodes.Status400BadRequest,
+                        Data = errors
+                    });
+                }
+                List<ListDetail> result = await _listService.GetListByFilterAsync(boardId, name, position, createdUser, updatedUser,
+                    createdDate, updatedDate, isActive);
 
                 var pagingResult = result.PagedItems(query.PageIndex, query.PageSize).ToList();
 

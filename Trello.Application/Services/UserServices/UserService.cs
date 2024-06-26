@@ -93,7 +93,8 @@ namespace Trello.Application.Services.UserServices
             return users;
         }
 
-        public async Task<List<UserDetail>> GetUserByFilterAsync(string? email, string? name, string? gender, bool? isActive)
+        public async Task<List<UserDetail>> GetUserByFilterAsync(string? email, string? name, string? gender,
+            Guid? createdUser, Guid? updatedUser, DateTime? createdDate, DateTime? updatedDate, bool? isActive)
         {
 
             IQueryable<User> usersQuery = _unitOfWork.UserRepository.GetAll();
@@ -102,14 +103,37 @@ namespace Trello.Application.Services.UserServices
             {
                 usersQuery = usersQuery.Where(u => u.Email.Contains(email));
             }
+
             if (!string.IsNullOrEmpty(name))
             {
                 usersQuery = usersQuery.Where(u => u.Name.Contains(name));
             }
+
             if (!string.IsNullOrEmpty(gender))
             {
                 usersQuery = usersQuery.Where(u => u.Gender.Contains(gender));
             }
+
+            if (createdUser.HasValue)
+            {
+                usersQuery = usersQuery.Where(u => u.CreatedUser == createdUser.Value);
+            }
+
+            if (updatedUser.HasValue)
+            {
+                usersQuery = usersQuery.Where(u => u.UpdatedUser == updatedUser.Value);
+            }
+
+            if (createdDate.HasValue)
+            {
+                usersQuery = usersQuery.Where(u => u.CreatedDate.Date == createdDate.Value.Date);
+            }
+
+            if (updatedDate.HasValue)
+            {
+                usersQuery = usersQuery.Where(u => u.UpdatedDate.Value.Date == updatedDate.Value.Date);
+            }
+
             if (isActive.HasValue)
             {
                 usersQuery = usersQuery.Where(u => u.IsActive == isActive.Value);
