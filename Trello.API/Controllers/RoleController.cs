@@ -70,16 +70,16 @@ namespace Trello.API.Controllers
         }
 
         /// <summary>
-        /// Retrieves all roles, optionally filtered by name.
+        /// Retrieves all roles
         /// </summary>
-        /// <param name="name">The optional name filter for roles.</param>
+        /// <param name="query">The pagination query parameters including page index and page size.</param>
         /// <returns>Returns a list of role details.</returns>
         /// <response code="200">If the retrieval is successful.</response>
         /// <response code="400">If the request is invalid.</response>
         [Authorize]
         [HttpGet("get-all")]
         [ProducesResponseType(typeof(PagedApiResponse<List<RoleDetail>>), StatusCodes.Status200OK)]
-        public async Task<IActionResult> GetRolesAsync([FromQuery] PagingQuery query, [FromQuery] Guid? Id, [FromQuery] string? name)
+        public async Task<IActionResult> GetRolesAsync([FromQuery] PagingQuery query)
         {
             try
             {
@@ -92,10 +92,74 @@ namespace Trello.API.Controllers
                         Data = errors
                     });
                 }
-                List<RoleDetail> result = await _roleService.GetAllRoleAsync(Id, name);
+                List<RoleDetail> result = await _roleService.GetAllRoleAsync();
 
                 var pagingResult = result.PagedItems(query.PageIndex, query.PageSize).ToList();
-                var total = result.Count;
+
+                var paging = new PaginationInfo
+                {
+                    Page = query.PageIndex,
+                    Size = query.PageSize,
+                };
+
+                return Ok(new PagedApiResponse<RoleDetail>
+                {
+                    Code = StatusCodes.Status200OK,
+                    Paging = paging,
+                    Data = pagingResult
+                });
+            }
+            catch (ExceptionResponse ex)
+            {
+                return StatusCode((int)ex.StatusCode, new ApiResponse<string>
+                {
+                    Code = (int)ex.StatusCode,
+                    Data = ex.ErrorMessage
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode((int)HttpStatusCode.InternalServerError, new ApiResponse<string>
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Data = ex.Message
+                });
+            }
+        }
+
+        /// <summary>
+        /// Retrieves all roles, optionally filtered by name.
+        /// </summary>
+        /// <param name="query">The pagination query parameters including page index and page size.</param>
+        /// <param name="name">The optional name filter for roles.</param>
+        /// <param name="createdUser">The optional createdUser filter.</param>
+        /// <param name="updatedUser">The optional updatedUser filter.</param>
+        /// <param name="createdDate">The optional createdDate filter.</param>
+        /// <param name="updatedDate">The optional updatedDate filter.</param>
+        /// <param name="isActive">The optional isActive filter.</param>
+        /// <returns>Returns a list of role details.</returns>
+        /// <response code="200">If the retrieval is successful.</response>
+        /// <response code="400">If the request is invalid.</response>
+        [Authorize]
+        [HttpGet("get-by-filter")]
+        [ProducesResponseType(typeof(PagedApiResponse<List<RoleDetail>>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetRoleByFilterAsync([FromQuery] PagingQuery query, [FromQuery] string? name, Guid? createdUser, Guid? updatedUser,
+            DateTime? createdDate, DateTime? updatedDate, bool? isActive)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
+                    return BadRequest(new ApiResponse<IEnumerable<string>>
+                    {
+                        Code = StatusCodes.Status400BadRequest,
+                        Data = errors
+                    });
+                }
+                List<RoleDetail> result = await _roleService.GetRoleByFilterAsync(name, createdUser, updatedUser, createdDate, updatedDate, isActive);
+
+                var pagingResult = result.PagedItems(query.PageIndex, query.PageSize).ToList();
 
                 var paging = new PaginationInfo
                 {

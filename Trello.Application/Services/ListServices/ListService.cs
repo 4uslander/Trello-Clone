@@ -63,16 +63,11 @@ namespace Trello.Application.Services.ListServices
             var createdListDto = _mapper.Map<ListDetail>(list);
             return createdListDto;
         }
-        public async Task<List<ListDetail>> GetAllListAsync(Guid boardId, string? name)
+        public async Task<List<ListDetail>> GetAllListAsync(Guid boardId)
         {
             IQueryable<List> listsQuery = _unitOfWork.ListRepository.GetAll();
 
-            listsQuery = listsQuery.Where(u => u.BoardId == boardId && u.IsActive);
-
-            if (!string.IsNullOrEmpty(name))
-            {
-                listsQuery = listsQuery.Where(u => u.Name.Contains(name));
-            }
+            listsQuery = listsQuery.Where(u => u.BoardId == boardId);
 
             List<ListDetail> lists = await listsQuery
                 .Select(u => _mapper.Map<ListDetail>(u))
@@ -80,6 +75,56 @@ namespace Trello.Application.Services.ListServices
 
             return lists;
         }
+
+        public async Task<List<ListDetail>> GetListByFilterAsync(Guid boardId, string? name, int? position,
+            Guid? createdUser, Guid? updatedUser, DateTime? createdDate, DateTime? updatedDate, bool? isActive)
+        {
+            IQueryable<List> listsQuery = _unitOfWork.ListRepository.GetAll();
+
+            listsQuery = listsQuery.Where(l => l.BoardId == boardId);
+
+            if (!string.IsNullOrEmpty(name))
+            {
+                listsQuery = listsQuery.Where(l => l.Name.Contains(name));
+            }
+
+            if (position.HasValue)
+            {
+                listsQuery = listsQuery.Where(l => l.Position == position.Value);
+            }
+
+            if (createdUser.HasValue)
+            {
+                listsQuery = listsQuery.Where(l => l.CreatedUser == createdUser.Value);
+            }
+
+            if (updatedUser.HasValue)
+            {
+                listsQuery = listsQuery.Where(l => l.UpdatedUser == updatedUser.Value);
+            }
+
+            if (createdDate.HasValue)
+            {
+                listsQuery = listsQuery.Where(l => l.CreatedDate.Date == createdDate.Value.Date);
+            }
+
+            if (updatedDate.HasValue)
+            {
+                listsQuery = listsQuery.Where(l => l.UpdatedDate.HasValue && l.UpdatedDate.Value.Date == updatedDate.Value.Date);
+            }
+
+            if (isActive.HasValue)
+            {
+                listsQuery = listsQuery.Where(l => l.IsActive == isActive.Value);
+            }
+
+            List<ListDetail> lists = await listsQuery
+                .Select(l => _mapper.Map<ListDetail>(l))
+                .ToListAsync();
+
+            return lists;
+        }
+
         public async Task<ListDetail> UpdateListNameAsync(Guid id, ListDTO requestBody)
         {
             var list = await _unitOfWork.ListRepository.GetByIdAsync(id)

@@ -75,7 +75,7 @@ namespace Trello.Application.Services.CommentServices
                 throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.BOARD_FIELD, ErrorMessage.BOARD_NOT_EXIST);
             }
 
-            var boardMembers = await _boardMemberService.GetAllBoardMemberAsync(board.Id, null);
+            var boardMembers = await _boardMemberService.GetAllBoardMemberAsync(board.Id);
 
             foreach (var member in boardMembers)
             {
@@ -121,7 +121,7 @@ namespace Trello.Application.Services.CommentServices
                 throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.BOARD_FIELD, ErrorMessage.BOARD_NOT_EXIST);
             }
 
-            var boardMembers = await _boardMemberService.GetAllBoardMemberAsync(board.Id, null);
+            var boardMembers = await _boardMemberService.GetAllBoardMemberAsync(board.Id);
 
             foreach (var member in boardMembers)
             {
@@ -155,7 +155,7 @@ namespace Trello.Application.Services.CommentServices
                 throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.BOARD_FIELD, ErrorMessage.BOARD_NOT_EXIST);
             }
 
-            var boardMembers = await _boardMemberService.GetAllBoardMemberAsync(board.Id, null);
+            var boardMembers = await _boardMemberService.GetAllBoardMemberAsync(board.Id);
 
             foreach (var member in boardMembers)
             {

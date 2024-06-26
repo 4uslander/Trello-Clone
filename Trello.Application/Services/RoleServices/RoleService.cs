@@ -58,20 +58,9 @@ namespace Trello.Application.Services.RoleServices
 
             return createdRoleDto;
         }
-        public async Task<List<RoleDetail>> GetAllRoleAsync(Guid? Id, string? name)
+        public async Task<List<RoleDetail>> GetAllRoleAsync()
         {
             IQueryable<Role> rolesQuery = _unitOfWork.RoleRepository.GetAll();
-
-
-            if (!string.IsNullOrEmpty(name))
-            {
-                rolesQuery = rolesQuery.Where(u => u.Name.Contains(name));
-            }
-
-            if (Id.HasValue)
-            {
-                rolesQuery = rolesQuery.Where(u => u.Id == Id);
-            }
 
             List<RoleDetail> lists = await rolesQuery
                 .Select(u => _mapper.Map<RoleDetail>(u))
@@ -79,6 +68,49 @@ namespace Trello.Application.Services.RoleServices
 
             return lists;
         }
+
+        public async Task<List<RoleDetail>> GetRoleByFilterAsync(string? name, Guid? createdUser, Guid? updatedUser,
+            DateTime? createdDate, DateTime? updatedDate, bool? isActive)
+        {
+            IQueryable<Role> rolesQuery = _unitOfWork.RoleRepository.GetAll();
+
+            if (!string.IsNullOrEmpty(name))
+            {
+                rolesQuery = rolesQuery.Where(r => r.Name.Contains(name));
+            }
+
+            if (createdUser.HasValue)
+            {
+                rolesQuery = rolesQuery.Where(r => r.CreatedUser == createdUser.Value);
+            }
+
+            if (updatedUser.HasValue)
+            {
+                rolesQuery = rolesQuery.Where(r => r.UpdatedUser == updatedUser.Value);
+            }
+
+            if (createdDate.HasValue)
+            {
+                rolesQuery = rolesQuery.Where(r => r.CreatedDate.Date == createdDate.Value.Date);
+            }
+
+            if (updatedDate.HasValue)
+            {
+                rolesQuery = rolesQuery.Where(r => r.UpdatedDate.HasValue && r.UpdatedDate.Value.Date == updatedDate.Value.Date);
+            }
+
+            if (isActive.HasValue)
+            {
+                rolesQuery = rolesQuery.Where(r => r.IsActive == isActive.Value);
+            }
+
+            List<RoleDetail> lists = await rolesQuery
+                .Select(r => _mapper.Map<RoleDetail>(r))
+                .ToListAsync();
+
+            return lists;
+        }
+
         public async Task<RoleDetail> UpdateRoleAsync(Guid id, RoleDTO requestBody)
         {
             var role = await _unitOfWork.RoleRepository.GetByIdAsync(id)

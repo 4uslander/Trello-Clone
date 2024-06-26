@@ -72,16 +72,15 @@ namespace Trello.API.Controllers
         }
 
         /// <summary>
-        /// Retrieves all boards, optionally filtered by name.
+        /// Retrieves boards
         /// </summary>
-        /// <param name="name">The optional name filter for boards.</param>
         /// <returns>Returns a list of board details.</returns>
         /// <response code="200">If the retrieval is successful.</response>
         /// <response code="400">If the request is invalid.</response>
         [Authorize]
-        [HttpGet("get-all")]
+        [HttpGet("gets")]
         [ProducesResponseType(typeof(PagedApiResponse<List<BoardDetail>>), StatusCodes.Status200OK)]
-        public async Task<IActionResult> GetAllBoardAsync([FromQuery] PagingQuery query, [FromQuery] string? name)
+        public async Task<IActionResult> GetBoardAsync([FromQuery] PagingQuery query)
         {
             try
             {
@@ -95,7 +94,73 @@ namespace Trello.API.Controllers
                     });
                 }
 
-                List<BoardDetail> result = await _boardService.GetAllBoardAsync(name);
+                List<BoardDetail> result = await _boardService.GetBoardAsync();
+
+                var pagingResult = result.PagedItems(query.PageIndex, query.PageSize).ToList();
+
+                var paging = new PaginationInfo
+                {
+                    Page = query.PageIndex,
+                    Size = query.PageSize,
+                };
+
+                return Ok(new PagedApiResponse<BoardDetail>
+                {
+                    Code = StatusCodes.Status200OK,
+                    Paging = paging,
+                    Data = pagingResult
+                });
+            }
+            catch (ExceptionResponse ex)
+            {
+                return StatusCode((int)ex.StatusCode, new ApiResponse<string>
+                {
+                    Code = (int)ex.StatusCode,
+                    Data = ex.ErrorMessage
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode((int)HttpStatusCode.InternalServerError, new ApiResponse<string>
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Data = ex.Message
+                });
+            }
+        }
+
+        /// <summary>
+        /// Retrieves all boards, optionally filtered by name.
+        /// </summary>
+        /// <param name="name">The optional name filter for boards.</param>
+        /// <param name="createdUser">The optional createdUser filter.</param>
+        /// <param name="updatedUser">The optional updatedUser filter.</param>
+        /// <param name="createdDate">The optional createdDate filter.</param>
+        /// <param name="updatedDate">The optional updatedDate filter.</param>
+        /// <param name="isPublic">The optional isPublic filter.</param>
+        /// <param name="isActive">The optional isActive filter.</param>
+        /// <returns>Returns a list of board details.</returns>
+        /// <response code="200">If the retrieval is successful.</response>
+        /// <response code="400">If the request is invalid.</response>
+        [Authorize]
+        [HttpGet("get-by-filter")]
+        [ProducesResponseType(typeof(PagedApiResponse<List<BoardDetail>>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetAllBoardAsync([FromQuery] PagingQuery query, [FromQuery] string? name, Guid? createdUser, Guid? updatedUser,
+            DateTime? createdDate, DateTime? updatedDate, bool? isPublic, bool? isActive)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
+                    return BadRequest(new ApiResponse<IEnumerable<string>>
+                    {
+                        Code = StatusCodes.Status400BadRequest,
+                        Data = errors
+                    });
+                }
+
+                List<BoardDetail> result = await _boardService.GetBoardByFilterAsync(name, createdUser, updatedUser, createdDate, updatedDate, isPublic, isActive);
 
                 var pagingResult = result.PagedItems(query.PageIndex, query.PageSize).ToList();
 

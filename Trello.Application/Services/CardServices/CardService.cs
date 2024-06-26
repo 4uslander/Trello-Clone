@@ -59,16 +59,11 @@ namespace Trello.Application.Services.CardServices
             return createdCardDto;
         }
 
-        public async Task<List<CardDetail>> GetAllCardAsync(Guid listId, string? title)
+        public async Task<List<CardDetail>> GetAllCardAsync(Guid listId)
         {
             IQueryable<Card> cardsQuery = _unitOfWork.CardRepository.GetAll();
 
-            cardsQuery = cardsQuery.Where(u => u.ListId == listId && u.IsActive);
-
-            if (!string.IsNullOrEmpty(title))
-            {
-                cardsQuery = cardsQuery.Where(u => u.Title.Contains(title));
-            }
+            cardsQuery = cardsQuery.Where(u => u.ListId == listId);
 
             List<CardDetail> cards = await cardsQuery
                 .Select(u => _mapper.Map<CardDetail>(u))
@@ -76,6 +71,66 @@ namespace Trello.Application.Services.CardServices
 
             return cards;
         }
+
+        public async Task<List<CardDetail>> GetCardByFilterAsync(Guid listId, string? title, Guid? createdUser, Guid? updatedUser,
+            DateTime? createdDate, DateTime? updatedDate, DateTime? startDate, DateTime? endDate, DateTime? reminderDate, bool? isActive)
+        {
+            IQueryable<Card> cardsQuery = _unitOfWork.CardRepository.GetAll();
+
+            cardsQuery = cardsQuery.Where(c => c.ListId == listId);
+
+            if (!string.IsNullOrEmpty(title))
+            {
+                cardsQuery = cardsQuery.Where(c => c.Title.Contains(title));
+            }
+
+            if (createdUser.HasValue)
+            {
+                cardsQuery = cardsQuery.Where(c => c.CreatedUser == createdUser.Value);
+            }
+
+            if (updatedUser.HasValue)
+            {
+                cardsQuery = cardsQuery.Where(c => c.UpdatedUser == updatedUser.Value);
+            }
+
+            if (createdDate.HasValue)
+            {
+                cardsQuery = cardsQuery.Where(c => c.CreatedDate.Date == createdDate.Value.Date);
+            }
+
+            if (updatedDate.HasValue)
+            {
+                cardsQuery = cardsQuery.Where(c => c.UpdatedDate.HasValue && c.UpdatedDate.Value.Date == updatedDate.Value.Date);
+            }
+
+            if (startDate.HasValue)
+            {
+                cardsQuery = cardsQuery.Where(c => c.StartDate.HasValue && c.StartDate.Value.Date == startDate.Value.Date);
+            }
+
+            if (endDate.HasValue)
+            {
+                cardsQuery = cardsQuery.Where(c => c.EndDate.HasValue && c.EndDate.Value.Date == endDate.Value.Date);
+            }
+
+            if (reminderDate.HasValue)
+            {
+                cardsQuery = cardsQuery.Where(c => c.ReminderDate.HasValue && c.ReminderDate.Value.Date == reminderDate.Value.Date);
+            }
+
+            if (isActive.HasValue)
+            {
+                cardsQuery = cardsQuery.Where(c => c.IsActive == isActive.Value);
+            }
+
+            List<CardDetail> cards = await cardsQuery
+                .Select(c => _mapper.Map<CardDetail>(c))
+                .ToListAsync();
+
+            return cards;
+        }
+
         public async Task<CardDetail> UpdateCardAsync(Guid id, UpdateCardDTO requestBody)
         {
             var card = await _unitOfWork.CardRepository.GetByIdAsync(id)
