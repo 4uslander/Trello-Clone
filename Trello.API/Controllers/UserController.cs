@@ -1,13 +1,10 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
-using System.Xml.Linq;
-using Trello.Application.DTOs.Board;
 using Trello.Application.DTOs.User;
 using Trello.Application.Services.UserServices;
 using Trello.Application.Utilities.ErrorHandler;
 using Trello.Application.Utilities.Helper.Pagination;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 using static Trello.Application.Utilities.ResponseHandler.ResponseModel;
 
 namespace Trello.API.Controllers
@@ -117,18 +114,15 @@ namespace Trello.API.Controllers
         }
 
         /// <summary>
-        /// Retrieves all users, optionally filtered by email, name, or gender.
+        /// Retrieves all users
         /// </summary>
-        /// <param name="email">The optional email filter.</param>
-        /// <param name="name">The optional name filter.</param>
-        /// <param name="gender">The optional gender filter.</param>
         /// <returns>Returns a list of user details.</returns>
         /// <response code="200">If the retrieval is successful.</response>
         /// <response code="400">If the request is invalid.</response>
         [Authorize]
         [HttpGet("get-all")]
         [ProducesResponseType(typeof(PagedApiResponse<List<UserDetail>>), StatusCodes.Status200OK)]
-        public async Task<IActionResult> GetAllUserAsync([FromQuery] PagingQuery query, [FromQuery] string? email, string? name, string? gender)
+        public async Task<IActionResult> GetAllUserAsync([FromQuery] PagingQuery query)
         {
             try
             {
@@ -142,7 +136,68 @@ namespace Trello.API.Controllers
                     });
                 }
 
-                List<UserDetail> result = await _userService.GetAllUserAsync(email, name, gender);
+                List<UserDetail> result = await _userService.GetAllUserAsync();
+
+                var pagingResult = result.PagedItems(query.PageIndex, query.PageSize).ToList();
+
+                var paging = new PaginationInfo
+                {
+                    Page = query.PageIndex,
+                    Size = query.PageSize,
+                };
+
+                return Ok(new PagedApiResponse<UserDetail>
+                {
+                    Code = StatusCodes.Status200OK,
+                    Paging = paging,
+                    Data = pagingResult
+                });
+            }
+            catch (ExceptionResponse ex)
+            {
+                return StatusCode((int)ex.StatusCode, new ApiResponse<string>
+                {
+                    Code = (int)ex.StatusCode,
+                    Data = ex.ErrorMessage
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode((int)HttpStatusCode.InternalServerError, new ApiResponse<string>
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Data = ex.Message
+                });
+            }
+        }
+
+        /// <summary>
+        /// Retrieves users filtered by email, name, or gender.
+        /// </summary>
+        /// <param name="email">The optional email filter.</param>
+        /// <param name="name">The optional name filter.</param>
+        /// <param name="gender">The optional gender filter.</param>
+        /// <returns>Returns a list of user details.</returns>
+        /// <response code="200">If the retrieval is successful.</response>
+        /// <response code="400">If the request is invalid.</response>
+        [Authorize]
+        [HttpGet("get-by-filter")]
+        [ProducesResponseType(typeof(PagedApiResponse<List<UserDetail>>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetUserByFilterAsync([FromQuery] PagingQuery query, [FromQuery] string? email, string? name, string? gender, bool? isActive)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
+                    return BadRequest(new ApiResponse<IEnumerable<string>>
+                    {
+                        Code = StatusCodes.Status400BadRequest,
+                        Data = errors
+                    });
+                }
+
+                List<UserDetail> result = await _userService.GetUserByFilterAsync(email, name, gender, isActive);
 
                 var pagingResult = result.PagedItems(query.PageIndex, query.PageSize).ToList();
 

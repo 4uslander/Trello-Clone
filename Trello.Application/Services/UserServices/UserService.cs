@@ -4,13 +4,11 @@ using Microsoft.EntityFrameworkCore;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 using System.Security.Claims;
-using System.Xml.Linq;
 using Trello.Application.DTOs.User;
 using Trello.Application.Utilities.ErrorHandler;
 using Trello.Application.Utilities.Helper.GetUserAuthorization;
 using Trello.Application.Utilities.Helper.JWT;
 using Trello.Application.Utilities.Helper.PasswordEncryption;
-using Trello.Domain.Enums;
 using Trello.Domain.Models;
 using Trello.Infrastructure.IRepositories;
 using static Trello.Application.Utilities.GlobalVariables.GlobalVariable;
@@ -85,7 +83,17 @@ namespace Trello.Application.Services.UserServices
             return token;
         }
 
-        public async Task<List<UserDetail>> GetAllUserAsync(string? email, string? name, string? gender)
+        public async Task<List<UserDetail>> GetAllUserAsync()
+        {
+            IQueryable<User> usersQuery = _unitOfWork.UserRepository.GetAll();
+
+            List<UserDetail> users = await usersQuery
+                .Select(u => _mapper.Map<UserDetail>(u))
+                .ToListAsync();
+            return users;
+        }
+
+        public async Task<List<UserDetail>> GetUserByFilterAsync(string? email, string? name, string? gender, bool? isActive)
         {
 
             IQueryable<User> usersQuery = _unitOfWork.UserRepository.GetAll();
@@ -101,6 +109,10 @@ namespace Trello.Application.Services.UserServices
             if (!string.IsNullOrEmpty(gender))
             {
                 usersQuery = usersQuery.Where(u => u.Gender.Contains(gender));
+            }
+            if (isActive.HasValue)
+            {
+                usersQuery = usersQuery.Where(u => u.IsActive == isActive.Value);
             }
 
             List<UserDetail> users = await usersQuery
