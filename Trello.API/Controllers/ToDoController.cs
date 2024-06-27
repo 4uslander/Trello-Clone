@@ -73,14 +73,13 @@ namespace Trello.API.Controllers
         /// </summary>
         /// <param name="listId">The ID of the list to get.</param>
         /// <param name="query">The pagination query parameters including page index and page size.</param>
-        /// <param name="title">The optional title filter for cards.</param>
         /// <returns>Returns a list of todo list details.</returns>
         /// <response code="200">If the retrieval is successful.</response>
         /// <response code="400">If the request is invalid.</response>
         [Authorize]
         [HttpGet("get-all")]
         [ProducesResponseType(typeof(PagedApiResponse<List<ToDoDetail>>), StatusCodes.Status200OK)]
-        public async Task<IActionResult> GetToDoListAsync([FromQuery] Guid cardId, [FromQuery] PagingQuery query, [FromQuery] string? title)
+        public async Task<IActionResult> GetAllToDoListAsync([FromQuery] Guid cardId, [FromQuery] PagingQuery query)
         {
             try
             {
@@ -93,7 +92,68 @@ namespace Trello.API.Controllers
                         Data = errors
                     });
                 }
-                List<ToDoDetail> result = await _toDoService.GetAllToDoListAsync(cardId, title);
+                List<ToDoDetail> result = await _toDoService.GetAllToDoListAsync(cardId);
+
+                var pagingResult = result.PagedItems(query.PageIndex, query.PageSize).ToList();
+
+                var paging = new PaginationInfo
+                {
+                    Page = query.PageIndex,
+                    Size = query.PageSize,
+                };
+
+                return Ok(new PagedApiResponse<ToDoDetail>
+                {
+                    Code = StatusCodes.Status200OK,
+                    Paging = paging,
+                    Data = pagingResult
+                });
+            }
+            catch (ExceptionResponse ex)
+            {
+                return StatusCode((int)ex.StatusCode, new ApiResponse<string>
+                {
+                    Code = (int)ex.StatusCode,
+                    Data = ex.ErrorMessage
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode((int)HttpStatusCode.InternalServerError, new ApiResponse<string>
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Data = ex.Message
+                });
+            }
+        }
+
+        /// <summary>
+        /// Retrieves all todo list, optionally filtered by title.
+        /// </summary>
+        /// <param name="listId">The ID of the list to get.</param>
+        /// <param name="query">The pagination query parameters including page index and page size.</param>
+        /// <param name="title">The optional title filter for cards.</param>
+        /// <param name="isActive">The optional is Active filter for cards.</param>
+        /// <returns>Returns a list of todo list details.</returns>
+        /// <response code="200">If the retrieval is successful.</response>
+        /// <response code="400">If the request is invalid.</response>
+        [Authorize]
+        [HttpGet("get-by-filter")]
+        [ProducesResponseType(typeof(PagedApiResponse<List<ToDoDetail>>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetToDoListByFilterAsync([FromQuery] Guid cardId, [FromQuery] PagingQuery query, [FromQuery] string? title, bool? isActive)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
+                    return BadRequest(new ApiResponse<IEnumerable<string>>
+                    {
+                        Code = StatusCodes.Status400BadRequest,
+                        Data = errors
+                    });
+                }
+                List<ToDoDetail> result = await _toDoService.GetToDoListByFilterAsync(cardId, title, isActive);
 
                 var pagingResult = result.PagedItems(query.PageIndex, query.PageSize).ToList();
 

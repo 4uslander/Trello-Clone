@@ -68,18 +68,17 @@ namespace Trello.API.Controllers
         }
 
         /// <summary>
-        /// Retrieves all task, optionally filtered by name.
+        /// Retrieves all task
         /// </summary>
         /// <param name="cardId">The ID of the card to get.</param>
         /// <param name="query">The pagination query parameters including page index and page size.</param>
-        /// <param name="name">The optional name filter.</param>
         /// <returns>Returns a list of task details.</returns>
         /// <response code="200">If the retrieval is successful.</response>
         /// <response code="400">If the request is invalid.</response>
         [Authorize]
         [HttpGet("get-all")]
         [ProducesResponseType(typeof(PagedApiResponse<List<TaskDetail>>), StatusCodes.Status200OK)]
-        public async Task<IActionResult> GetTaskAsync([FromQuery] Guid cardId, [FromQuery] PagingQuery query, [FromQuery] string? name)
+        public async Task<IActionResult> GetAllTaskAsync([FromQuery] Guid cardId, [FromQuery] PagingQuery query)
         {
             try
             {
@@ -92,7 +91,68 @@ namespace Trello.API.Controllers
                         Data = errors
                     });
                 }
-                List<TaskDetail> result = await _taskService.GetAllTaskAsync(cardId, name);
+                List<TaskDetail> result = await _taskService.GetAllTaskAsync(cardId);
+
+                var pagingResult = result.PagedItems(query.PageIndex, query.PageSize).ToList();
+
+                var paging = new PaginationInfo
+                {
+                    Page = query.PageIndex,
+                    Size = query.PageSize,
+                };
+
+                return Ok(new PagedApiResponse<TaskDetail>
+                {
+                    Code = StatusCodes.Status200OK,
+                    Paging = paging,
+                    Data = pagingResult
+                });
+            }
+            catch (ExceptionResponse ex)
+            {
+                return StatusCode((int)ex.StatusCode, new ApiResponse<string>
+                {
+                    Code = (int)ex.StatusCode,
+                    Data = ex.ErrorMessage
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode((int)HttpStatusCode.InternalServerError, new ApiResponse<string>
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Data = ex.Message
+                });
+            }
+        }
+
+        /// <summary>
+        /// Retrieves all task, optionally filtered by name.
+        /// </summary>
+        /// <param name="cardId">The ID of the card to get.</param>
+        /// <param name="query">The pagination query parameters including page index and page size.</param>
+        /// <param name="name">The optional name filter.</param>
+        /// <param name="isActive">The optional is Active filter.</param>
+        /// <returns>Returns a list of task details.</returns>
+        /// <response code="200">If the retrieval is successful.</response>
+        /// <response code="400">If the request is invalid.</response>
+        [Authorize]
+        [HttpGet("get-by-filter")]
+        [ProducesResponseType(typeof(PagedApiResponse<List<TaskDetail>>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetTaskByFilterAsync([FromQuery] Guid cardId, [FromQuery] PagingQuery query, [FromQuery] string? name, bool? isActive)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
+                    return BadRequest(new ApiResponse<IEnumerable<string>>
+                    {
+                        Code = StatusCodes.Status400BadRequest,
+                        Data = errors
+                    });
+                }
+                List<TaskDetail> result = await _taskService.GetTaskByFilterAsync(cardId, name, isActive);
 
                 var pagingResult = result.PagedItems(query.PageIndex, query.PageSize).ToList();
 
