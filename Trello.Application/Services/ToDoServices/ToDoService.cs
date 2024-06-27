@@ -71,15 +71,32 @@ namespace Trello.Application.Services.ToDoServices
             return createdToDoDto;
         }
 
-        public async Task<List<ToDoDetail>> GetAllToDoListAsync(Guid cardId, string? title)
+        public async Task<List<ToDoDetail>> GetAllToDoListAsync(Guid cardId)
         {
             IQueryable<ToDo> todoListsQuery = _unitOfWork.ToDoRepository.GetAll();
 
             todoListsQuery = todoListsQuery.Where(u => u.CardId == cardId && u.IsActive);
 
+            List<ToDoDetail> todoLists = await todoListsQuery
+                .Select(u => _mapper.Map<ToDoDetail>(u))
+                .ToListAsync();
+
+            return todoLists;
+        }
+
+        public async Task<List<ToDoDetail>> GetToDoListByFilterAsync(Guid cardId, string? title, bool? isActive)
+        {
+            IQueryable<ToDo> todoListsQuery = _unitOfWork.ToDoRepository.GetAll();
+
+            todoListsQuery = todoListsQuery.Where(u => u.CardId == cardId);
+
             if (!string.IsNullOrEmpty(title))
             {
                 todoListsQuery = todoListsQuery.Where(u => u.Title.Contains(title));
+            }
+            if (isActive.HasValue)
+            {
+                todoListsQuery = todoListsQuery.Where(u => u.IsActive == isActive.Value);
             }
 
             List<ToDoDetail> todoLists = await todoListsQuery

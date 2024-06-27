@@ -13,7 +13,8 @@ namespace Trello.Application.Services.ToDoServices
     public interface IToDoService
     {
         public Task<ToDoDetail> CreateToDoListAsync(ToDoDTO requestBody);
-        public Task<List<ToDoDetail>> GetAllToDoListAsync(Guid cardId, string? title);
+        public Task<List<ToDoDetail>> GetAllToDoListAsync(Guid cardId);
+        public Task<List<ToDoDetail>> GetToDoListByFilterAsync(Guid cardId, string? title, bool? isACtive);
         public Task<ToDoDetail> UpdateToDoListAsync(Guid id, string title);
         public Task<ToDoDetail> ChangeStatusAsync(Guid Id, bool isActive);
         public Task<ToDo> GetTodoListByIdAsync(Guid todoId);

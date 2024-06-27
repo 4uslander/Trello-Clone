@@ -71,15 +71,32 @@ namespace Trello.Application.Services.TaskServices
             return createdTaskDto;
         }
 
-        public async Task<List<TaskDetail>> GetAllTaskAsync(Guid todoId, string? name)
+        public async Task<List<TaskDetail>> GetAllTaskAsync(Guid todoId)
         {
             IQueryable<Domain.Models.Task> tasksQuery = _unitOfWork.TaskRepository.GetAll();
 
             tasksQuery = tasksQuery.Where(u => u.TodoId == todoId && u.IsActive);
 
+            List<TaskDetail> tasks = await tasksQuery
+                .Select(u => _mapper.Map<TaskDetail>(u))
+                .ToListAsync();
+
+            return tasks;
+        }
+
+        public async Task<List<TaskDetail>> GetTaskByFilterAsync(Guid todoId, string? name, bool? isActive)
+        {
+            IQueryable<Domain.Models.Task> tasksQuery = _unitOfWork.TaskRepository.GetAll();
+
+            tasksQuery = tasksQuery.Where(u => u.TodoId == todoId);
+
             if (!string.IsNullOrEmpty(name))
             {
                 tasksQuery = tasksQuery.Where(u => u.Name.Contains(name));
+            }
+            if (isActive.HasValue)
+            {
+                tasksQuery = tasksQuery.Where(u => u.IsActive == isActive.Value);
             }
 
             List<TaskDetail> tasks = await tasksQuery
