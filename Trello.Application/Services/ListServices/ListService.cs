@@ -76,8 +76,7 @@ namespace Trello.Application.Services.ListServices
             return lists;
         }
 
-        public async Task<List<ListDetail>> GetListByFilterAsync(Guid boardId, string? name, int? position,
-            Guid? createdUser, Guid? updatedUser, DateTime? createdDate, DateTime? updatedDate, bool? isActive)
+        public async Task<List<ListDetail>> GetListByFilterAsync(Guid boardId, string? name, bool? isActive)
         {
             IQueryable<List> listsQuery = _unitOfWork.ListRepository.GetAll();
 
@@ -86,31 +85,6 @@ namespace Trello.Application.Services.ListServices
             if (!string.IsNullOrEmpty(name))
             {
                 listsQuery = listsQuery.Where(l => l.Name.Contains(name));
-            }
-
-            if (position.HasValue)
-            {
-                listsQuery = listsQuery.Where(l => l.Position == position.Value);
-            }
-
-            if (createdUser.HasValue)
-            {
-                listsQuery = listsQuery.Where(l => l.CreatedUser == createdUser.Value);
-            }
-
-            if (updatedUser.HasValue)
-            {
-                listsQuery = listsQuery.Where(l => l.UpdatedUser == updatedUser.Value);
-            }
-
-            if (createdDate.HasValue)
-            {
-                listsQuery = listsQuery.Where(l => l.CreatedDate.Date == createdDate.Value.Date);
-            }
-
-            if (updatedDate.HasValue)
-            {
-                listsQuery = listsQuery.Where(l => l.UpdatedDate.HasValue && l.UpdatedDate.Value.Date == updatedDate.Value.Date);
             }
 
             if (isActive.HasValue)

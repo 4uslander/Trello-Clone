@@ -14,8 +14,7 @@ namespace Trello.Application.Services.CardMemberServices
     {
         public Task<CardMemberDetail> CreateCardMemberAsync(CardMemberDTO requestBody);
         public Task<List<CardMemberDetail>> GetAllCardMemberAsync(Guid cardId);
-        public Task<List<CardMemberDetail>> GetCardMemberByFilterAsync(Guid cardId, string? userName, Guid? userId,
-            Guid? createdUser, Guid? updatedUser, DateTime? createdDate, DateTime? updatedDate, bool? isActive);
+        public Task<List<CardMemberDetail>> GetCardMemberByFilterAsync(Guid cardId, string? userName, bool? isActive);
         public Task<CardMemberDetail> ChangeStatusAsync(Guid Id, bool isActive);
         public Task<CardMember> GetCardMemberByUserIdAsync(Guid cardId, Guid userId);
     }

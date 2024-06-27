@@ -12,8 +12,7 @@ namespace Trello.Application.Services.BoardMemberServices
     {
         public Task<BoardMemberDetail> CreateBoardMemberAsync(BoardMemberDTO requestBody);
         public Task<List<BoardMemberDetail>> GetAllBoardMemberAsync(Guid boardId);
-        public Task<List<BoardMemberDetail>> GetBoardMemberByFilterAsync(Guid boardId, string? name, Guid? userId, Guid? roleId,
-            Guid? createdUser, Guid? updatedUser, DateTime? createdDate, DateTime? updatedDate, bool? isActive);
+        public Task<List<BoardMemberDetail>> GetBoardMemberByFilterAsync(Guid boardId, string? name, bool? isActive);
         public Task<BoardMemberDetail> UpdateBoardMemberAsync(Guid id, Guid roleId);
         public Task<BoardMemberDetail> ChangeStatusAsync(Guid Id, bool isActive);
         public Task<BoardMember> GetBoardMemberByUserIdAsync(Guid userId);

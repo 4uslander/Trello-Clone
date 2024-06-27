@@ -69,34 +69,13 @@ namespace Trello.Application.Services.RoleServices
             return lists;
         }
 
-        public async Task<List<RoleDetail>> GetRoleByFilterAsync(string? name, Guid? createdUser, Guid? updatedUser,
-            DateTime? createdDate, DateTime? updatedDate, bool? isActive)
+        public async Task<List<RoleDetail>> GetRoleByFilterAsync(string? name, bool? isActive)
         {
             IQueryable<Role> rolesQuery = _unitOfWork.RoleRepository.GetAll();
 
             if (!string.IsNullOrEmpty(name))
             {
                 rolesQuery = rolesQuery.Where(r => r.Name.Contains(name));
-            }
-
-            if (createdUser.HasValue)
-            {
-                rolesQuery = rolesQuery.Where(r => r.CreatedUser == createdUser.Value);
-            }
-
-            if (updatedUser.HasValue)
-            {
-                rolesQuery = rolesQuery.Where(r => r.UpdatedUser == updatedUser.Value);
-            }
-
-            if (createdDate.HasValue)
-            {
-                rolesQuery = rolesQuery.Where(r => r.CreatedDate.Date == createdDate.Value.Date);
-            }
-
-            if (updatedDate.HasValue)
-            {
-                rolesQuery = rolesQuery.Where(r => r.UpdatedDate.HasValue && r.UpdatedDate.Value.Date == updatedDate.Value.Date);
             }
 
             if (isActive.HasValue)

@@ -132,10 +132,6 @@ namespace Trello.API.Controllers
         /// </summary>
         /// <param name="query">The pagination query parameters including page index and page size.</param>
         /// <param name="name">The optional name filter for roles.</param>
-        /// <param name="createdUser">The optional createdUser filter.</param>
-        /// <param name="updatedUser">The optional updatedUser filter.</param>
-        /// <param name="createdDate">The optional createdDate filter.</param>
-        /// <param name="updatedDate">The optional updatedDate filter.</param>
         /// <param name="isActive">The optional isActive filter.</param>
         /// <returns>Returns a list of role details.</returns>
         /// <response code="200">If the retrieval is successful.</response>
@@ -143,8 +139,7 @@ namespace Trello.API.Controllers
         [Authorize]
         [HttpGet("get-by-filter")]
         [ProducesResponseType(typeof(PagedApiResponse<List<RoleDetail>>), StatusCodes.Status200OK)]
-        public async Task<IActionResult> GetRoleByFilterAsync([FromQuery] PagingQuery query, [FromQuery] string? name, Guid? createdUser, Guid? updatedUser,
-            DateTime? createdDate, DateTime? updatedDate, bool? isActive)
+        public async Task<IActionResult> GetRoleByFilterAsync([FromQuery] PagingQuery query, [FromQuery] string? name, bool? isActive)
         {
             try
             {
@@ -157,7 +152,7 @@ namespace Trello.API.Controllers
                         Data = errors
                     });
                 }
-                List<RoleDetail> result = await _roleService.GetRoleByFilterAsync(name, createdUser, updatedUser, createdDate, updatedDate, isActive);
+                List<RoleDetail> result = await _roleService.GetRoleByFilterAsync(name, isActive);
 
                 var pagingResult = result.PagedItems(query.PageIndex, query.PageSize).ToList();
 

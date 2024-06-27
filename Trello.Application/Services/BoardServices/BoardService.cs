@@ -99,36 +99,17 @@ namespace Trello.Application.Services.BoardServices
             return boards;
         }
 
-        public async Task<List<BoardDetail>> GetBoardByFilterAsync(string? name, Guid? createdUser, Guid? updatedUser,
-            DateTime? createdDate, DateTime? updatedDate, bool? isPublic, bool? isActive)
+        public async Task<List<BoardDetail>> GetBoardByFilterAsync(string? name, bool? isPublic, bool? isActive)
         {
             var currentUserId = UserAuthorizationHelper.GetUserAuthorizationById(_httpContextAccessor.HttpContext);
 
             IQueryable<Board> boardsQuery = _unitOfWork.BoardRepository.GetAll();
 
+            boardsQuery = boardsQuery.Where(u => u.CreatedUser == currentUserId);
+
             if (!string.IsNullOrEmpty(name))
             {
                 boardsQuery = boardsQuery.Where(u => u.Name.Contains(name));
-            }
-
-            if (createdUser.HasValue)
-            {
-                boardsQuery = boardsQuery.Where(u => u.CreatedUser == createdUser.Value);
-            }
-
-            if (updatedUser.HasValue)
-            {
-                boardsQuery = boardsQuery.Where(u => u.UpdatedUser == updatedUser.Value);
-            }
-
-            if (createdDate.HasValue)
-            {
-                boardsQuery = boardsQuery.Where(u => u.CreatedDate.Date == createdDate.Value.Date);
-            }
-
-            if (updatedDate.HasValue)
-            {
-                boardsQuery = boardsQuery.Where(u => u.UpdatedDate.Value.Date == updatedDate.Value.Date);
             }
 
             if (isPublic.HasValue)

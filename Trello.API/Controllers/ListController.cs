@@ -139,8 +139,7 @@ namespace Trello.API.Controllers
         [Authorize]
         [HttpGet("get-by-filter")]
         [ProducesResponseType(typeof(PagedApiResponse<List<ListDetail>>), StatusCodes.Status200OK)]
-        public async Task<IActionResult> GetListByFilterAsync([FromQuery] Guid boardId, [FromQuery] PagingQuery query, [FromQuery] string? name, int? position,
-            Guid? createdUser, Guid? updatedUser, DateTime? createdDate, DateTime? updatedDate, bool? isActive)
+        public async Task<IActionResult> GetListByFilterAsync([FromQuery] Guid boardId, [FromQuery] PagingQuery query, [FromQuery] string? name, bool? isActive)
         {
             try
             {
@@ -153,8 +152,7 @@ namespace Trello.API.Controllers
                         Data = errors
                     });
                 }
-                List<ListDetail> result = await _listService.GetListByFilterAsync(boardId, name, position, createdUser, updatedUser,
-                    createdDate, updatedDate, isActive);
+                List<ListDetail> result = await _listService.GetListByFilterAsync(boardId, name, isActive);
 
                 var pagingResult = result.PagedItems(query.PageIndex, query.PageSize).ToList();
 

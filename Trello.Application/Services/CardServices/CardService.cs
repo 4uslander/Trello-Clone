@@ -72,8 +72,7 @@ namespace Trello.Application.Services.CardServices
             return cards;
         }
 
-        public async Task<List<CardDetail>> GetCardByFilterAsync(Guid listId, string? title, Guid? createdUser, Guid? updatedUser,
-            DateTime? createdDate, DateTime? updatedDate, DateTime? startDate, DateTime? endDate, DateTime? reminderDate, bool? isActive)
+        public async Task<List<CardDetail>> GetCardByFilterAsync(Guid listId, string? title, bool? isActive)
         {
             IQueryable<Card> cardsQuery = _unitOfWork.CardRepository.GetAll();
 
@@ -82,41 +81,6 @@ namespace Trello.Application.Services.CardServices
             if (!string.IsNullOrEmpty(title))
             {
                 cardsQuery = cardsQuery.Where(c => c.Title.Contains(title));
-            }
-
-            if (createdUser.HasValue)
-            {
-                cardsQuery = cardsQuery.Where(c => c.CreatedUser == createdUser.Value);
-            }
-
-            if (updatedUser.HasValue)
-            {
-                cardsQuery = cardsQuery.Where(c => c.UpdatedUser == updatedUser.Value);
-            }
-
-            if (createdDate.HasValue)
-            {
-                cardsQuery = cardsQuery.Where(c => c.CreatedDate.Date == createdDate.Value.Date);
-            }
-
-            if (updatedDate.HasValue)
-            {
-                cardsQuery = cardsQuery.Where(c => c.UpdatedDate.HasValue && c.UpdatedDate.Value.Date == updatedDate.Value.Date);
-            }
-
-            if (startDate.HasValue)
-            {
-                cardsQuery = cardsQuery.Where(c => c.StartDate.HasValue && c.StartDate.Value.Date == startDate.Value.Date);
-            }
-
-            if (endDate.HasValue)
-            {
-                cardsQuery = cardsQuery.Where(c => c.EndDate.HasValue && c.EndDate.Value.Date == endDate.Value.Date);
-            }
-
-            if (reminderDate.HasValue)
-            {
-                cardsQuery = cardsQuery.Where(c => c.ReminderDate.HasValue && c.ReminderDate.Value.Date == reminderDate.Value.Date);
             }
 
             if (isActive.HasValue)

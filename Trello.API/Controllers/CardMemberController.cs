@@ -133,10 +133,6 @@ namespace Trello.API.Controllers
         /// <param name="cardId">The ID of the card to get all card members of that card.</param>
         /// <param name="query">The pagination query parameters including page index and page size.</param>
         /// <param name="userName">The optional user name filter for lists.</param>
-        /// <param name="createdUser">The optional createdUser filter.</param>
-        /// <param name="updatedUser">The optional updatedUser filter.</param>
-        /// <param name="createdDate">The optional createdDate filter.</param>
-        /// <param name="updatedDate">The optional updatedDate filter.</param>
         /// <param name="isActive">The optional isActive filter.</param>
         /// <returns>Returns an action result containing a paged response of list details.</returns>
         /// <response code="200">If the retrieval is successful, returns a paged list of list details.</response>
@@ -145,8 +141,8 @@ namespace Trello.API.Controllers
         [Authorize]
         [HttpGet("get-by-filter")]
         [ProducesResponseType(typeof(PagedApiResponse<List<CardMemberDetail>>), StatusCodes.Status200OK)]
-        public async Task<IActionResult> GetCardMemberByFilterAsync([FromQuery] Guid cardId, [FromQuery] PagingQuery query, [FromQuery] string? userName,
-            Guid? userId, Guid? createdUser, Guid? updatedUser, DateTime? createdDate, DateTime? updatedDate, bool? isActive)
+        public async Task<IActionResult> GetCardMemberByFilterAsync([FromQuery] Guid cardId, [FromQuery] PagingQuery query,
+            [FromQuery] string? userName, bool? isActive)
         {
             try
             {
@@ -159,8 +155,7 @@ namespace Trello.API.Controllers
                         Data = errors
                     });
                 }
-                List<CardMemberDetail> result = await _cardMemberService.GetCardMemberByFilterAsync(cardId, userName, userId,
-                    createdUser, updatedUser, createdDate, updatedDate, isActive);
+                List<CardMemberDetail> result = await _cardMemberService.GetCardMemberByFilterAsync(cardId, userName, isActive);
 
                 var pagingResult = result.PagedItems(query.PageIndex, query.PageSize).ToList();
 
