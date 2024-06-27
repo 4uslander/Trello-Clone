@@ -133,10 +133,6 @@ namespace Trello.API.Controllers
         /// Retrieves all boards, optionally filtered by name.
         /// </summary>
         /// <param name="name">The optional name filter for boards.</param>
-        /// <param name="createdUser">The optional createdUser filter.</param>
-        /// <param name="updatedUser">The optional updatedUser filter.</param>
-        /// <param name="createdDate">The optional createdDate filter.</param>
-        /// <param name="updatedDate">The optional updatedDate filter.</param>
         /// <param name="isPublic">The optional isPublic filter.</param>
         /// <param name="isActive">The optional isActive filter.</param>
         /// <returns>Returns a list of board details.</returns>
@@ -145,8 +141,7 @@ namespace Trello.API.Controllers
         [Authorize]
         [HttpGet("get-by-filter")]
         [ProducesResponseType(typeof(PagedApiResponse<List<BoardDetail>>), StatusCodes.Status200OK)]
-        public async Task<IActionResult> GetAllBoardAsync([FromQuery] PagingQuery query, [FromQuery] string? name, Guid? createdUser, Guid? updatedUser,
-            DateTime? createdDate, DateTime? updatedDate, bool? isPublic, bool? isActive)
+        public async Task<IActionResult> GetBoardByFilterAsync([FromQuery] PagingQuery query, [FromQuery] string? name, bool? isPublic, bool? isActive)
         {
             try
             {
@@ -160,7 +155,7 @@ namespace Trello.API.Controllers
                     });
                 }
 
-                List<BoardDetail> result = await _boardService.GetBoardByFilterAsync(name, createdUser, updatedUser, createdDate, updatedDate, isPublic, isActive);
+                List<BoardDetail> result = await _boardService.GetBoardByFilterAsync(name, isPublic, isActive);
 
                 var pagingResult = result.PagedItems(query.PageIndex, query.PageSize).ToList();
 

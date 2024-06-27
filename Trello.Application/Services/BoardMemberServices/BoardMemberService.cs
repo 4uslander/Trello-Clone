@@ -95,8 +95,7 @@ namespace Trello.Application.Services.BoardMemberServices
             return lists;
         }
 
-        public async Task<List<BoardMemberDetail>> GetBoardMemberByFilterAsync(Guid boardId, string? name, Guid? userId, Guid? roleId,
-            Guid? createdUser, Guid? updatedUser, DateTime? createdDate, DateTime? updatedDate, bool? isActive)
+        public async Task<List<BoardMemberDetail>> GetBoardMemberByFilterAsync(Guid boardId, string? name, bool? isActive)
         {
             IQueryable<BoardMember> boardMembersQuery = _unitOfWork.BoardMemberRepository.GetAll();
 
@@ -105,36 +104,6 @@ namespace Trello.Application.Services.BoardMemberServices
             if (!string.IsNullOrEmpty(name))
             {
                 boardMembersQuery = boardMembersQuery.Where(bm => bm.User.Name.Contains(name));
-            }
-
-            if (userId.HasValue)
-            {
-                boardMembersQuery = boardMembersQuery.Where(bm => bm.UserId == userId.Value);
-            }
-
-            if (roleId.HasValue)
-            {
-                boardMembersQuery = boardMembersQuery.Where(bm => bm.RoleId == roleId.Value);
-            }
-
-            if (createdUser.HasValue)
-            {
-                boardMembersQuery = boardMembersQuery.Where(bm => bm.CreatedUser == createdUser.Value);
-            }
-
-            if (updatedUser.HasValue)
-            {
-                boardMembersQuery = boardMembersQuery.Where(bm => bm.UpdatedUser == updatedUser.Value);
-            }
-
-            if (createdDate.HasValue)
-            {
-                boardMembersQuery = boardMembersQuery.Where(bm => bm.CreatedDate.Date == createdDate.Value.Date);
-            }
-
-            if (updatedDate.HasValue)
-            {
-                boardMembersQuery = boardMembersQuery.Where(bm => bm.UpdatedDate.HasValue && bm.UpdatedDate.Value.Date == updatedDate.Value.Date);
             }
 
             if (isActive.HasValue)

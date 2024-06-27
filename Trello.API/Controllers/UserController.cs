@@ -177,11 +177,6 @@ namespace Trello.API.Controllers
         /// </summary>
         /// <param name="email">The optional email filter.</param>
         /// <param name="name">The optional name filter.</param>
-        /// <param name="gender">The optional gender filter.</param>
-        /// <param name="createdUser">The optional createdUser filter.</param>
-        /// <param name="updatedUser">The optional updatedUser filter.</param>
-        /// <param name="createdDate">The optional createdDate filter.</param>
-        /// <param name="updatedDate">The optional updatedDate filter.</param>
         /// <param name="isActive">The optional isActive filter.</param>
         /// <returns>Returns a list of user details.</returns>
         /// <response code="200">If the retrieval is successful.</response>
@@ -189,8 +184,7 @@ namespace Trello.API.Controllers
         [Authorize]
         [HttpGet("get-by-filter")]
         [ProducesResponseType(typeof(PagedApiResponse<List<UserDetail>>), StatusCodes.Status200OK)]
-        public async Task<IActionResult> GetUserByFilterAsync([FromQuery] PagingQuery query, [FromQuery] string? email, string? name, string? gender,
-            Guid? createdUser, Guid? updatedUser, DateTime? createdDate, DateTime? updatedDate, bool? isActive)
+        public async Task<IActionResult> GetUserByFilterAsync([FromQuery] PagingQuery query, [FromQuery] string? email, string? name, bool? isActive)
         {
             try
             {
@@ -204,8 +198,7 @@ namespace Trello.API.Controllers
                     });
                 }
 
-                List<UserDetail> result = await _userService.GetUserByFilterAsync(email, name, gender, createdUser, updatedUser,
-                    createdDate, updatedDate, isActive);
+                List<UserDetail> result = await _userService.GetUserByFilterAsync(email, name, isActive);
 
                 var pagingResult = result.PagedItems(query.PageIndex, query.PageSize).ToList();
 
