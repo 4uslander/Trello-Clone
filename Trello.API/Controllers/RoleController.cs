@@ -34,7 +34,7 @@ namespace Trello.API.Controllers
         [Authorize]
         [HttpPost("create")]
         [ProducesResponseType(typeof(ApiResponse<RoleDetail>), StatusCodes.Status201Created)]
-        public async Task<IActionResult> CreateRoleAsync(RoleDTO requestBody)
+        public async Task<IActionResult> CreateRoleAsync([FromBody] RoleDTO requestBody)
         {
             try
             {
@@ -198,7 +198,7 @@ namespace Trello.API.Controllers
         [Authorize]
         [HttpPut("update/{id}")]
         [ProducesResponseType(typeof(ApiResponse<RoleDetail>), StatusCodes.Status200OK)]
-        public async Task<IActionResult> UpdateRoleAsync(Guid id, [FromForm] RoleDTO requestBody)
+        public async Task<IActionResult> UpdateRoleAsync(Guid id, [FromBody] RoleDTO requestBody)
         {
             try
             {

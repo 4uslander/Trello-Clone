@@ -33,7 +33,7 @@ namespace Trello.API.Controllers
         [Authorize]
         [HttpPost("create")]
         [ProducesResponseType(typeof(ApiResponse<BoardMemberDetail>), StatusCodes.Status201Created)]
-        public async Task<IActionResult> CreateBoardMemberAsync(BoardMemberDTO requestBody)
+        public async Task<IActionResult> CreateBoardMemberAsync([FromBody] BoardMemberDTO requestBody)
         {
             try
             {

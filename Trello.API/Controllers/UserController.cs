@@ -28,7 +28,7 @@ namespace Trello.API.Controllers
         /// <response code="400">If the request body is null or the model state is invalid.</response>
         [HttpPost("registration")]
         [ProducesResponseType(typeof(ApiResponse<UserDetail>), StatusCodes.Status201Created)]
-        public async Task<IActionResult> CreateUserAsync(CreateUserDTO requestBody)
+        public async Task<IActionResult> CreateUserAsync([FromBody] CreateUserDTO requestBody)
         {
             try
             {
@@ -293,7 +293,7 @@ namespace Trello.API.Controllers
         [Authorize]
         [HttpPut("update/{id}")]
         [ProducesResponseType(typeof(ApiResponse<UserDetail>), StatusCodes.Status200OK)]
-        public async Task<IActionResult> UpdateUserAsync(Guid id, [FromForm] UpdateUserDTO requestBody)
+        public async Task<IActionResult> UpdateUserAsync(Guid id, [FromBody] UpdateUserDTO requestBody)
         {
             try
             {
@@ -342,7 +342,7 @@ namespace Trello.API.Controllers
         [Authorize/*(Roles = "Admin")*/]
         [HttpPut("change-status/{id}")]
         [ProducesResponseType(typeof(ApiResponse<UserDetail>), StatusCodes.Status200OK)]
-        public async Task<IActionResult> ChangeStatusAsync(Guid id, bool isActive)
+        public async Task<IActionResult> ChangeStatusAsync(Guid id,[FromQuery] bool isActive)
         {
             try
             {
