@@ -185,5 +185,18 @@ namespace Trello.Application.Services.UserServices
         {
             return await _unitOfWork.UserRepository.GetByIdAsync(userId);
         }
+
+        public async Task<List<UserDetail>> GetUsersByToDoIdAsync(Guid todoId)
+        {
+            var users = await (from task in _unitOfWork.TaskRepository.GetAll()
+                               join todo in _unitOfWork.ToDoRepository.GetAll() on task.TodoId equals todo.Id
+                               join card in _unitOfWork.CardRepository.GetAll() on todo.CardId equals card.Id
+                               join cardMember in _unitOfWork.CardMemberRepository.GetAll() on card.Id equals cardMember.CardId
+                               join user in _unitOfWork.UserRepository.GetAll() on cardMember.UserId equals user.Id
+                               where task.Id == todoId
+                               select _mapper.Map<UserDetail>(user)).ToListAsync();
+
+            return users;
+        }
     }
 }
