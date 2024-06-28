@@ -29,7 +29,6 @@ namespace Trello.Application.Services.ToDoServices
         private readonly ICardService _cardService;
         private readonly IBoardMemberService _boardMemberService;
 
-
         public ToDoService(IUnitOfWork unitOfWork, IMapper mapper, IHttpContextAccessor httpContextAccessor, ICardService cardService, IBoardMemberService boardMemberService)
         {
             _unitOfWork = unitOfWork;
@@ -39,7 +38,7 @@ namespace Trello.Application.Services.ToDoServices
             _boardMemberService = boardMemberService;
         }
 
-        public async Task<ToDoDetail> CreateToDoListAsync(ToDoDTO requestBody)
+        public async Task<ToDoDetail> CreateToDoListAsync(CreateToDoDTO requestBody)
         {
             if (requestBody == null)
                 throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.REQUEST_BODY, ErrorMessage.NULL_REQUEST_BODY);
@@ -106,7 +105,7 @@ namespace Trello.Application.Services.ToDoServices
             return todoLists;
         }
 
-        public async Task<ToDoDetail> UpdateToDoListAsync(Guid id, string title)
+        public async Task<ToDoDetail> UpdateToDoListAsync(Guid id, ToDoDTO requestBody)
         {
             var todo = await _unitOfWork.ToDoRepository.GetByIdAsync(id)
                 ?? throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.TODO_FIELD, ErrorMessage.TODO_NOT_EXIST);
@@ -115,7 +114,7 @@ namespace Trello.Application.Services.ToDoServices
 
             todo.UpdatedDate = DateTime.UtcNow;
             todo.UpdatedUser = currentUserId;
-            todo.Title = title;
+            todo.Title = requestBody.Title;
 
             _unitOfWork.ToDoRepository.Update(todo);
             await _unitOfWork.SaveChangesAsync();
