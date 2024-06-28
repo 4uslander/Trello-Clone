@@ -193,7 +193,7 @@ namespace Trello.Application.Services.UserServices
                                join card in _unitOfWork.CardRepository.GetAll() on todo.CardId equals card.Id
                                join cardMember in _unitOfWork.CardMemberRepository.GetAll() on card.Id equals cardMember.CardId
                                join user in _unitOfWork.UserRepository.GetAll() on cardMember.UserId equals user.Id
-                               where task.Id == todoId
+                               where task.TodoId == todoId
                                select _mapper.Map<UserDetail>(user)).ToListAsync();
 
             return users;
