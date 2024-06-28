@@ -32,7 +32,7 @@ namespace Trello.API.Controllers
         [Authorize]
         [HttpPost("create")]
         [ProducesResponseType(typeof(ApiResponse<CommentDetail>), StatusCodes.Status201Created)]
-        public async Task<IActionResult> CreateCommentAsync(CommentDTO requestBody)
+        public async Task<IActionResult> CreateCommentAsync([FromBody] CommentDTO requestBody)
         {
             try
             {
@@ -140,8 +140,8 @@ namespace Trello.API.Controllers
         [Authorize]
         [HttpPut("update/{id}")]
         [ProducesResponseType(typeof(ApiResponse<CommentDetail>), StatusCodes.Status200OK)]
-        public async Task<IActionResult> UpdateCommentAsync(Guid id, [FromForm] string content)
-        {
+        public async Task<IActionResult> UpdateCommentAsync(Guid id, [FromBody] string content)
+        {   
             try
             {
                 if (!ModelState.IsValid)

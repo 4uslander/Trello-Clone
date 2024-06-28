@@ -33,7 +33,7 @@ namespace Trello.API.Controllers
         [Authorize]
         [HttpPost("create")]
         [ProducesResponseType(typeof(ApiResponse<ToDoDetail>), StatusCodes.Status201Created)]
-        public async Task<IActionResult> CreateToDoListAsync(CreateToDoDTO requestBody)
+        public async Task<IActionResult> CreateToDoListAsync([FromBody] CreateToDoDTO requestBody)
         {
             try
             {
@@ -199,7 +199,7 @@ namespace Trello.API.Controllers
         [Authorize]
         [HttpPut("update/{id}")]
         [ProducesResponseType(typeof(ApiResponse<ToDoDetail>), StatusCodes.Status200OK)]
-        public async Task<IActionResult> UpdateToDoListAsync(Guid id, [FromForm] ToDoDTO requestBody)
+        public async Task<IActionResult> UpdateToDoListAsync(Guid id, [FromBody] ToDoDTO requestBody)
         {
             try
             {

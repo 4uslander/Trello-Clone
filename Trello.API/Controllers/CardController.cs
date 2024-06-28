@@ -31,7 +31,7 @@ namespace Trello.API.Controllers
         [Authorize]
         [HttpPost("create")]
         [ProducesResponseType(typeof(ApiResponse<CardDetail>), StatusCodes.Status201Created)]
-        public async Task<IActionResult> CreateCardAsync(CreateCardDTO requestBody)
+        public async Task<IActionResult> CreateCardAsync([FromBody] CreateCardDTO requestBody)
         {
             try
             {
@@ -197,7 +197,7 @@ namespace Trello.API.Controllers
         [Authorize]
         [HttpPut("update/{id}")]
         [ProducesResponseType(typeof(ApiResponse<CardDetail>), StatusCodes.Status200OK)]
-        public async Task<IActionResult> UpdateCardAsync(Guid id, [FromForm] UpdateCardDTO requestBody)
+        public async Task<IActionResult> UpdateCardAsync(Guid id, [FromBody] UpdateCardDTO requestBody)
         {
             try
             {

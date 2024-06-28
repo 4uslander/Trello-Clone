@@ -33,7 +33,7 @@ namespace Trello.API.Controllers
         [Authorize]
         [HttpPost("create")]
         [ProducesResponseType(typeof(ApiResponse<CardMemberDetail>), StatusCodes.Status201Created)]
-        public async Task<IActionResult> CreateCardMemberAsync(CardMemberDTO requestBody)
+        public async Task<IActionResult> CreateCardMemberAsync([FromBody] CardMemberDTO requestBody)
         {
             try
             {
