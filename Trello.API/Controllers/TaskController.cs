@@ -32,7 +32,7 @@ namespace Trello.API.Controllers
         [Authorize]
         [HttpPost("create")]
         [ProducesResponseType(typeof(ApiResponse<TaskDetail>), StatusCodes.Status201Created)]
-        public async Task<IActionResult> CreateTaskAsync(TaskDTO requestBody)
+        public async Task<IActionResult> CreateTaskAsync(CreateTaskDTO requestBody)
         {
             try
             {
@@ -57,20 +57,20 @@ namespace Trello.API.Controllers
                     Data = ex.ErrorMessage
                 });
             }
-            catch (Exception ex)
-            {
-                return StatusCode((int)HttpStatusCode.InternalServerError, new ApiResponse<string>
-                {
-                    Code = StatusCodes.Status500InternalServerError,
-                    Data = ex.Message
-                });
-            }
+            //catch (Exception ex)
+            //{
+            //    return StatusCode((int)HttpStatusCode.InternalServerError, new ApiResponse<string>
+            //    {
+            //        Code = StatusCodes.Status500InternalServerError,
+            //        Data = ex.Message
+            //    });
+            //}
         }
 
         /// <summary>
         /// Retrieves all task
         /// </summary>
-        /// <param name="cardId">The ID of the card to get.</param>
+        /// <param name="todoId">The ID of the todoId to get.</param>
         /// <param name="query">The pagination query parameters including page index and page size.</param>
         /// <returns>Returns a list of task details.</returns>
         /// <response code="200">If the retrieval is successful.</response>
@@ -78,7 +78,7 @@ namespace Trello.API.Controllers
         [Authorize]
         [HttpGet("get-all")]
         [ProducesResponseType(typeof(PagedApiResponse<List<TaskDetail>>), StatusCodes.Status200OK)]
-        public async Task<IActionResult> GetAllTaskAsync([FromQuery] Guid cardId, [FromQuery] PagingQuery query)
+        public async Task<IActionResult> GetAllTaskAsync([FromQuery] Guid todoId, [FromQuery] PagingQuery query)
         {
             try
             {
@@ -91,7 +91,7 @@ namespace Trello.API.Controllers
                         Data = errors
                     });
                 }
-                List<TaskDetail> result = await _taskService.GetAllTaskAsync(cardId);
+                List<TaskDetail> result = await _taskService.GetAllTaskAsync(todoId);
 
                 var pagingResult = result.PagedItems(query.PageIndex, query.PageSize).ToList();
 
@@ -129,7 +129,7 @@ namespace Trello.API.Controllers
         /// <summary>
         /// Retrieves all task, optionally filtered by name.
         /// </summary>
-        /// <param name="cardId">The ID of the card to get.</param>
+        /// <param name="todoId">The ID of the todoId to get.</param>
         /// <param name="query">The pagination query parameters including page index and page size.</param>
         /// <param name="name">The optional name filter.</param>
         /// <param name="isActive">The optional is Active filter.</param>
@@ -139,7 +139,7 @@ namespace Trello.API.Controllers
         [Authorize]
         [HttpGet("get-by-filter")]
         [ProducesResponseType(typeof(PagedApiResponse<List<TaskDetail>>), StatusCodes.Status200OK)]
-        public async Task<IActionResult> GetTaskByFilterAsync([FromQuery] Guid cardId, [FromQuery] PagingQuery query, [FromQuery] string? name, bool? isActive)
+        public async Task<IActionResult> GetTaskByFilterAsync([FromQuery] Guid todoId, [FromQuery] PagingQuery query, [FromQuery] string? name, bool? isActive)
         {
             try
             {
@@ -152,7 +152,7 @@ namespace Trello.API.Controllers
                         Data = errors
                     });
                 }
-                List<TaskDetail> result = await _taskService.GetTaskByFilterAsync(cardId, name, isActive);
+                List<TaskDetail> result = await _taskService.GetTaskByFilterAsync(todoId, name, isActive);
 
                 var pagingResult = result.PagedItems(query.PageIndex, query.PageSize).ToList();
 
@@ -191,14 +191,14 @@ namespace Trello.API.Controllers
         /// Updates an existing task.
         /// </summary>
         /// <param name="id">The ID of the todo list to update.</param>
-        /// <param name="title">The new title for the todo list.</param>
+        /// <param name="requestBody">The new title for the todo list.</param>
         /// <returns>Returns the updated todo list details.</returns>
         /// <response code="200">If the card is updated successfully.</response>
         /// <response code="400">If the request is invalid.</response>
         [Authorize]
         [HttpPut("update/{id}")]
         [ProducesResponseType(typeof(ApiResponse<TaskDetail>), StatusCodes.Status200OK)]
-        public async Task<IActionResult> UpdateTaskAsync(Guid id, [FromForm] string name)
+        public async Task<IActionResult> UpdateTaskAsync(Guid id, [FromForm] TaskDTO requestBody)
         {
             try
             {
@@ -211,7 +211,7 @@ namespace Trello.API.Controllers
                         Data = errors
                     });
                 }
-                var result = await _taskService.UpdateTaskAsync(id, name);
+                var result = await _taskService.UpdateTaskAsync(id, requestBody);
 
                 return Ok(new ApiResponse<TaskDetail>()
                 {
@@ -248,7 +248,7 @@ namespace Trello.API.Controllers
         [Authorize]
         [HttpPut("check/{id}")]
         [ProducesResponseType(typeof(ApiResponse<TaskDetail>), StatusCodes.Status200OK)]
-        public async Task<IActionResult> CheckTaskAsync(Guid id, [FromForm] bool isChecked)
+        public async Task<IActionResult> CheckTaskAsync(Guid id, [FromQuery] bool isChecked)
         {
             try
             {

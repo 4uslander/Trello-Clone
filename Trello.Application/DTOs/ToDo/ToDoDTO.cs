@@ -9,11 +9,15 @@ namespace Trello.Application.DTOs.ToDo
 {
     public class ToDoDTO
     {
-        [Required(ErrorMessage = "Card Id is required")]
-        public Guid CardId { get; set; }
 
         [Required(ErrorMessage = "Title is required")]
         [MaxLength(150, ErrorMessage = "Title cannot exceed 150 characters")]
         public string Title { get; set; } = null!;
+    }
+    public class CreateToDoDTO : ToDoDTO
+    {
+        [Required(ErrorMessage = "Card Id is required")]
+        public Guid CardId { get; set; }
+
     }
 }

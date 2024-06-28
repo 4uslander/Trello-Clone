@@ -28,7 +28,6 @@ namespace Trello.Application.Services.TaskServices
         private readonly IBoardMemberService _boardMemberService;
         private readonly IToDoService _todoService;
 
-
         public TaskService(IUnitOfWork unitOfWork, IMapper mapper, IHttpContextAccessor httpContextAccessor, IBoardMemberService boardMemberService, IToDoService todoService)
         {
             _unitOfWork = unitOfWork;
@@ -38,7 +37,7 @@ namespace Trello.Application.Services.TaskServices
             _todoService = todoService;
         }
 
-        public async Task<TaskDetail> CreateTaskAsync(TaskDTO requestBody)
+        public async Task<TaskDetail> CreateTaskAsync(CreateTaskDTO requestBody)
         {
             if (requestBody == null)
                 throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.REQUEST_BODY, ErrorMessage.NULL_REQUEST_BODY);
@@ -106,7 +105,7 @@ namespace Trello.Application.Services.TaskServices
             return tasks;
         }
 
-        public async Task<TaskDetail> UpdateTaskAsync(Guid id, string name)
+        public async Task<TaskDetail> UpdateTaskAsync(Guid id, TaskDTO requestBody)
         {
             var task = await _unitOfWork.TaskRepository.GetByIdAsync(id)
                 ?? throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.TASK_FIELD, ErrorMessage.TASK_NOT_EXIST);
@@ -115,7 +114,7 @@ namespace Trello.Application.Services.TaskServices
 
             task.UpdatedDate = DateTime.Now;
             task.UpdatedUser = currentUserId;
-            task.Name = name;
+            task.Name = requestBody.Name;
 
             _unitOfWork.TaskRepository.Update(task);
             await _unitOfWork.SaveChangesAsync();
@@ -144,7 +143,7 @@ namespace Trello.Application.Services.TaskServices
 
         public async Task<TaskDetail> ChangeStatusAsync(Guid id, bool isActive)
         {
-            var task= await _unitOfWork.TaskRepository.GetByIdAsync(id)
+            var task = await _unitOfWork.TaskRepository.GetByIdAsync(id)
                 ?? throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.TASK_FIELD, ErrorMessage.TASK_NOT_EXIST);
 
             var currentUserId = UserAuthorizationHelper.GetUserAuthorizationById(_httpContextAccessor.HttpContext);

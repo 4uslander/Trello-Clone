@@ -5,7 +5,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Trello.Application.DTOs.ToDo;
-using Trello.Application.DTOs.User;
 using Trello.Domain.Models;
 
 namespace Trello.Application.Utilities.Helper.Mapping.MappingProfile
@@ -16,6 +15,7 @@ namespace Trello.Application.Utilities.Helper.Mapping.MappingProfile
         {
             CreateMap<ToDo, ToDoDetail>().ReverseMap();
             CreateMap<ToDoDTO, ToDo>().ReverseMap();
+            CreateMap<CreateToDoDTO, ToDo>().ReverseMap();
         }
     }
 }
