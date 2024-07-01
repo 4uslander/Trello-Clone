@@ -139,7 +139,7 @@ namespace Trello.Application.Services.CardServices
 
             var currentUserId = UserAuthorizationHelper.GetUserAuthorizationById(_httpContextAccessor.HttpContext);
 
-            card.UpdatedDate = DateTime.Now;
+            card.UpdatedDate = DateTime.UtcNow;
             card.UpdatedUser = currentUserId;
             card.IsActive = isActive;
 

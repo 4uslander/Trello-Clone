@@ -59,7 +59,7 @@ namespace Trello.Application.Services.TaskServices
             var task = _mapper.Map<Domain.Models.Task>(requestBody);
             task.Id = Guid.NewGuid();
             task.IsActive = true;
-            task.CreatedDate = DateTime.Now;
+            task.CreatedDate = DateTime.UtcNow;
             task.CreatedUser = currentUserId;
             task.IsChecked = false;
 
@@ -112,7 +112,7 @@ namespace Trello.Application.Services.TaskServices
 
             var currentUserId = UserAuthorizationHelper.GetUserAuthorizationById(_httpContextAccessor.HttpContext);
 
-            task.UpdatedDate = DateTime.Now;
+            task.UpdatedDate = DateTime.UtcNow;
             task.UpdatedUser = currentUserId;
             task.Name = requestBody.Name;
 
@@ -130,10 +130,10 @@ namespace Trello.Application.Services.TaskServices
 
             var currentUserId = UserAuthorizationHelper.GetUserAuthorizationById(_httpContextAccessor.HttpContext);
 
-            task.UpdatedDate = DateTime.Now;
+            task.UpdatedDate = DateTime.UtcNow;
             task.UpdatedUser = currentUserId;
             task.IsChecked = isChecked;
-            task.CompletedDate = DateTime.Now;
+            task.CompletedDate = DateTime.UtcNow;
 
             _unitOfWork.TaskRepository.Update(task);
             await _unitOfWork.SaveChangesAsync();
@@ -149,7 +149,7 @@ namespace Trello.Application.Services.TaskServices
 
             var currentUserId = UserAuthorizationHelper.GetUserAuthorizationById(_httpContextAccessor.HttpContext);
 
-            task.UpdatedDate = DateTime.Now;
+            task.UpdatedDate = DateTime.UtcNow;
             task.UpdatedUser = currentUserId;
             task.IsActive = isActive;
 
