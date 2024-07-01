@@ -12,7 +12,7 @@ namespace Trello.Application.Utilities.Helper.PostedTime
         {
             if (createdAt.HasValue)
             {
-                DateTime currentTime = DateTime.Now;
+                DateTime currentTime = DateTime.UtcNow;
                 TimeSpan timeDifference = currentTime - createdAt.Value;
 
                 if (timeDifference.TotalSeconds < 60)

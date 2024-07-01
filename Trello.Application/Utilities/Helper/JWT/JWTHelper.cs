@@ -36,8 +36,8 @@ namespace Trello.Application.Utilities.Helper.JWT
             var token = new JwtSecurityToken(
                 issuer: _config["JWT:Issuer"],
                 audience: _config["JWT:Audience"],
-                notBefore: DateTime.Now,
-                expires: DateTime.Now.AddHours(24),
+                notBefore: DateTime.UtcNow,
+                expires: DateTime.UtcNow.AddHours(24),
                 signingCredentials: signingCredentials,
                 claims: claims
             );

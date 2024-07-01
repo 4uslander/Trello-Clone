@@ -19,5 +19,7 @@ namespace Trello.Application.Services.UserServices
         public Task<UserDetail> ChangeStatusAsync(Guid Id, bool isActive);
         public Task<User> GetUserByEmailAsync(string email);
         public Task<User> GetUserByIdAsync(Guid userId);
+        public Task<List<UserDetail>> GetUsersByToDoIdAsync(Guid todoId);
+
     }
 }

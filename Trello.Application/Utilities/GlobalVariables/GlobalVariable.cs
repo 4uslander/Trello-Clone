@@ -59,6 +59,7 @@ namespace Trello.Application.Utilities.GlobalVariables
             public const string COMMENT_NOT_EXIST = "This comment does not exist!";
             public const string TODO_NOT_EXIST = "This ToDo list does not exist!";
             public const string TASK_NOT_EXIST = "This task does not exist!";
+            public const string USER_NOT_FOUND = "No users found for the provided ToDo ID.";
         }
     }
 }
