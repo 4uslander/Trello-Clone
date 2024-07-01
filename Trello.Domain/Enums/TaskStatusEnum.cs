@@ -9,7 +9,7 @@ namespace Trello.Domain.Enums
 {
     public enum TaskStatusEnum
     {
-        [Description("High")]
+        [Description("New")]
         New,
 
         [Description("In progress")]
