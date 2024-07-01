@@ -1,23 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
-using Castle.Core.Configuration;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
-using Microsoft.Extensions.Configuration;
 
 namespace Trello.Domain.Models
 {
     public partial class TrellocloneContext : DbContext
     {
-        private Microsoft.Extensions.Configuration.IConfiguration _configuration;
         public TrellocloneContext()
         {
         }
 
-        public TrellocloneContext(DbContextOptions<TrellocloneContext> options, Microsoft.Extensions.Configuration.IConfiguration configuration)
+        public TrellocloneContext(DbContextOptions<TrellocloneContext> options)
             : base(options)
         {
-            _configuration = configuration;
         }
 
         public virtual DbSet<Board> Boards { get; set; } = null!;
@@ -38,8 +34,8 @@ namespace Trello.Domain.Models
         {
             if (!optionsBuilder.IsConfigured)
             {
-                optionsBuilder.UseSqlServer(_configuration.GetConnectionString("MyDB"));
-                optionsBuilder.UseLazyLoadingProxies();
+#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
+                optionsBuilder.UseSqlServer("Server=(local);Uid=sa;Pwd=Phongnguyen@123;Database=Trelloclone");
             }
         }
 
@@ -263,11 +259,30 @@ namespace Trello.Domain.Models
 
                 entity.Property(e => e.Id).ValueGeneratedNever();
 
+                entity.Property(e => e.CompletedDate).HasColumnType("datetime");
+
                 entity.Property(e => e.CreatedDate).HasColumnType("datetime");
+
+                entity.Property(e => e.Description).HasMaxLength(1000);
+
+                entity.Property(e => e.DueDate).HasColumnType("datetime");
 
                 entity.Property(e => e.Name).HasMaxLength(50);
 
+                entity.Property(e => e.PriorityLevel)
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.Status)
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+
                 entity.Property(e => e.UpdatedDate).HasColumnType("datetime");
+
+                entity.HasOne(d => d.AssignedUser)
+                    .WithMany(p => p.Tasks)
+                    .HasForeignKey(d => d.AssignedUserId)
+                    .HasConstraintName("FK_Task_User");
 
                 entity.HasOne(d => d.Todo)
                     .WithMany(p => p.Tasks)
