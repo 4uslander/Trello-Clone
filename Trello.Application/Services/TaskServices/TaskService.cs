@@ -133,6 +133,7 @@ namespace Trello.Application.Services.TaskServices
             task.UpdatedDate = DateTime.Now;
             task.UpdatedUser = currentUserId;
             task.IsChecked = isChecked;
+            task.CompletedDate = DateTime.Now;
 
             _unitOfWork.TaskRepository.Update(task);
             await _unitOfWork.SaveChangesAsync();

@@ -185,5 +185,63 @@ namespace Trello.Application.Services.UserServices
         {
             return await _unitOfWork.UserRepository.GetByIdAsync(userId);
         }
+
+        //public async Task<List<UserDetail>> GetUsersByTaskTodoIdAsync(Guid todoId)
+        //{
+        //    // Find the task by the ToDo ID
+        //    var task = await _unitOfWork.TaskRepository.FirstOrDefaultAsync(t => t.TodoId == todoId);
+        //    if (task == null)
+        //    {
+        //        throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.TASK_FIELD, ErrorMessage.TASK_NOT_EXIST);
+        //    }
+
+        //    // Get the ToDo by the ID
+        //    var todo = await _unitOfWork.ToDoRepository.GetByIdAsync(task.TodoId);
+        //    if (todo == null)
+        //    {
+        //        throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.TODO_FIELD, ErrorMessage.TODO_NOT_EXIST);
+        //    }
+
+        //    // Get the Card by the ToDo's CardId
+        //    var card = await _unitOfWork.CardRepository.GetByIdAsync(todo.CardId);
+        //    if (card == null)
+        //    {
+        //        throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.CARD_FIELD, ErrorMessage.CARD_NOT_EXIST);
+        //    }
+
+        //    // Get the users by the Card's CardMembers
+        //    var cardMembers = await _unitOfWork.CardMemberRepository
+        //        .GetAll()
+        //        .Where(cm => cm.CardId == card.Id)
+        //        .Include(cm => cm.User)
+        //        .ToListAsync();
+
+        //    var users = cardMembers.Select(cm => cm.User).ToList();
+
+        //    // Map users to UserDetail DTO
+        //    var userDetails = users.Select(user => _mapper.Map<UserDetail>(user)).ToList();
+
+        //    return userDetails;
+        //}
+        public async Task<List<UserDetail>> GetUsersByToDoIdAsync(Guid toDoId)
+        {
+
+            var usersQuery = from cardMember in _unitOfWork.CardMemberRepository.GetAll()
+                             join card in _unitOfWork.CardRepository.GetAll() on cardMember.CardId equals card.Id
+                             join toDo in _unitOfWork.ToDoRepository.GetAll() on card.Id equals toDo.CardId
+                             where toDo.Id == toDoId
+                             select cardMember.User;
+
+            List<UserDetail> users = await usersQuery
+                .Select(u => _mapper.Map<UserDetail>(u))
+                .ToListAsync();
+
+            if (!users.Any())
+            {
+                throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.USER_FIELD, ErrorMessage.USER_NOT_FOUND);
+            }
+
+            return users;
+        }
     }
 }

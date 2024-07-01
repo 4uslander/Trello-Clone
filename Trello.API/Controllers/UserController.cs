@@ -232,7 +232,7 @@ namespace Trello.API.Controllers
                 });
             }
         }
-
+        
         /// <summary>
         /// Retrieves the details of a user by their ID.
         /// </summary>
@@ -262,6 +262,66 @@ namespace Trello.API.Controllers
                 {
                     Code = StatusCodes.Status200OK,
                     Data = result
+                });
+            }
+            catch (ExceptionResponse ex)
+            {
+                return StatusCode((int)ex.StatusCode, new ApiResponse<string>
+                {
+                    Code = (int)ex.StatusCode,
+                    Data = ex.ErrorMessage
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode((int)HttpStatusCode.InternalServerError, new ApiResponse<string>
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Data = ex.Message
+                });
+            }
+        }
+
+        /// <summary>
+        /// Retrieves users filtered by to do id.
+        /// </summary>
+        /// <param name="query">The pagination query parameters including page index and page size.</param>
+        /// <param name="todoId">The to do id filter.</param>
+        /// <returns>Returns a list of user details.</returns>
+        /// <response code="200">If the retrieval is successful.</response>
+        /// <response code="400">If the request is invalid.</response>
+        [Authorize]
+        [HttpGet("get-by-todo-id")]
+        [ProducesResponseType(typeof(PagedApiResponse<List<UserDetail>>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetUserByToDoIdAsync([FromQuery] PagingQuery query, [FromQuery] Guid todoId)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
+                    return BadRequest(new ApiResponse<IEnumerable<string>>
+                    {
+                        Code = StatusCodes.Status400BadRequest,
+                        Data = errors
+                    });
+                }
+
+                List<UserDetail> result = await _userService.GetUsersByToDoIdAsync(todoId);
+
+                var pagingResult = result.PagedItems(query.PageIndex, query.PageSize).ToList();
+
+                var paging = new PaginationInfo
+                {
+                    Page = query.PageIndex,
+                    Size = query.PageSize,
+                };
+
+                return Ok(new PagedApiResponse<UserDetail>
+                {
+                    Code = StatusCodes.Status200OK,
+                    Paging = paging,
+                    Data = pagingResult
                 });
             }
             catch (ExceptionResponse ex)
