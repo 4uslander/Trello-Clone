@@ -74,13 +74,14 @@ namespace Trello.API.Controllers
         /// <summary>
         /// Retrieves boards
         /// </summary>
+        /// <param name="query">The pagination query parameters including page index and page size.</param>
         /// <returns>Returns a list of board details.</returns>
         /// <response code="200">If the retrieval is successful.</response>
         /// <response code="400">If the request is invalid.</response>
         [Authorize]
-        [HttpGet("gets")]
+        [HttpGet("get-all")]
         [ProducesResponseType(typeof(PagedApiResponse<List<BoardDetail>>), StatusCodes.Status200OK)]
-        public async Task<IActionResult> GetBoardAsync([FromQuery] PagingQuery query)
+        public async Task<IActionResult> GetAllBoardAsync([FromQuery] PagingQuery query)
         {
             try
             {
@@ -132,6 +133,7 @@ namespace Trello.API.Controllers
         /// <summary>
         /// Retrieves all boards, optionally filtered by name.
         /// </summary>
+        /// <param name="query">The pagination query parameters including page index and page size.</param>
         /// <param name="name">The optional name filter for boards.</param>
         /// <param name="isPublic">The optional isPublic filter.</param>
         /// <param name="isActive">The optional isActive filter.</param>
@@ -156,6 +158,65 @@ namespace Trello.API.Controllers
                 }
 
                 List<BoardDetail> result = await _boardService.GetBoardByFilterAsync(name, isPublic, isActive);
+
+                var pagingResult = result.PagedItems(query.PageIndex, query.PageSize).ToList();
+
+                var paging = new PaginationInfo
+                {
+                    Page = query.PageIndex,
+                    Size = query.PageSize,
+                };
+
+                return Ok(new PagedApiResponse<BoardDetail>
+                {
+                    Code = StatusCodes.Status200OK,
+                    Paging = paging,
+                    Data = pagingResult
+                });
+            }
+            catch (ExceptionResponse ex)
+            {
+                return StatusCode((int)ex.StatusCode, new ApiResponse<string>
+                {
+                    Code = (int)ex.StatusCode,
+                    Data = ex.ErrorMessage
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode((int)HttpStatusCode.InternalServerError, new ApiResponse<string>
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Data = ex.Message
+                });
+            }
+        }
+
+        /// <summary>
+        /// Retrieves boards by current user membership
+        /// </summary>
+        /// <param name="query">The pagination query parameters including page index and page size.</param>
+        /// <returns>Returns a list of board details.</returns>
+        /// <response code="200">If the retrieval is successful.</response>
+        /// <response code="400">If the request is invalid.</response>
+        [Authorize]
+        [HttpGet("get-by-membership")]
+        [ProducesResponseType(typeof(PagedApiResponse<List<BoardDetail>>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetBoardsByCurrentUserMembershipAsync([FromQuery] PagingQuery query)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
+                    return BadRequest(new ApiResponse<IEnumerable<string>>
+                    {
+                        Code = StatusCodes.Status400BadRequest,
+                        Data = errors
+                    });
+                }
+
+                List<BoardDetail> result = await _boardService.GetBoardsByCurrentUserMembershipAsync();
 
                 var pagingResult = result.PagedItems(query.PageIndex, query.PageSize).ToList();
 

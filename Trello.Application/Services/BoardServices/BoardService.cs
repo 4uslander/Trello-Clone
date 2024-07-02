@@ -128,6 +128,27 @@ namespace Trello.Application.Services.BoardServices
             return boards;
         }
 
+        public async Task<List<BoardDetail>> GetBoardsByCurrentUserMembershipAsync()
+        {
+            var currentUserId = UserAuthorizationHelper.GetUserAuthorizationById(_httpContextAccessor.HttpContext);
+
+            IQueryable<Board> boardsQuery = _unitOfWork.BoardRepository.GetAll()
+                .Join(_unitOfWork.BoardMemberRepository.GetAll(),
+                      board => board.Id,
+                      boardMember => boardMember.BoardId,
+                      (board, boardMember) => new { board, boardMember })
+                .Where(bb => bb.boardMember.UserId == currentUserId)
+                .Select(bb => bb.board);
+
+            boardsQuery = boardsQuery.Where(u => u.IsActive);
+
+            List<BoardDetail> boards = await boardsQuery
+                .Select(u => _mapper.Map<BoardDetail>(u))
+                .ToListAsync();
+
+            return boards;
+        }
+
         public async Task<BoardDetail> UpdateBoardAsync(Guid id, BoardDTO requestBody)
         {
             var board = await GetBoardByIdAsync(id);
