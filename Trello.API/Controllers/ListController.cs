@@ -290,6 +290,57 @@ namespace Trello.API.Controllers
         }
 
         /// <summary>
+        /// Swap position an existing list.
+        /// </summary>
+        /// <param name="firstListId">The ID of the first list.</param>
+        /// <param name="secondListId">The ID of the second list.</param>
+        /// <returns>Returns the swapped list position.</returns>
+        /// <response code="200">If the list is swapped successfully.</response>
+        /// <response code="400">If the request is invalid.</response>
+        /// <response code="500">If an unexpected error occurs, returns an error message.</response>
+        [Authorize]
+        [HttpPut("move")]
+        [ProducesResponseType(typeof(ApiResponse<ListDetail>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> MoveListAsync(Guid listId, int newPosition)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
+                    return BadRequest(new ApiResponse<IEnumerable<string>>
+                    {
+                        Code = StatusCodes.Status400BadRequest,
+                        Data = errors
+                    });
+                }
+                var result = await _listService.MoveListAsync(listId, newPosition);
+
+                return Ok(new ApiResponse<ListDetail>()
+                {
+                    Code = StatusCodes.Status200OK,
+                    Data = result
+                });
+            }
+            catch (ExceptionResponse ex)
+            {
+                return StatusCode((int)ex.StatusCode, new ApiResponse<string>
+                {
+                    Code = (int)ex.StatusCode,
+                    Data = ex.ErrorMessage
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode((int)HttpStatusCode.InternalServerError, new ApiResponse<string>
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Data = ex.Message
+                });
+            }
+        }
+
+        /// <summary>
         /// Changes the status of an existing list.
         /// </summary>
         /// <param name="id">The ID of the list whose status is to be changed.</param>

@@ -161,6 +161,58 @@ namespace Trello.Application.Services.ListServices
             return listDetail;
         }
 
+        public async Task<ListDetail> MoveListAsync(Guid listId, int newPosition)
+        {
+            // Get the list to be moved
+            var listToMove = await _unitOfWork.ListRepository.GetByIdAsync(listId);
+            if (listToMove == null)
+                throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.LIST_FIELD, ErrorMessage.LIST_NOT_EXIST);
+
+            var currentPosition = listToMove.Position;
+
+            if (currentPosition == newPosition)
+                return _mapper.Map<ListDetail>(listToMove); // No change needed
+
+            // Get all lists in the board
+            var listsInBoard = await _unitOfWork.ListRepository
+                .GetAll()
+                .Where(x => x.BoardId == listToMove.BoardId)
+                .OrderBy(x => x.Position)
+                .ToListAsync();
+
+            if (newPosition < 1 || newPosition > listsInBoard.Count)
+                throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.LIST_FIELD, "Invalid position specified");
+
+            // Adjust positions of the other lists
+            if (newPosition < currentPosition)
+            {
+                foreach (var list in listsInBoard.Where(x => x.Position >= newPosition && x.Position < currentPosition))
+                {
+                    list.Position++;
+                    _unitOfWork.ListRepository.Update(list);
+                }
+            }
+            else
+            {
+                foreach (var list in listsInBoard.Where(x => x.Position > currentPosition && x.Position <= newPosition))
+                {
+                    list.Position--;
+                    _unitOfWork.ListRepository.Update(list);
+                }
+            }
+
+            // Update the position of the list to be moved
+            listToMove.Position = newPosition;
+            _unitOfWork.ListRepository.Update(listToMove);
+
+            // Save changes
+            await _unitOfWork.SaveChangesAsync();
+
+            // Return the updated list
+            var listDetail = _mapper.Map<ListDetail>(listToMove);
+            return listDetail;
+        }
+
         public async Task<ListDetail> ChangeStatusAsync(Guid Id, bool isActive)
         {
             var list = await _unitOfWork.ListRepository.GetByIdAsync(Id);
