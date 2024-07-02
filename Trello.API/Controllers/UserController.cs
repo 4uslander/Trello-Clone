@@ -241,9 +241,9 @@ namespace Trello.API.Controllers
         /// <response code="200">If the retrieval is successful.</response>
         /// <response code="400">If the request is invalid.</response>
         [Authorize]
-        [HttpGet("get/{id}")]
+        [HttpGet("get-user-profile")]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
-        public async Task<IActionResult> GetUserProfileAsync(Guid id)
+        public async Task<IActionResult> GetUserProfileAsync()
         {
             try
             {
@@ -256,7 +256,9 @@ namespace Trello.API.Controllers
                         Data = errors
                     });
                 }
-                var result = await _userService.GetUserProfileAsync(id);
+
+                var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                var result = await _userService.GetUserProfileAsync(jwtToken);
 
                 return Ok(new ApiResponse<object>()
                 {

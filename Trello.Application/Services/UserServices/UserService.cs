@@ -76,6 +76,7 @@ namespace Trello.Application.Services.UserServices
             var claims = new List<Claim>
             {
                 new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                 new Claim(JwtRegisteredClaimNames.Email, user.Email)
             };
 
@@ -118,20 +119,20 @@ namespace Trello.Application.Services.UserServices
                 .ToListAsync();
             return users;
         }
-
-        public async Task<object> GetUserProfileAsync(Guid userId)
+        public async Task<object> GetUserProfileAsync(string jwtToken)
         {
+            var userId = _jwtHelper.GetUserIdFromToken(jwtToken);
             var user = await GetUserByIdAsync(userId);
+
             if (user == null)
             {
                 throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.USER_FIELD, ErrorMessage.USER_NOT_EXIST);
             }
 
-            object userDetail = null!;
-            userDetail = _mapper.Map<UserDetail>(user);
-
+            var userDetail = _mapper.Map<UserDetail>(user);
             return userDetail;
         }
+
         public async Task<UserDetail> UpdateUserAsync(Guid id, UpdateUserDTO requestBody)
         {
             var user = await _unitOfWork.UserRepository.GetByIdAsync(id)
