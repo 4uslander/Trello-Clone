@@ -14,7 +14,7 @@ namespace Trello.Application.Services.UserServices
         public Task<string> LoginAsync(UserLoginDTO requestBody);
         public Task<List<UserDetail>> GetAllUserAsync();
         public Task<List<UserDetail>> GetUserByFilterAsync(string? email, string? name, bool? isActive);
-        public Task<object> GetUserProfileAsync(Guid userId);
+        public Task<object> GetUserProfileAsync(string jwtToken);
         public Task<UserDetail> UpdateUserAsync(Guid id, UpdateUserDTO requestBody);
         public Task<UserDetail> ChangeStatusAsync(Guid Id, bool isActive);
         public Task<User> GetUserByEmailAsync(string email);

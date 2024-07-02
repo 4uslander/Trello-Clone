@@ -16,6 +16,7 @@ namespace Trello.Application.Utilities.Helper.JWT
         string generateJwtToken(IEnumerable<Claim> claims);
         string GenerateRefreshToken();
         ClaimsPrincipal GetPrincipalFromExpiredToken(string token);
+        Guid GetUserIdFromToken(string token);
     }
     public class JwtHelper : IJwtHelper
     {
@@ -77,6 +78,22 @@ namespace Trello.Application.Utilities.Helper.JWT
                 throw new SecurityTokenException("Invalid token");
 
             return principal;
+        }
+
+        public Guid GetUserIdFromToken(string token)
+        {
+            var principal = GetPrincipalFromExpiredToken(token);
+            var userIdClaim = principal.Claims.FirstOrDefault(claim => claim.Type == JwtRegisteredClaimNames.Sub);
+
+            if (userIdClaim == null)
+            {
+                userIdClaim = principal.Claims.FirstOrDefault(claim => claim.Type == ClaimTypes.NameIdentifier);
+            }
+
+            if (userIdClaim == null)
+                throw new SecurityTokenException("Invalid token: No sub claim");
+
+            return Guid.Parse(userIdClaim.Value);
         }
     }
 }
