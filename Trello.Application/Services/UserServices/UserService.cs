@@ -135,6 +135,20 @@ namespace Trello.Application.Services.UserServices
             return userDetail;
         }
 
+        public async Task<object> GetUserAsync(Guid userId)
+        {
+            var user = await GetUserByIdAsync(userId);
+            if (user == null)
+            {
+                throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.USER_FIELD, ErrorMessage.USER_NOT_EXIST);
+            }
+
+            object userDetail = null!;
+            userDetail = _mapper.Map<UserDetail>(user);
+
+            return userDetail;
+        }
+
         public async Task<UserDetail> UpdateUserAsync(Guid id, UpdateUserDTO requestBody)
         {
             var user = await _unitOfWork.UserRepository.GetByIdAsync(id)
