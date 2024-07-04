@@ -67,7 +67,7 @@ namespace Trello.Application.Services.ListServices
         {
             IQueryable<List> listsQuery = _unitOfWork.ListRepository.GetAll();
 
-            listsQuery = listsQuery.Where(u => u.BoardId == boardId);
+            listsQuery = listsQuery.Where(u => u.BoardId == boardId && u.IsActive);
 
             List<ListDetail> lists = await listsQuery
                 .Select(u => _mapper.Map<ListDetail>(u))

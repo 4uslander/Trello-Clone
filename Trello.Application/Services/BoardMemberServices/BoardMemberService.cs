@@ -86,7 +86,7 @@ namespace Trello.Application.Services.BoardMemberServices
         {
             IQueryable<BoardMember> boardMembersQuery = _unitOfWork.BoardMemberRepository.GetAll();
 
-            boardMembersQuery = boardMembersQuery.Where(u => u.BoardId == boardId);
+            boardMembersQuery = boardMembersQuery.Where(u => u.BoardId == boardId && u.IsActive);
 
             List<BoardMemberDetail> lists = await boardMembersQuery
                 .Select(bm => _mapper.Map<BoardMemberDetail>(bm))
