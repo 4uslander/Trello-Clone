@@ -87,7 +87,7 @@ namespace Trello.Application.Services.TaskServices
         {
             IQueryable<Domain.Models.Task> tasksQuery = _unitOfWork.TaskRepository.GetAll();
 
-            tasksQuery = tasksQuery.Where(u => u.TodoId == todoId);
+            tasksQuery = tasksQuery.Where(u => u.TodoId == todoId && u.IsActive);
 
             if (!string.IsNullOrEmpty(name))
             {

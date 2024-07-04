@@ -88,6 +88,8 @@ namespace Trello.Application.Services.UserServices
         {
             IQueryable<User> usersQuery = _unitOfWork.UserRepository.GetAll();
 
+            usersQuery = usersQuery.Where(u => u.IsActive);
+
             List<UserDetail> users = await usersQuery
                 .Select(u => _mapper.Map<UserDetail>(u))
                 .ToListAsync();

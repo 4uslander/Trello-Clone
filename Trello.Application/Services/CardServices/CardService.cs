@@ -63,7 +63,7 @@ namespace Trello.Application.Services.CardServices
         {
             IQueryable<Card> cardsQuery = _unitOfWork.CardRepository.GetAll();
 
-            cardsQuery = cardsQuery.Where(u => u.ListId == listId);
+            cardsQuery = cardsQuery.Where(u => u.ListId == listId && u.IsActive);
 
             List<CardDetail> cards = await cardsQuery
                 .Select(u => _mapper.Map<CardDetail>(u))
