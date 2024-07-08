@@ -13,6 +13,7 @@ using Trello.Application.Services.BoardMemberServices;
 using Trello.Application.Services.CardServices;
 using Trello.Application.Services.ToDoServices;
 using Trello.Application.Utilities.ErrorHandler;
+using Trello.Application.Utilities.Helper.ConvertDate;
 using Trello.Application.Utilities.Helper.GetUserAuthorization;
 using Trello.Domain.Models;
 using Trello.Infrastructure.IRepositories;
@@ -59,9 +60,11 @@ namespace Trello.Application.Services.TaskServices
             var task = _mapper.Map<Domain.Models.Task>(requestBody);
             task.Id = Guid.NewGuid();
             task.IsActive = true;
-            task.CreatedDate = DateTime.UtcNow;
+            task.CreatedDate = DateTime.Now;
             task.CreatedUser = currentUserId;
             task.IsChecked = false;
+
+            task.DueDate = ConvertDateTime.ConvertToSEA(task.DueDate);
 
             await _unitOfWork.TaskRepository.InsertAsync(task);
             await _unitOfWork.SaveChangesAsync();
@@ -112,7 +115,7 @@ namespace Trello.Application.Services.TaskServices
 
             var currentUserId = UserAuthorizationHelper.GetUserAuthorizationById(_httpContextAccessor.HttpContext);
 
-            task.UpdatedDate = DateTime.UtcNow;
+            task.UpdatedDate = DateTime.Now;
             task.UpdatedUser = currentUserId;
             task.Name = requestBody.Name;
 
@@ -130,10 +133,10 @@ namespace Trello.Application.Services.TaskServices
 
             var currentUserId = UserAuthorizationHelper.GetUserAuthorizationById(_httpContextAccessor.HttpContext);
 
-            task.UpdatedDate = DateTime.UtcNow;
+            task.UpdatedDate = DateTime.Now;
             task.UpdatedUser = currentUserId;
             task.IsChecked = isChecked;
-            task.CompletedDate = DateTime.UtcNow;
+            task.CompletedDate = DateTime.Now;
 
             _unitOfWork.TaskRepository.Update(task);
             await _unitOfWork.SaveChangesAsync();
@@ -149,7 +152,7 @@ namespace Trello.Application.Services.TaskServices
 
             var currentUserId = UserAuthorizationHelper.GetUserAuthorizationById(_httpContextAccessor.HttpContext);
 
-            task.UpdatedDate = DateTime.UtcNow;
+            task.UpdatedDate = DateTime.Now;
             task.UpdatedUser = currentUserId;
             task.IsActive = isActive;
 

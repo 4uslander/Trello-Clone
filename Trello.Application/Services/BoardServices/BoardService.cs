@@ -50,7 +50,7 @@ namespace Trello.Application.Services.BoardServices
 
             var board = _mapper.Map<Board>(requestBody);
             board.Id = Guid.NewGuid();
-            board.CreatedDate = DateTime.UtcNow;
+            board.CreatedDate = DateTime.Now;
             board.CreatedUser = currentUserId;
             board.IsPublic = true;
             board.IsActive = true;
@@ -70,7 +70,7 @@ namespace Trello.Application.Services.BoardServices
                 UserId = currentUserId,
                 RoleId = adminRole.Id,
                 IsActive = true,
-                CreatedDate = DateTime.UtcNow,
+                CreatedDate = DateTime.Now,
                 CreatedUser = currentUserId
             };
 
@@ -168,7 +168,7 @@ namespace Trello.Application.Services.BoardServices
             }
 
             board = _mapper.Map(requestBody, board);
-            board.UpdatedDate = DateTime.UtcNow;
+            board.UpdatedDate = DateTime.Now;
             board.UpdatedUser = currentUserId;
             _unitOfWork.BoardRepository.Update(board);
             await _unitOfWork.SaveChangesAsync();
@@ -189,7 +189,7 @@ namespace Trello.Application.Services.BoardServices
                 throw new UnauthorizedAccessException("You do not have permission to update this board");
             }
 
-            board.UpdatedDate = DateTime.UtcNow;
+            board.UpdatedDate = DateTime.Now;
             board.UpdatedUser = currentUserId;
             board.IsActive = isActive;
 
@@ -212,7 +212,7 @@ namespace Trello.Application.Services.BoardServices
                 throw new UnauthorizedAccessException("You do not have permission to update this board");
             }
 
-            board.UpdatedDate = DateTime.UtcNow;
+            board.UpdatedDate = DateTime.Now;
             board.UpdatedUser = currentUserId;
             board.IsPublic = isPublic;
 

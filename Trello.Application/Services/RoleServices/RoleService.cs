@@ -47,7 +47,7 @@ namespace Trello.Application.Services.RoleServices
 
             var role = _mapper.Map<Role>(requestBody);
             role.Id = Guid.NewGuid();
-            role.CreatedDate = DateTime.UtcNow;
+            role.CreatedDate = DateTime.Now;
             role.CreatedUser = currentUserId;
             role.IsActive = true;
 
@@ -99,7 +99,7 @@ namespace Trello.Application.Services.RoleServices
             var currentUserId = UserAuthorizationHelper.GetUserAuthorizationById(_httpContextAccessor.HttpContext);
 
             role = _mapper.Map(requestBody, role);
-            role.UpdatedDate = DateTime.UtcNow;
+            role.UpdatedDate = DateTime.Now;
             role.UpdatedUser = currentUserId;
 
             _unitOfWork.RoleRepository.Update(role);
@@ -116,7 +116,7 @@ namespace Trello.Application.Services.RoleServices
 
             var currentUserId = UserAuthorizationHelper.GetUserAuthorizationById(_httpContextAccessor.HttpContext);
 
-            role.UpdatedDate = DateTime.UtcNow;
+            role.UpdatedDate = DateTime.Now;
             role.UpdatedUser = currentUserId;
             role.IsActive = isActive;
 

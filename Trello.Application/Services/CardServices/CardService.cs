@@ -15,6 +15,7 @@ using Trello.Infrastructure.IRepositories;
 using System.Xml.Linq;
 using Microsoft.EntityFrameworkCore;
 using Trello.Application.Services.ListServices;
+using Trello.Application.Utilities.Helper.ConvertDate;
 
 namespace Trello.Application.Services.CardServices
 {
@@ -49,7 +50,7 @@ namespace Trello.Application.Services.CardServices
             card.Id = Guid.NewGuid();
             card.IsActive = true;
             card.ListId = requestBody.ListId;
-            card.CreatedDate = DateTime.UtcNow;
+            card.CreatedDate = DateTime.Now;
             card.CreatedUser = currentUserId;
 
             await _unitOfWork.CardRepository.InsertAsync(card);
@@ -111,18 +112,32 @@ namespace Trello.Application.Services.CardServices
                     throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.DATE_FIELD, ErrorMessage.INVALID_END_DATE);
                 }
             }
-            // Validate that ReminderDate is equal or later than EndDate
+
+            // Validate that ReminderDate is equal or sooner than EndDate
             if (requestBody.ReminderDate.HasValue && requestBody.EndDate.HasValue)
             {
-                if (requestBody.ReminderDate.Value < requestBody.EndDate.Value)
+                if (requestBody.ReminderDate.Value > requestBody.EndDate.Value)
                 {
                     throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.DATE_FIELD, ErrorMessage.INVALID_REMINDER_DATE);
                 }
             }
 
+            // Validate that StartDate is sooner than or equal to ReminderDate
+            if (requestBody.ReminderDate.HasValue && requestBody.StartDate.HasValue)
+            {
+                if (requestBody.StartDate.Value > requestBody.ReminderDate.Value)
+                {
+                    throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.DATE_FIELD, ErrorMessage.INVALID_START_DATE);
+                }
+            }
+
+            requestBody.StartDate = ConvertDateTime.ConvertToSEA(requestBody.StartDate);
+            requestBody.EndDate = ConvertDateTime.ConvertToSEA(requestBody.EndDate);
+            requestBody.ReminderDate = ConvertDateTime.ConvertToSEA(requestBody.ReminderDate);
+
             card = _mapper.Map(requestBody, card);
 
-            card.UpdatedDate = DateTime.UtcNow;
+            card.UpdatedDate = DateTime.Now;
             card.UpdatedUser = currentUserId;
 
             _unitOfWork.CardRepository.Update(card);
@@ -139,7 +154,7 @@ namespace Trello.Application.Services.CardServices
 
             var currentUserId = UserAuthorizationHelper.GetUserAuthorizationById(_httpContextAccessor.HttpContext);
 
-            card.UpdatedDate = DateTime.UtcNow;
+            card.UpdatedDate = DateTime.Now;
             card.UpdatedUser = currentUserId;
             card.IsActive = isActive;
 
