@@ -53,7 +53,7 @@ namespace Trello.Application.Services.ListServices
             var list = _mapper.Map<List>(requestBody);
             list.Id = Guid.NewGuid();
             list.IsActive = true;
-            list.CreatedDate = DateTime.UtcNow;
+            list.CreatedDate = DateTime.Now;
             list.CreatedUser = currentUserId;
             list.Position = latestPosition + 1;
 
@@ -113,7 +113,7 @@ namespace Trello.Application.Services.ListServices
             var currentUserId = UserAuthorizationHelper.GetUserAuthorizationById(_httpContextAccessor.HttpContext);
 
             list = _mapper.Map(requestBody, list);
-            list.UpdatedDate = DateTime.UtcNow;
+            list.UpdatedDate = DateTime.Now;
             list.UpdatedUser = currentUserId;
 
             _unitOfWork.ListRepository.Update(list);
@@ -145,9 +145,9 @@ namespace Trello.Application.Services.ListServices
             secondList.Position = tempPosition;
 
             // Update the metadata
-            firstList.UpdatedDate = DateTime.UtcNow;
+            firstList.UpdatedDate = DateTime.Now;
             firstList.UpdatedUser = currentUserId;
-            secondList.UpdatedDate = DateTime.UtcNow;
+            secondList.UpdatedDate = DateTime.Now;
             secondList.UpdatedUser = currentUserId;
 
             // Update the lists in the repository
@@ -221,7 +221,7 @@ namespace Trello.Application.Services.ListServices
 
             var currentUserId = UserAuthorizationHelper.GetUserAuthorizationById(_httpContextAccessor.HttpContext);
 
-            list.UpdatedDate = DateTime.UtcNow;
+            list.UpdatedDate = DateTime.Now;
             list.UpdatedUser = currentUserId;
             list.IsActive = isActive;
 

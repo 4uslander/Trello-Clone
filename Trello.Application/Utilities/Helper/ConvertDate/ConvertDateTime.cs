@@ -9,6 +9,17 @@ namespace Trello.Application.Utilities.Helper.ConvertDate
 {
     public static class ConvertDateTime
     {
+        private static readonly TimeZoneInfo TimeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
+
+        public static DateTime? ConvertToSEA(DateTime? dateTime)
+        {
+            if (!dateTime.HasValue) return null;
+
+            if (dateTime.Value.Kind == DateTimeKind.Utc) return dateTime;
+
+            DateTime dateTimeWithKind = DateTime.SpecifyKind(dateTime.Value, DateTimeKind.Unspecified);
+            return TimeZoneInfo.ConvertTimeToUtc(dateTimeWithKind, TimeZoneInfo);
+        }
         public static string ConvertDateToString(DateTime? date)
         {
             return date.HasValue ? date.Value.ToString("dd MMM yyyy") : "";

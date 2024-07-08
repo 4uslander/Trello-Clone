@@ -70,7 +70,7 @@ namespace Trello.Application.Services.CardMemberServices
 
             var cardMember = _mapper.Map<CardMember>(requestBody);
             cardMember.Id = Guid.NewGuid();
-            cardMember.CreatedDate = DateTime.UtcNow;
+            cardMember.CreatedDate = DateTime.Now;
             cardMember.CreatedUser = currentUserId;
             cardMember.IsActive = true;
 
@@ -125,7 +125,7 @@ namespace Trello.Application.Services.CardMemberServices
 
             var currentUserId = UserAuthorizationHelper.GetUserAuthorizationById(_httpContextAccessor.HttpContext);
 
-            cardMember.UpdatedDate = DateTime.UtcNow;
+            cardMember.UpdatedDate = DateTime.Now;
             cardMember.UpdatedUser = currentUserId;
             cardMember.IsActive = isActive;
 

@@ -50,7 +50,8 @@ namespace Trello.Application.Utilities.GlobalVariables
             public const string CARD_ALREADY_EXIST = "This card title already exists!";
             public const string CARD_NOT_EXIST = "This card does not exist!";
             public const string INVALID_END_DATE = "EndDate must be later than StartDate.";
-            public const string INVALID_REMINDER_DATE = "ReminderDate must be equal to or later than EndDate.";
+            public const string INVALID_REMINDER_DATE = "ReminderDate must be equal or sooner than EndDate.";
+            public const string INVALID_START_DATE = "StartDate must be equal or sooner than ReminderDate.";
             public const string TITLE_ALREADY_EXIST = "This card title already exists!";
             public const string ROLE_NOT_EXIST = "This role does not exist!";
             public const string ROLE_ALREADY_EXIST = "This role name already exists!";
