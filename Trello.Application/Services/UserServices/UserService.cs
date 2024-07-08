@@ -209,7 +209,7 @@ namespace Trello.Application.Services.UserServices
             var usersQuery = from cardMember in _unitOfWork.CardMemberRepository.GetAll()
                              join card in _unitOfWork.CardRepository.GetAll() on cardMember.CardId equals card.Id
                              join toDo in _unitOfWork.ToDoRepository.GetAll() on card.Id equals toDo.CardId
-                             where toDo.Id == toDoId
+                             where toDo.Id == toDoId && cardMember.IsActive // chua PR
                              select cardMember.User;
 
             List<UserDetail> users = await usersQuery
