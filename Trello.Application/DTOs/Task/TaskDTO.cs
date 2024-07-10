@@ -18,6 +18,7 @@ namespace Trello.Application.DTOs.Task
         public TaskPriorityLevelEnum PriorityLevel { get; set; }
         public Guid? AssignedUserId { get; set; }
         public string? Description { get; set; }
+        [Required(ErrorMessage = "Status is required")]
         public TaskStatusEnum Status { get; set; }
         public DateTime? DueDate { get; set; }
     }
