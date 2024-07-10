@@ -80,6 +80,7 @@ namespace Trello.Application.Services.TaskServices
             tasksQuery = tasksQuery.Where(u => u.TodoId == todoId && u.IsActive);
 
             List<TaskDetail> tasks = await tasksQuery
+                .OrderBy(u => u.CreatedDate) 
                 .Select(u => _mapper.Map<TaskDetail>(u))
                 .ToListAsync();
 
@@ -115,9 +116,14 @@ namespace Trello.Application.Services.TaskServices
 
             var currentUserId = UserAuthorizationHelper.GetUserAuthorizationById(_httpContextAccessor.HttpContext);
 
-            task.UpdatedDate = DateTime.Now;
+            task.UpdatedDate = DateTime.UtcNow;
             task.UpdatedUser = currentUserId;
-            task.Name = requestBody.Name;
+            task.Name = requestBody.Name.ToString();
+            task.PriorityLevel = requestBody.PriorityLevel.ToString();
+            task.Status = requestBody.Status.ToString();
+            task.AssignedUserId = requestBody.AssignedUserId;
+            task.Description = requestBody.Description;
+            task.DueDate = requestBody.DueDate;
 
             _unitOfWork.TaskRepository.Update(task);
             await _unitOfWork.SaveChangesAsync();
