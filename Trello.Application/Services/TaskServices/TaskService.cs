@@ -15,6 +15,7 @@ using Trello.Application.Services.ToDoServices;
 using Trello.Application.Utilities.ErrorHandler;
 using Trello.Application.Utilities.Helper.ConvertDate;
 using Trello.Application.Utilities.Helper.GetUserAuthorization;
+using Trello.Domain.Enums;
 using Trello.Domain.Models;
 using Trello.Infrastructure.IRepositories;
 using static Trello.Application.Utilities.GlobalVariables.GlobalVariable;
@@ -125,6 +126,15 @@ namespace Trello.Application.Services.TaskServices
             task.Description = requestBody.Description;
             task.DueDate = requestBody.DueDate;
 
+            if (task.Status == TaskStatusEnum.Resolved.ToString())
+            {
+                task.IsChecked = true;
+            }
+            else
+            {
+                task.IsChecked = false;
+            }
+
             _unitOfWork.TaskRepository.Update(task);
             await _unitOfWork.SaveChangesAsync();
 
@@ -142,7 +152,8 @@ namespace Trello.Application.Services.TaskServices
             task.UpdatedDate = DateTime.Now;
             task.UpdatedUser = currentUserId;
             task.IsChecked = isChecked;
-            task.CompletedDate = DateTime.Now;
+            task.CompletedDate = isChecked ? DateTime.Now : (DateTime?)null;
+            task.Status = isChecked ? TaskStatusEnum.Resolved.ToString() : TaskStatusEnum.InProgress.ToString();
 
             _unitOfWork.TaskRepository.Update(task);
             await _unitOfWork.SaveChangesAsync();
