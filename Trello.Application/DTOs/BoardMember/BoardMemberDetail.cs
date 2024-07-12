@@ -10,8 +10,11 @@ namespace Trello.Application.DTOs.BoardMember
     {
         public Guid Id { get; set; }
         public Guid UserId { get; set; }
+        public string UserName { get; set; }
+        public string UserEmail { get; set; }
         public Guid BoardId { get; set; }
         public Guid RoleId { get; set; }
+        public string RoleName { get; set; }
         public DateTime CreatedDate { get; set; }
         public Guid CreatedUser { get; set; }
         public DateTime? UpdatedDate { get; set; }
