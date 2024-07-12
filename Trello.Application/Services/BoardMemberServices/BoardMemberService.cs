@@ -89,7 +89,19 @@ namespace Trello.Application.Services.BoardMemberServices
             boardMembersQuery = boardMembersQuery.Where(u => u.BoardId == boardId && u.IsActive);
 
             List<BoardMemberDetail> lists = await boardMembersQuery
-                .Select(bm => _mapper.Map<BoardMemberDetail>(bm))
+                .Select(bm => new BoardMemberDetail
+                {
+                    Id = bm.Id,
+                    BoardId = bm.BoardId,
+                    UserId = bm.UserId,
+                    UserName = bm.User.Name,
+                    UserEmail = bm.User.Email,
+                    RoleId = bm.RoleId,
+                    RoleName = bm.Role.Name,
+                    IsActive = bm.IsActive,
+                    CreatedDate = bm.CreatedDate,
+                    UpdatedDate = bm.UpdatedDate
+                })
                 .ToListAsync();
 
             return lists;
