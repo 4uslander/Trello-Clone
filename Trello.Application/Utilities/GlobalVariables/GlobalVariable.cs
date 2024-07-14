@@ -29,6 +29,7 @@ namespace Trello.Application.Utilities.GlobalVariables
             public const string COMMENT_FIELD = "Comment";
             public const string TODO_FIELD = "ToDo";
             public const string TASK_FIELD = "Task";
+            public const string LABEL_FIELD = "Label";
         }
         public static class ErrorMessage
         {
@@ -61,6 +62,7 @@ namespace Trello.Application.Utilities.GlobalVariables
             public const string TODO_NOT_EXIST = "This ToDo list does not exist!";
             public const string TASK_NOT_EXIST = "This task does not exist!";
             public const string USER_NOT_FOUND = "No users found for the provided ToDo ID.";
+            public const string LABEL_NOT_EXIST = "This label does not exist!";
         }
     }
 }
