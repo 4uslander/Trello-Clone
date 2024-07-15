@@ -13,7 +13,7 @@ namespace Trello.Application.Utilities.Helper.Mapping.MappingProfile
     {
         public LabelProfile() {
 
-            CreateMap<Label ,LabelProfile>().ReverseMap();
+            CreateMap<Label ,LabelDetail>().ReverseMap();
             CreateMap<LabelDTO, Label>().ReverseMap();
             CreateMap<UpdateLabelDTO, Label>().ReverseMap();
 

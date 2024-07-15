@@ -50,12 +50,12 @@ namespace Trello.Application.Services.LabelServices
 
             var label = _mapper.Map<Label>(requestBody);
             label.Id = Guid.NewGuid();
-            label.IsActive= true;
             label.BoardId = requestBody.BoardId;
             label.Name = requestBody.Name;
             label.Color= requestBody.Color;
             label.CreatedDate = DateTime.Now;
             label.CreatedUser = currentUserId;
+            label.IsActive = true;
 
             await _unitOfWork.LabelRepository.InsertAsync(label);
             await _unitOfWork.SaveChangesAsync();
@@ -85,6 +85,12 @@ namespace Trello.Application.Services.LabelServices
             {
                 labelsQuery = labelsQuery.Where(c => c.Name.Contains(Name));
             }
+
+            if (!string.IsNullOrEmpty(Color))
+            {
+                labelsQuery = labelsQuery.Where(x => x.Color.Contains(Color));
+            }
+
             if (isActive.HasValue)
             {
                 labelsQuery = labelsQuery.Where(c => c.IsActive == isActive.Value);

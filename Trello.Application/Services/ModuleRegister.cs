@@ -4,6 +4,7 @@ using Trello.Application.Services.BoardServices;
 using Trello.Application.Services.CardMemberServices;
 using Trello.Application.Services.CardServices;
 using Trello.Application.Services.CommentServices;
+using Trello.Application.Services.LabelServices;
 using Trello.Application.Services.ListServices;
 using Trello.Application.Services.RoleServices;
 using Trello.Application.Services.TaskServices;
@@ -31,6 +32,7 @@ namespace Trello.Application.Services
             services.AddScoped<ICommentService, CommentService>();
             services.AddScoped<IToDoService, ToDoService>();
             services.AddScoped<ITaskService, TaskService>();
+            services.AddScoped<ILabelService, LabelService>();
         }
     }
 }

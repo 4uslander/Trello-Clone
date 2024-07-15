@@ -9,11 +9,10 @@ namespace Trello.Application.DTOs.Label
 {
     public class LabelDTO
     {
-        [Required(ErrorMessage = "Name is required")]
+      
         [MaxLength(150, ErrorMessage = "Name cannot exceed 150 characters")]
         public string Name { get; set; } = null!;
 
-        //[Required(ErrorMessage = "Color is required")]
         [MaxLength(150, ErrorMessage = "Color cannot exceed 150 characters")]
         public string Color { get; set; } = null!;
     }
@@ -22,8 +21,7 @@ namespace Trello.Application.DTOs.Label
     {
         [Required(ErrorMessage = "BoardId is required")]
         public Guid BoardId { get; set; }
-        public string Name { get; set; } = null!;
-        public string Color { get; set; } = null!;
+       
     }
 
     public class UpdateLabelDTO: LabelDTO
