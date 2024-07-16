@@ -11,6 +11,7 @@ namespace Trello.Application.DTOs.Comment
         public Guid Id { get; set; }
         public Guid CardId { get; set; }
         public Guid UserId { get; set; }
+        public string UserName { get; set; }
         public string Content { get; set; } = null!;
         public DateTime CreatedDate { get; set; }
         public Guid CreatedUser { get; set; }

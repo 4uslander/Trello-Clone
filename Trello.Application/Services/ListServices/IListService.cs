@@ -14,8 +14,8 @@ namespace Trello.Application.Services.ListServices
         public Task<List<ListDetail>> GetAllListAsync(Guid boardId);
         public Task<List<ListDetail>> GetListByFilterAsync(Guid boardId, string? name, bool? isActive);
         public Task<ListDetail> UpdateListNameAsync(Guid id, ListDTO requestBody);
-        public Task<ListDetail> SwapListPositionsAsync(Guid firstListId, Guid secondListId);
-        public Task<ListDetail> MoveListAsync(Guid listId, int newPosition);
+        public Task<ListDetail> SwapListPositionsAsync(Guid id, Guid swappedListId);
+        public Task<ListDetail> MoveListAsync(Guid id, int newPosition);
         public Task<ListDetail> ChangeStatusAsync(Guid Id, bool isActive);
         public Task<List> GetListByNameAsync(string name, Guid boardId);
         public Task<List> GetListByIdAsync(Guid id);
