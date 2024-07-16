@@ -28,7 +28,7 @@ namespace Trello.Application.Services.LabelServices
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
-            _httpContextAccessor= httpContextAccessor;
+            _httpContextAccessor = httpContextAccessor;
             _boardService = boardService;
         }
 
@@ -51,8 +51,6 @@ namespace Trello.Application.Services.LabelServices
             var label = _mapper.Map<Label>(requestBody);
             label.Id = Guid.NewGuid();
             label.BoardId = requestBody.BoardId;
-            label.Name = requestBody.Name;
-            label.Color= requestBody.Color;
             label.CreatedDate = DateTime.Now;
             label.CreatedUser = currentUserId;
             label.IsActive = true;
@@ -60,7 +58,7 @@ namespace Trello.Application.Services.LabelServices
             await _unitOfWork.LabelRepository.InsertAsync(label);
             await _unitOfWork.SaveChangesAsync();
 
-            var createLabelDto = _mapper.Map<LabelDetail>(requestBody);
+            var createLabelDto = _mapper.Map<LabelDetail>(label);
             return createLabelDto;
 
         }
@@ -99,17 +97,23 @@ namespace Trello.Application.Services.LabelServices
             return labels;
         }
 
-        public async Task<LabelDetail> UpdateLabelAsync(Guid Id, UpdateLabelDTO requestBody)
+        public async Task<LabelDetail> UpdateLabelAsync(Guid id, UpdateLabelDTO requestBody)
         {
-            var label = await _unitOfWork.LabelRepository.GetByIdAsync(Id)
+            var label = await _unitOfWork.LabelRepository.GetByIdAsync(id)
                 ?? throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.LABEL_FIELD, ErrorMessage.LABEL_NOT_EXIST);
 
             var currentUserId = UserAuthorizationHelper.GetUserAuthorizationById(_httpContextAccessor.HttpContext);
+
+
+
             label = _mapper.Map(requestBody, label);
+
             label.UpdatedDate = DateTime.Now;
             label.UpdatedUser = currentUserId;
+
             _unitOfWork.LabelRepository.Update(label);
             await _unitOfWork.SaveChangesAsync();
+
             var labelDetail = _mapper.Map<LabelDetail>(label);
             return labelDetail;
         }

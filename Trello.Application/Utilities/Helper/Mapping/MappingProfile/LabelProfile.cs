@@ -9,14 +9,13 @@ using Trello.Domain.Models;
 
 namespace Trello.Application.Utilities.Helper.Mapping.MappingProfile
 {
-    public class LabelProfile: Profile
+    public class LabelProfile : Profile
     {
-        public LabelProfile() {
-
+        public LabelProfile() 
+        {
             CreateMap<Label ,LabelDetail>().ReverseMap();
             CreateMap<LabelDTO, Label>().ReverseMap();
             CreateMap<UpdateLabelDTO, Label>().ReverseMap();
-
         }
     }
 }

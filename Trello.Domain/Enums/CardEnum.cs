@@ -9,6 +9,6 @@ namespace Trello.Domain.Enums
     public enum CardEnum
     {
         Inactive = 0,
-        Active =1
+        Active = 1
     }
 }

@@ -201,7 +201,7 @@ namespace Trello.API.Controllers
         [Authorize]
         [HttpPut("update/{id}")]
         [ProducesResponseType(typeof(ApiResponse<LabelDetail>), StatusCodes.Status200OK)]
-        public async Task<IActionResult> UpdateLabelAsync(Guid Id, [FromBody] UpdateLabelDTO requestBody)
+        public async Task<IActionResult> UpdateLabelAsync(Guid id, [FromBody] UpdateLabelDTO requestBody)
         {
             try
             {
@@ -215,7 +215,7 @@ namespace Trello.API.Controllers
                     });
                 }
 
-                var result = await _labelService.UpdateLabelAsync(Id, requestBody);
+                var result = await _labelService.UpdateLabelAsync(id, requestBody);
 
                 return Ok(new ApiResponse<LabelDetail>()
                 {
