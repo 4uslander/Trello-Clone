@@ -50,7 +50,7 @@ namespace Trello.Application.Services.CardServices
             card.Id = Guid.NewGuid();
             card.IsActive = true;
             card.ListId = requestBody.ListId;
-            card.CreatedDate = DateTime.Now;
+            card.CreatedDate = DateTime.UtcNow;
             card.CreatedUser = currentUserId;
 
             await _unitOfWork.CardRepository.InsertAsync(card);
@@ -130,14 +130,12 @@ namespace Trello.Application.Services.CardServices
                 }
             }
 
-            requestBody.StartDate = ConvertDateTime.ConvertToSEA(requestBody.StartDate);
-            requestBody.EndDate = ConvertDateTime.ConvertToSEA(requestBody.EndDate);
-            requestBody.ReminderDate = ConvertDateTime.ConvertToSEA(requestBody.ReminderDate);
-
             card = _mapper.Map(requestBody, card);
-
-            card.UpdatedDate = DateTime.Now;
+            card.UpdatedDate = DateTime.UtcNow;
             card.UpdatedUser = currentUserId;
+            card.StartDate = requestBody.StartDate;
+            card.EndDate = requestBody.EndDate;
+            card.ReminderDate = requestBody.ReminderDate;
 
             _unitOfWork.CardRepository.Update(card);
             await _unitOfWork.SaveChangesAsync();
@@ -153,7 +151,7 @@ namespace Trello.Application.Services.CardServices
 
             var currentUserId = UserAuthorizationHelper.GetUserAuthorizationById(_httpContextAccessor.HttpContext);
 
-            card.UpdatedDate = DateTime.Now;
+            card.UpdatedDate = DateTime.UtcNow;
             card.UpdatedUser = currentUserId;
             card.IsActive = isActive;
 

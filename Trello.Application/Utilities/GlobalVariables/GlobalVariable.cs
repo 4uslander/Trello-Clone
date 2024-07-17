@@ -48,6 +48,7 @@ namespace Trello.Application.Utilities.GlobalVariables
             public const string LISTS_IN_DIFFERENT_BOARD = "Lists belong to different boards";
             public const string INVALID_LIST_POSITION = "List position must be greater than or equal to 1.";
             public const string LIST_POSITION_ALREADY_EXIST = "List position already exists within the same board.";
+            public const string LIST_POSITION_SPECIFIED = "Invalid position specified.";
             public const string CARD_ALREADY_EXIST = "This card title already exists!";
             public const string CARD_NOT_EXIST = "This card does not exist!";
             public const string INVALID_END_DATE = "EndDate must be later than StartDate.";

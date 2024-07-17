@@ -19,6 +19,7 @@ using Microsoft.AspNetCore.SignalR;
 using Trello.Domain.Enums;
 using Trello.Application.Services.BoardServices;
 using Trello.Application.Services.BoardMemberServices;
+using Trello.Application.DTOs.BoardMember;
 
 namespace Trello.Application.Services.CommentServices
 {
@@ -61,7 +62,7 @@ namespace Trello.Application.Services.CommentServices
             comment.Id = Guid.NewGuid();
             comment.UserId = currentUserId;
             comment.IsActive = true;
-            comment.CreatedDate = DateTime.Now;
+            comment.CreatedDate = DateTime.UtcNow;
             comment.CreatedUser = currentUserId;
 
             await _unitOfWork.CommentRepository.InsertAsync(comment);
@@ -92,7 +93,19 @@ namespace Trello.Application.Services.CommentServices
             commentsQuery = commentsQuery.Where(u => u.CardId == cardId && u.IsActive);
 
             List<CommentDetail> lists = await commentsQuery
-                .Select(u => _mapper.Map<CommentDetail>(u))
+                .Select(cm => new CommentDetail
+                {
+                    Id = cm.Id,
+                    CardId = cm.CardId,
+                    UserId = cm.UserId,
+                    UserName = cm.User.Name,
+                    Content = cm.Content,
+                    CreatedDate = cm.CreatedDate,
+                    CreatedUser = cm.CreatedUser,
+                    UpdatedDate = cm.UpdatedDate,
+                    UpdatedUser = cm.UpdatedUser,
+                    IsActive = cm.IsActive
+                })
                 .ToListAsync();
 
             return lists;
@@ -105,7 +118,7 @@ namespace Trello.Application.Services.CommentServices
 
             var currentUserId = UserAuthorizationHelper.GetUserAuthorizationById(_httpContextAccessor.HttpContext);
 
-            comment.UpdatedDate = DateTime.Now;
+            comment.UpdatedDate = DateTime.UtcNow;
             comment.UpdatedUser = currentUserId;
             comment.Content = content;
 
@@ -139,7 +152,7 @@ namespace Trello.Application.Services.CommentServices
 
             var currentUserId = UserAuthorizationHelper.GetUserAuthorizationById(_httpContextAccessor.HttpContext);
 
-            comment.UpdatedDate = DateTime.Now;
+            comment.UpdatedDate = DateTime.UtcNow;
             comment.UpdatedUser = currentUserId;
             comment.IsActive = isActive;
 

@@ -53,7 +53,7 @@ namespace Trello.Application.Services.ListServices
             var list = _mapper.Map<List>(requestBody);
             list.Id = Guid.NewGuid();
             list.IsActive = true;
-            list.CreatedDate = DateTime.Now;
+            list.CreatedDate = DateTime.UtcNow;
             list.CreatedUser = currentUserId;
             list.Position = latestPosition + 1;
 
@@ -113,7 +113,7 @@ namespace Trello.Application.Services.ListServices
             var currentUserId = UserAuthorizationHelper.GetUserAuthorizationById(_httpContextAccessor.HttpContext);
 
             list = _mapper.Map(requestBody, list);
-            list.UpdatedDate = DateTime.Now;
+            list.UpdatedDate = DateTime.UtcNow;
             list.UpdatedUser = currentUserId;
 
             _unitOfWork.ListRepository.Update(list);
@@ -123,65 +123,65 @@ namespace Trello.Application.Services.ListServices
             return listDetail;
         }
 
-        public async Task<ListDetail> SwapListPositionsAsync(Guid firstListId, Guid secondListId)
+        public async Task<ListDetail> SwapListPositionsAsync(Guid id, Guid swappedListId)
         {
-            var firstList = await _unitOfWork.ListRepository.GetByIdAsync(firstListId)
+            var ListToSwap = await _unitOfWork.ListRepository.GetByIdAsync(id)
                 ?? throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.LIST_FIELD, ErrorMessage.LIST_NOT_EXIST);
 
-            var secondList = await _unitOfWork.ListRepository.GetByIdAsync(secondListId)
+            var swappedList = await _unitOfWork.ListRepository.GetByIdAsync(swappedListId)
                 ?? throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.LIST_FIELD, ErrorMessage.LIST_NOT_EXIST);
 
-            if (firstList.BoardId != secondList.BoardId)
+            if (ListToSwap.BoardId != swappedList.BoardId)
             {
                 throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.LIST_FIELD, ErrorMessage.LISTS_IN_DIFFERENT_BOARD);
             }
 
             var currentUserId = UserAuthorizationHelper.GetUserAuthorizationById(_httpContextAccessor.HttpContext);
 
-            var tempPosition = firstList.Position;
+            var tempPosition = ListToSwap.Position;
 
             // Swap the positions
-            firstList.Position = secondList.Position;
-            secondList.Position = tempPosition;
+            ListToSwap.Position = swappedList.Position;
+            swappedList.Position = tempPosition;
 
             // Update the metadata
-            firstList.UpdatedDate = DateTime.Now;
-            firstList.UpdatedUser = currentUserId;
-            secondList.UpdatedDate = DateTime.Now;
-            secondList.UpdatedUser = currentUserId;
+            ListToSwap.UpdatedDate = DateTime.UtcNow;
+            ListToSwap.UpdatedUser = currentUserId;
+            swappedList.UpdatedDate = DateTime.UtcNow;
+            swappedList.UpdatedUser = currentUserId;
 
             // Update the lists in the repository
-            _unitOfWork.ListRepository.Update(firstList);
-            _unitOfWork.ListRepository.Update(secondList);
+            _unitOfWork.ListRepository.Update(ListToSwap);
+            _unitOfWork.ListRepository.Update(swappedList);
 
             await _unitOfWork.SaveChangesAsync();
 
             // Map the first list to ListDetail and return
-            var listDetail = _mapper.Map<ListDetail>(firstList);
+            var listDetail = _mapper.Map<ListDetail>(ListToSwap);
             return listDetail;
         }
 
-        public async Task<ListDetail> MoveListAsync(Guid listId, int newPosition)
+        public async Task<ListDetail> MoveListAsync(Guid id, int newPosition)
         {
             // Get the list to be moved
-            var listToMove = await _unitOfWork.ListRepository.GetByIdAsync(listId);
+            var listToMove = await _unitOfWork.ListRepository.GetByIdAsync(id);
             if (listToMove == null)
                 throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.LIST_FIELD, ErrorMessage.LIST_NOT_EXIST);
 
             var currentPosition = listToMove.Position;
 
             if (currentPosition == newPosition)
-                return _mapper.Map<ListDetail>(listToMove); // No change needed
+                return _mapper.Map<ListDetail>(listToMove); 
 
             // Get all lists in the board
             var listsInBoard = await _unitOfWork.ListRepository
                 .GetAll()
-                .Where(x => x.BoardId == listToMove.BoardId)
+                .Where(x => x.BoardId == listToMove.BoardId && x.IsActive)
                 .OrderBy(x => x.Position)
                 .ToListAsync();
 
             if (newPosition < 1 || newPosition > listsInBoard.Count)
-                throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.LIST_FIELD, "Invalid position specified");
+                throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.LIST_FIELD, ErrorMessage.LIST_POSITION_SPECIFIED);
 
             // Adjust positions of the other lists
             if (newPosition < currentPosition)
@@ -221,7 +221,7 @@ namespace Trello.Application.Services.ListServices
 
             var currentUserId = UserAuthorizationHelper.GetUserAuthorizationById(_httpContextAccessor.HttpContext);
 
-            list.UpdatedDate = DateTime.Now;
+            list.UpdatedDate = DateTime.UtcNow;
             list.UpdatedUser = currentUserId;
             list.IsActive = isActive;
 

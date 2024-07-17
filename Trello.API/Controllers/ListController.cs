@@ -241,16 +241,16 @@ namespace Trello.API.Controllers
         /// <summary>
         /// Swap position an existing list.
         /// </summary>
-        /// <param name="firstListId">The ID of the first list.</param>
-        /// <param name="secondListId">The ID of the second list.</param>
+        /// <param name="id">The ID of the list to swap.</param>
+        /// <param name="swappedListId">The ID of the swapped list.</param>
         /// <returns>Returns the swapped list position.</returns>
         /// <response code="200">If the list is swapped successfully.</response>
         /// <response code="400">If the request is invalid.</response>
         /// <response code="500">If an unexpected error occurs, returns an error message.</response>
         [Authorize]
-        [HttpPut("swap-position")]
+        [HttpPut("swap-position/{id}")]
         [ProducesResponseType(typeof(ApiResponse<ListDetail>), StatusCodes.Status200OK)]
-        public async Task<IActionResult> SwapListPositionAsync(Guid firstListId, Guid secondListId)
+        public async Task<IActionResult> SwapListPositionAsync(Guid id,[FromQuery] Guid swappedListId)
         {
             try
             {
@@ -263,7 +263,7 @@ namespace Trello.API.Controllers
                         Data = errors
                     });
                 }
-                var result = await _listService.SwapListPositionsAsync(firstListId, secondListId);
+                var result = await _listService.SwapListPositionsAsync(id, swappedListId);
 
                 return Ok(new ApiResponse<ListDetail>()
                 {
@@ -290,18 +290,18 @@ namespace Trello.API.Controllers
         }
 
         /// <summary>
-        /// Swap position an existing list.
+        /// Move position an existing list.
         /// </summary>
-        /// <param name="firstListId">The ID of the first list.</param>
-        /// <param name="secondListId">The ID of the second list.</param>
-        /// <returns>Returns the swapped list position.</returns>
-        /// <response code="200">If the list is swapped successfully.</response>
+        /// <param name="id">The ID of the list to move.</param>
+        /// <param name="newPosition">The new position of list.</param>
+        /// <returns>Returns the mew list position.</returns>
+        /// <response code="200">If the list is moved successfully.</response>
         /// <response code="400">If the request is invalid.</response>
         /// <response code="500">If an unexpected error occurs, returns an error message.</response>
         [Authorize]
-        [HttpPut("move")]
+        [HttpPut("move-position/{id}")]
         [ProducesResponseType(typeof(ApiResponse<ListDetail>), StatusCodes.Status200OK)]
-        public async Task<IActionResult> MoveListAsync(Guid listId, int newPosition)
+        public async Task<IActionResult> MoveListAsync(Guid id,[FromQuery] int newPosition)
         {
             try
             {
@@ -314,7 +314,7 @@ namespace Trello.API.Controllers
                         Data = errors
                     });
                 }
-                var result = await _listService.MoveListAsync(listId, newPosition);
+                var result = await _listService.MoveListAsync(id, newPosition);
 
                 return Ok(new ApiResponse<ListDetail>()
                 {
