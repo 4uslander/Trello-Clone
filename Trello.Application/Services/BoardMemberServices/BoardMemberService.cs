@@ -70,7 +70,7 @@ namespace Trello.Application.Services.BoardMemberServices
 
             var boardMember = _mapper.Map<BoardMember>(requestBody);
             boardMember.Id = Guid.NewGuid();
-            boardMember.CreatedDate = DateTime.Now;
+            boardMember.CreatedDate = DateTime.UtcNow;
             boardMember.CreatedUser = currentUserId;
             boardMember.RoleId = memberRole.Id;
             boardMember.IsActive = true;
@@ -139,7 +139,7 @@ namespace Trello.Application.Services.BoardMemberServices
             var currentUserId = UserAuthorizationHelper.GetUserAuthorizationById(_httpContextAccessor.HttpContext);
 
             boardMember.RoleId = roleId;
-            boardMember.UpdatedDate = DateTime.Now;
+            boardMember.UpdatedDate = DateTime.UtcNow;
             boardMember.UpdatedUser = currentUserId;
 
             _unitOfWork.BoardMemberRepository.Update(boardMember);
@@ -156,7 +156,7 @@ namespace Trello.Application.Services.BoardMemberServices
 
             var currentUserId = UserAuthorizationHelper.GetUserAuthorizationById(_httpContextAccessor.HttpContext);
 
-            boardMember.UpdatedDate = DateTime.Now;
+            boardMember.UpdatedDate = DateTime.UtcNow;
             boardMember.UpdatedUser = currentUserId;
             boardMember.IsActive = isActive;
 

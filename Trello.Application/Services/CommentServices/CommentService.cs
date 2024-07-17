@@ -62,7 +62,7 @@ namespace Trello.Application.Services.CommentServices
             comment.Id = Guid.NewGuid();
             comment.UserId = currentUserId;
             comment.IsActive = true;
-            comment.CreatedDate = DateTime.Now;
+            comment.CreatedDate = DateTime.UtcNow;
             comment.CreatedUser = currentUserId;
 
             await _unitOfWork.CommentRepository.InsertAsync(comment);
@@ -118,7 +118,7 @@ namespace Trello.Application.Services.CommentServices
 
             var currentUserId = UserAuthorizationHelper.GetUserAuthorizationById(_httpContextAccessor.HttpContext);
 
-            comment.UpdatedDate = DateTime.Now;
+            comment.UpdatedDate = DateTime.UtcNow;
             comment.UpdatedUser = currentUserId;
             comment.Content = content;
 
@@ -152,7 +152,7 @@ namespace Trello.Application.Services.CommentServices
 
             var currentUserId = UserAuthorizationHelper.GetUserAuthorizationById(_httpContextAccessor.HttpContext);
 
-            comment.UpdatedDate = DateTime.Now;
+            comment.UpdatedDate = DateTime.UtcNow;
             comment.UpdatedUser = currentUserId;
             comment.IsActive = isActive;
 

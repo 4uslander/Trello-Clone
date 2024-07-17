@@ -49,7 +49,7 @@ namespace Trello.Application.Services.UserServices
             user.Id = Guid.NewGuid();
             user.IsActive = true;
             user.Password = hashedPasswordWithSalt;
-            user.CreatedDate = DateTime.Now;
+            user.CreatedDate = DateTime.UtcNow;
             user.CreatedUser = user.Id;
             await _unitOfWork.UserRepository.InsertAsync(user);
             await _unitOfWork.SaveChangesAsync();
@@ -161,7 +161,7 @@ namespace Trello.Application.Services.UserServices
             }
 
             user.UpdatedUser = currentUserId;
-            user.UpdatedDate = DateTime.Now;
+            user.UpdatedDate = DateTime.UtcNow;
             user = _mapper.Map(requestBody, user);
 
             _unitOfWork.UserRepository.Update(user);
@@ -184,7 +184,7 @@ namespace Trello.Application.Services.UserServices
             }
 
             user.UpdatedUser = currentUserId;
-            user.UpdatedDate = DateTime.Now;
+            user.UpdatedDate = DateTime.UtcNow;
             user.IsActive = isActive;
 
             _unitOfWork.UserRepository.Update(user);

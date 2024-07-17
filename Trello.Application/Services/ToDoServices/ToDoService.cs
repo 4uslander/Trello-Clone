@@ -60,7 +60,7 @@ namespace Trello.Application.Services.ToDoServices
             var todo = _mapper.Map<ToDo>(requestBody);
             todo.Id = Guid.NewGuid();
             todo.IsActive = true;
-            todo.CreatedDate = DateTime.Now;
+            todo.CreatedDate = DateTime.UtcNow;
             todo.CreatedUser = currentUserId;
 
             await _unitOfWork.ToDoRepository.InsertAsync(todo);
@@ -112,7 +112,7 @@ namespace Trello.Application.Services.ToDoServices
 
             var currentUserId = UserAuthorizationHelper.GetUserAuthorizationById(_httpContextAccessor.HttpContext);
 
-            todo.UpdatedDate = DateTime.Now;
+            todo.UpdatedDate = DateTime.UtcNow;
             todo.UpdatedUser = currentUserId;
             todo.Title = requestBody.Title;
 
@@ -130,7 +130,7 @@ namespace Trello.Application.Services.ToDoServices
 
             var currentUserId = UserAuthorizationHelper.GetUserAuthorizationById(_httpContextAccessor.HttpContext);
 
-            todo.UpdatedDate = DateTime.Now;
+            todo.UpdatedDate = DateTime.UtcNow;
             todo.UpdatedUser = currentUserId;
             todo.IsActive = isActive;
 
