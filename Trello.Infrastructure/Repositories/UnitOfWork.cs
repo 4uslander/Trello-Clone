@@ -27,6 +27,8 @@ namespace Trello.Infrastructure.Repositories
         private IGenericRepository<Domain.Models.Task> _taskRepository;
         private IGenericRepository<ToDo> _toDoRepository;
         private IGenericRepository<User> _userRepository;
+        
+
         public UnitOfWork(TrellocloneContext context)
         {
             _context = context;
