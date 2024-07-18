@@ -52,7 +52,7 @@ namespace Trello.Application.Services.BoardServices
             board.Id = Guid.NewGuid();
             board.CreatedDate = DateTime.UtcNow;
             board.CreatedUser = currentUserId;
-            board.IsPublic = true;
+            board.IsPublic = false;
             board.IsActive = true;
             await _unitOfWork.BoardRepository.InsertAsync(board);
             await _unitOfWork.SaveChangesAsync();

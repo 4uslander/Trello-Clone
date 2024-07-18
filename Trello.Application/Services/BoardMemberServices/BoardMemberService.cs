@@ -88,6 +88,8 @@ namespace Trello.Application.Services.BoardMemberServices
 
             boardMembersQuery = boardMembersQuery.Where(u => u.BoardId == boardId && u.IsActive);
 
+            var adminRole = BoardMemberRoleEnum.Admin.ToString();
+
             List<BoardMemberDetail> lists = await boardMembersQuery
                 .Select(bm => new BoardMemberDetail
                 {
@@ -102,6 +104,8 @@ namespace Trello.Application.Services.BoardMemberServices
                     CreatedDate = bm.CreatedDate,
                     UpdatedDate = bm.UpdatedDate
                 })
+                .OrderByDescending(bm => bm.RoleName == adminRole)
+                .ThenBy(bm => bm.RoleName)
                 .ToListAsync();
 
             return lists;
