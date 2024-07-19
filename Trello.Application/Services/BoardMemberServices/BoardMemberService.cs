@@ -1,10 +1,14 @@
 ﻿using AutoMapper;
+using FirebaseAdmin;
+using Google.Apis.Auth.OAuth2;
+using Microsoft.AspNetCore.Builder.Extensions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Reflection;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
@@ -77,6 +81,11 @@ namespace Trello.Application.Services.BoardMemberServices
 
             await _unitOfWork.BoardMemberRepository.InsertAsync(boardMember);
             await _unitOfWork.SaveChangesAsync();
+
+            Dictionary<string, string> data = ToDictionary(new { DocumentType = "Create board member", Id = boardMember.Id, Type = "Approve" });
+            string title = "New Board Member";
+            string body = "You have been added to board !";
+            await SendNotification(title, body, data, boardMember.CreatedUser.ToString());
 
             var createdBoardMemberDto = _mapper.Map<BoardMemberDetail>(boardMember);
 
@@ -189,5 +198,47 @@ namespace Trello.Application.Services.BoardMemberServices
         {
             return await _unitOfWork.BoardMemberRepository.FirstOrDefaultAsync(x => x.UserId.Equals(userId));
         }
+        private Dictionary<string, string> ToDictionary(object obj)
+        {
+            var dictionary = obj.GetType()
+                .GetProperties(BindingFlags.Instance | BindingFlags.Public)
+                .ToDictionary(prop => prop.Name, prop => prop.GetValue(obj, null).ToString());
+            return dictionary;
+        }
+
+        private async System.Threading.Tasks.Task SendNotification(string title, string body, Dictionary<string, string> data, string uid)
+        {
+            var message = new FirebaseAdmin.Messaging.Message()
+            {
+                Notification = new FirebaseAdmin.Messaging.Notification()
+                {
+                    Title = title,
+                    Body = body
+                },
+                Data = data,
+                Topic = uid
+            };
+
+            string fileConfigPath = Path.Combine(Directory.GetCurrentDirectory(), @"clonetrello-103ad-firebase-adminsdk-plg5l-627e51f254.json");
+
+            if (FirebaseAdmin.Messaging.FirebaseMessaging.DefaultInstance is null)
+            {
+                FirebaseApp.Create(new AppOptions()
+                {
+                    Credential = GoogleCredential.FromFile(fileConfigPath)
+                });
+            }
+
+            try
+            {
+                string response = await FirebaseAdmin.Messaging.FirebaseMessaging.DefaultInstance.SendAsync(message);
+                Console.WriteLine($"Successfully sent message: {response}");
+            }
+            catch (FirebaseAdmin.Messaging.FirebaseMessagingException e)
+            {
+                Console.WriteLine($"Error sending message: {e.Message}");
+            }
+        }
+
     }
 }
