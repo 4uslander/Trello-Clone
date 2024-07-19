@@ -1,16 +1,21 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using Trello.Application.DTOs.CardLabel;
 using Trello.Application.Services.BoardServices;
 using Trello.Application.Services.CardServices;
 using Trello.Application.Services.LabelServices;
+using Trello.Application.Utilities.ErrorHandler;
+using Trello.Application.Utilities.Helper.GetUserAuthorization;
 using Trello.Domain.Models;
 using Trello.Infrastructure.IRepositories;
+using static Trello.Application.Utilities.GlobalVariables.GlobalVariable;
 
 namespace Trello.Application.Services.CardLabelServices
 {
@@ -34,29 +39,120 @@ namespace Trello.Application.Services.CardLabelServices
             _boardService = boardService;
         }
 
-        public Task<CardLabelDetail> ChangeStatusCardLabelAsync(Guid Id, bool? isActive)
+
+        public async Task<CardLabelDetail> CreateCardLabelAsync(CardLabelDTO requestBody)
         {
-            throw new NotImplementedException();
+            if (requestBody == null)
+            {
+                throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.REQUEST_BODY, ErrorMessage.NULL_REQUEST_BODY);
+            }
+
+            var existingCard = await _cardService.GetCardByIdAsync(requestBody.CardId);
+            if (existingCard == null)
+            {
+                throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.CARD_FIELD, ErrorMessage.CARD_NOT_EXIST);
+            }
+
+            var existingLabel = await _labelService.GetLabelByIdAsync(requestBody.LabelId);
+            if(existingLabel == null)
+            {
+                throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.LABEL_FIELD, ErrorMessage.LABEL_NOT_EXIST);
+            }
+
+            var currentUserId = UserAuthorizationHelper.GetUserAuthorizationById(_httpContextAccessor.HttpContext);
+
+            var cardLabel = _mapper.Map<CardLabel>(requestBody);
+            cardLabel.Id = Guid.NewGuid();
+            cardLabel.CreatedDate = DateTime.Now;
+            cardLabel.CreatedUser = currentUserId;
+            cardLabel.IsActive = true;
+
+            await _unitOfWork.CardLabelRepository.InsertAsync(cardLabel);
+            await _unitOfWork.SaveChangesAsync();
+
+            var createCardLabelDto = _mapper.Map<CardLabelDetail>(cardLabel);
+            return createCardLabelDto;
         }
 
-        public Task<CardLabelDetail> CreateCardLabelAsync(CardLabelDTO requestBody)
+
+        public async Task<List<CardLabelDetail>> GetAllCardLabelAsync(Guid cardId)
         {
-            throw new NotImplementedException();
+            IQueryable<CardLabel> cardLabelQuery = _unitOfWork.CardLabelRepository.GetAll();
+            cardLabelQuery = cardLabelQuery.Where(u => u.CardId == cardId && u.IsActive);
+            //List<CardLabelDetail> list = await cardLabelQuery.Select(u => _mapper.Map<CardLabelDetail>(u)).ToListAsync();
+            List<CardLabelDetail> list = await cardLabelQuery
+               .Select(u => new CardLabelDetail
+               {
+                   Id = u.Id,
+                   CardId = u.CardId,
+                   LabelId = u.LabelId,
+                   LabelName = u.Label.Name,
+                   CreatedDate = u.CreatedDate,
+                   CreatedUser = u.CreatedUser,
+                   UpdatedDate = u.UpdatedDate,
+                   UpdatedUser = u.UpdatedUser,
+                   IsActive = u.IsActive
+               }
+               ).ToListAsync();
+            return list;
         }
 
-        public Task<List<CardLabelDetail>> GetAllCardLabelAsync(Guid cardId)
+
+        public async Task<List<CardLabelDetail>> GetCardLabelByFilterAsync(Guid cardId, string? labelName, bool? isActive)
         {
-            throw new NotImplementedException();
+            IQueryable<CardLabel> cardLabelQuery = _unitOfWork.CardLabelRepository.GetAll();
+            cardLabelQuery = cardLabelQuery.Where(u => u.CardId == cardId);
+
+            if (!string.IsNullOrEmpty(labelName))
+            {
+                cardLabelQuery = cardLabelQuery.Where(u => u.Label.Name.Contains(labelName));
+            }
+            if (isActive.HasValue)
+            {
+                cardLabelQuery = cardLabelQuery.Where(u => u.IsActive == isActive.Value);
+            }
+            // List<CardLabelDetail> list = await cardLabelQuery.Select(u => _mapper.Map<CardLabelDetail>(u)).ToListAsync();
+            List<CardLabelDetail> list = await cardLabelQuery
+               .Select(u => new CardLabelDetail
+               {
+                   Id = u.Id,
+                   CardId = u.CardId,
+                   LabelId = u.LabelId,
+                   LabelName = u.Label.Name,
+                   CreatedDate = u.CreatedDate,
+                   CreatedUser = u.CreatedUser,
+                   UpdatedDate = u.UpdatedDate,
+                   UpdatedUser = u.UpdatedUser,
+                   IsActive = u.IsActive
+               }
+               ).ToListAsync();
+
+            return list;
         }
 
-        public Task<List<CardLabelDetail>> GetCardLabelByFilterAsync(Guid cardId, string? labelName, bool? isActive)
+
+
+        public async Task<CardLabelDetail> ChangeStatusCardLabelAsync(Guid Id, bool? isActive)
         {
-            throw new NotImplementedException();
+            var cardLabel = await _unitOfWork.CardLabelRepository.GetByIdAsync(Id)
+                 ?? throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.CARD_LABEL_FIELD, ErrorMessage.CARD_LABEL_NOT_EXIST);
+            var currentUserId = UserAuthorizationHelper.GetUserAuthorizationById(_httpContextAccessor.HttpContext);
+            
+            cardLabel.UpdatedDate = DateTime.UtcNow;
+            cardLabel.UpdatedUser = currentUserId;
+            cardLabel.IsActive = isActive.Value;
+
+            _unitOfWork.CardLabelRepository.Update(cardLabel);
+            await _unitOfWork.SaveChangesAsync();
+
+            var mappedCardLabel = _mapper.Map<CardLabelDetail>(cardLabel);
+            return mappedCardLabel;
+
         }
 
-        public Task<CardLabel> GetCardLabelByLabelIdAsync(Guid Id, Guid labelId)
+        public async Task<CardLabel> GetCardLabelByLabelIdAsync(Guid cardId, Guid labelId)
         {
-            throw new NotImplementedException();
+            return await _unitOfWork.CardLabelRepository.FirstOrDefaultAsync(x => x.LabelId.Equals(labelId) && x.CardId == cardId);
         }
     }
 }

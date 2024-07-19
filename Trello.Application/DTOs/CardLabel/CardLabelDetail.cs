@@ -11,6 +11,7 @@ namespace Trello.Application.DTOs.CardLabel
         public Guid Id { get; set; }
         public Guid CardId { get; set; }
         public Guid LabelId { get; set; }
+        public string? LabelName { get; set; }
         public DateTime CreatedDate { get; set; }
         public Guid CreatedUser { get; set; }
         public DateTime? UpdatedDate { get; set; }
