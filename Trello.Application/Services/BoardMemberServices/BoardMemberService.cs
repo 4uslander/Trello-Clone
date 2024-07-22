@@ -82,10 +82,10 @@ namespace Trello.Application.Services.BoardMemberServices
             await _unitOfWork.BoardMemberRepository.InsertAsync(boardMember);
             await _unitOfWork.SaveChangesAsync();
 
-            Dictionary<string, string> data = ToDictionary(new { DocumentType = "Create board member", Id = boardMember.Id, Type = "Approve" });
+            Dictionary<string, string> data = ToDictionary(new { DocumentType = "Create board member", Id = requestBody.UserId, Type = "Approve" });
             string title = "New Board Member";
-            string body = "You have been added to board !";
-            await SendNotification(title, body, data, boardMember.CreatedUser.ToString());
+            string body = "You have been added to the board!";
+            await SendNotification(title, body, data, requestBody.UserId.ToString());
 
             var createdBoardMemberDto = _mapper.Map<BoardMemberDetail>(boardMember);
 
@@ -200,10 +200,9 @@ namespace Trello.Application.Services.BoardMemberServices
         }
         private Dictionary<string, string> ToDictionary(object obj)
         {
-            var dictionary = obj.GetType()
+            return obj.GetType()
                 .GetProperties(BindingFlags.Instance | BindingFlags.Public)
-                .ToDictionary(prop => prop.Name, prop => prop.GetValue(obj, null).ToString());
-            return dictionary;
+                .ToDictionary(prop => prop.Name, prop => prop.GetValue(obj, null)?.ToString());
         }
 
         private async System.Threading.Tasks.Task SendNotification(string title, string body, Dictionary<string, string> data, string uid)
@@ -221,7 +220,7 @@ namespace Trello.Application.Services.BoardMemberServices
 
             string fileConfigPath = Path.Combine(Directory.GetCurrentDirectory(), @"clonetrello-103ad-firebase-adminsdk-plg5l-627e51f254.json");
 
-            if (FirebaseAdmin.Messaging.FirebaseMessaging.DefaultInstance is null)
+            if (FirebaseAdmin.Messaging.FirebaseMessaging.DefaultInstance == null)
             {
                 FirebaseApp.Create(new AppOptions()
                 {
