@@ -29,6 +29,7 @@ namespace Trello.Domain.Models
         public virtual DbSet<Task> Tasks { get; set; } = null!;
         public virtual DbSet<ToDo> ToDos { get; set; } = null!;
         public virtual DbSet<User> Users { get; set; } = null!;
+        public virtual DbSet<UserFcmToken> UserFcmTokens { get; set; } = null!;
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -327,6 +328,27 @@ namespace Trello.Domain.Models
                 entity.Property(e => e.Password).HasMaxLength(255);
 
                 entity.Property(e => e.UpdatedDate).HasColumnType("datetime");
+            });
+
+            modelBuilder.Entity<UserFcmToken>(entity =>
+            {
+                entity.ToTable("UserFcmToken");
+
+                entity.Property(e => e.Id).ValueGeneratedNever();
+
+                entity.Property(e => e.CreatedDate).HasColumnType("datetime");
+
+                entity.Property(e => e.FcmToken)
+                    .HasMaxLength(255)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.UpdatedDate).HasColumnType("datetime");
+
+                entity.HasOne(d => d.User)
+                    .WithMany(p => p.UserFcmTokens)
+                    .HasForeignKey(d => d.UserId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_UserFcmToken_User");
             });
 
             OnModelCreatingPartial(modelBuilder);

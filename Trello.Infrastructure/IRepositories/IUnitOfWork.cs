@@ -23,6 +23,7 @@ namespace Trello.Infrastructure.IRepositories
         IGenericRepository<Domain.Models.Task> TaskRepository { get; }
         IGenericRepository<ToDo> ToDoRepository { get; }
         IGenericRepository<User> UserRepository { get; }
+        IGenericRepository<UserFcmToken> UserFcmTokenRepository { get; }
 
         IDbTransaction BeginTransaction();
         System.Threading.Tasks.Task SaveChangesAsync();

@@ -20,6 +20,7 @@ using Trello.Application.Services.BoardServices;
 using Trello.Application.Services.RoleServices;
 using Trello.Application.Services.UserServices;
 using Trello.Application.Utilities.ErrorHandler;
+using Trello.Application.Utilities.Helper.FirebaseNoti;
 using Trello.Application.Utilities.Helper.GetUserAuthorization;
 using Trello.Domain.Enums;
 using Trello.Domain.Models;
@@ -36,9 +37,10 @@ namespace Trello.Application.Services.BoardMemberServices
         private readonly IBoardService _boardService;
         private readonly IUserService _userService;
         private readonly IRoleService _roleService;
+        private readonly IFirebaseNotificationService _notificationService;
 
         public BoardMemberService(IUnitOfWork unitOfWork, IMapper mapper, IHttpContextAccessor httpContextAccessor,
-            IBoardService boardService, IUserService userService, IRoleService roleService)
+            IBoardService boardService, IUserService userService, IRoleService roleService, IFirebaseNotificationService notificationService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
@@ -46,6 +48,7 @@ namespace Trello.Application.Services.BoardMemberServices
             _boardService = boardService;
             _userService = userService;
             _roleService = roleService;
+            _notificationService = notificationService;
         }
         public async Task<BoardMemberDetail> CreateBoardMemberAsync(BoardMemberDTO requestBody)
         {
@@ -82,10 +85,8 @@ namespace Trello.Application.Services.BoardMemberServices
             await _unitOfWork.BoardMemberRepository.InsertAsync(boardMember);
             await _unitOfWork.SaveChangesAsync();
 
-            Dictionary<string, string> data = ToDictionary(new { DocumentType = "Create board member", Id = requestBody.UserId, Type = "Approve" });
-            string title = "New Board Member";
-            string body = "You have been added to the board!";
-            await SendNotification(title, body, data, requestBody.UserId.ToString());
+            //
+            await _notificationService.SendNotificationAsync(requestBody.UserId, "You have been invited to a new board!", $"You have invited to the board: {existingBoard.Name}.");
 
             var createdBoardMemberDto = _mapper.Map<BoardMemberDetail>(boardMember);
 
@@ -158,6 +159,15 @@ namespace Trello.Application.Services.BoardMemberServices
             _unitOfWork.BoardMemberRepository.Update(boardMember);
             await _unitOfWork.SaveChangesAsync();
 
+            var existingUser = await _userService.GetUserIdByBoardMemberIdAsync(id);
+            if (existingUser == Guid.Empty)
+            {
+                throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.USER_FIELD, ErrorMessage.USER_NOT_EXIST);
+            }
+
+            //
+            await _notificationService.SendNotificationAsync(existingUser, "Your role have been updated!", $"Your role have updated.");
+
             var boardMemberDetail = _mapper.Map<BoardMemberDetail>(boardMember);
             return boardMemberDetail;
         }
@@ -175,6 +185,17 @@ namespace Trello.Application.Services.BoardMemberServices
 
             _unitOfWork.BoardMemberRepository.Update(boardMember);
             await _unitOfWork.SaveChangesAsync();
+            
+            //
+            var existingUser = await _userService.GetUserIdByBoardMemberIdAsync(Id);
+            if (existingUser == Guid.Empty)
+            {
+                throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.USER_FIELD, ErrorMessage.USER_NOT_EXIST);
+            }
+
+            //
+            await _notificationService.SendNotificationAsync(existingUser, "You have been removed to a board!", $"You have removed to the board.");
+
 
             var mappedBoard = _mapper.Map<BoardMemberDetail>(boardMember);
             return mappedBoard;
@@ -197,46 +218,6 @@ namespace Trello.Application.Services.BoardMemberServices
         public async Task<BoardMember> GetBoardMemberByUserIdAsync(Guid userId)
         {
             return await _unitOfWork.BoardMemberRepository.FirstOrDefaultAsync(x => x.UserId.Equals(userId));
-        }
-        private Dictionary<string, string> ToDictionary(object obj)
-        {
-            return obj.GetType()
-                .GetProperties(BindingFlags.Instance | BindingFlags.Public)
-                .ToDictionary(prop => prop.Name, prop => prop.GetValue(obj, null)?.ToString());
-        }
-
-        private async System.Threading.Tasks.Task SendNotification(string title, string body, Dictionary<string, string> data, string uid)
-        {
-            var message = new FirebaseAdmin.Messaging.Message()
-            {
-                Notification = new FirebaseAdmin.Messaging.Notification()
-                {
-                    Title = title,
-                    Body = body
-                },
-                Data = data,
-                Topic = uid
-            };
-
-            string fileConfigPath = Path.Combine(Directory.GetCurrentDirectory(), @"clonetrello-103ad-firebase-adminsdk-plg5l-627e51f254.json");
-
-            if (FirebaseAdmin.Messaging.FirebaseMessaging.DefaultInstance == null)
-            {
-                FirebaseApp.Create(new AppOptions()
-                {
-                    Credential = GoogleCredential.FromFile(fileConfigPath)
-                });
-            }
-
-            try
-            {
-                string response = await FirebaseAdmin.Messaging.FirebaseMessaging.DefaultInstance.SendAsync(message);
-                Console.WriteLine($"Successfully sent message: {response}");
-            }
-            catch (FirebaseAdmin.Messaging.FirebaseMessagingException e)
-            {
-                Console.WriteLine($"Error sending message: {e.Message}");
-            }
         }
 
     }

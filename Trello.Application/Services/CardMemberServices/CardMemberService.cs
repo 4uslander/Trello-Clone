@@ -16,6 +16,7 @@ using Trello.Application.Services.BoardMemberServices;
 using Trello.Application.Services.CardServices;
 using Trello.Application.Services.UserServices;
 using Trello.Application.Utilities.ErrorHandler;
+using Trello.Application.Utilities.Helper.FirebaseNoti;
 using Trello.Application.Utilities.Helper.GetUserAuthorization;
 using Trello.Domain.Models;
 using Trello.Infrastructure.IRepositories;
@@ -31,9 +32,10 @@ namespace Trello.Application.Services.CardMemberServices
         private readonly ICardService _cardService;
         private readonly IUserService _userService;
         private readonly IBoardMemberService _boardMemberService;
+        private readonly IFirebaseNotificationService _notificationService;
 
         public CardMemberService(IUnitOfWork unitOfWork, IMapper mapper, IHttpContextAccessor httpContextAccessor,
-            ICardService cardService, IUserService userService, IBoardMemberService boardMemberService)
+            ICardService cardService, IUserService userService, IBoardMemberService boardMemberService, IFirebaseNotificationService notificationService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
@@ -41,6 +43,7 @@ namespace Trello.Application.Services.CardMemberServices
             _cardService = cardService;
             _userService = userService;
             _boardMemberService = boardMemberService;
+            _notificationService = notificationService;
         }
 
         public async Task<CardMemberDetail> CreateCardMemberAsync(CardMemberDTO requestBody)
@@ -78,6 +81,9 @@ namespace Trello.Application.Services.CardMemberServices
             await _unitOfWork.SaveChangesAsync();
 
             var createdBoardMemberDto = _mapper.Map<CardMemberDetail>(cardMember);
+           
+            //
+            await _notificationService.SendNotificationAsync(requestBody.UserId, "You have been invited to a new Card!", $"You have invited added to the card: {existingCard.Title}.");
 
             return createdBoardMemberDto;
         }
@@ -131,6 +137,16 @@ namespace Trello.Application.Services.CardMemberServices
 
             _unitOfWork.CardMemberRepository.Update(cardMember);
             await _unitOfWork.SaveChangesAsync();
+
+            //
+            var existingUser = await _userService.GetUserIdByCardMemberIdAsync(Id);
+            if (existingUser == Guid.Empty)
+            {
+                throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.USER_FIELD, ErrorMessage.USER_NOT_EXIST);
+            }
+
+            //
+            await _notificationService.SendNotificationAsync(existingUser, "You have been removed to a card!", $"You have removed to the card.");
 
             var mappedCardMember = _mapper.Map<CardMemberDetail>(cardMember);
             return mappedCardMember;
