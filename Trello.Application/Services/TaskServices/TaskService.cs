@@ -145,7 +145,6 @@ namespace Trello.Application.Services.TaskServices
             }
 
             _unitOfWork.TaskRepository.Update(task);
-            await _unitOfWork.SaveChangesAsync();
 
             //
             if (requestBody.AssignedUserId.HasValue)
@@ -153,6 +152,8 @@ namespace Trello.Application.Services.TaskServices
                 await _notificationService.SendNotificationAsync(requestBody.AssignedUserId.Value, "Your task have been updated!", $"Your task have updated by: {task.UpdatedUser}.");
             }
 
+            await _unitOfWork.SaveChangesAsync();
+           
             var taskDetail = _mapper.Map<TaskDetail>(task);
             return taskDetail;
         }
@@ -171,7 +172,6 @@ namespace Trello.Application.Services.TaskServices
             task.Status = isChecked ? TaskStatusEnum.Resolved.ToString() : TaskStatusEnum.InProgress.ToString();
 
             _unitOfWork.TaskRepository.Update(task);
-            await _unitOfWork.SaveChangesAsync();
 
             var existingAssignedUser = await GetAssignedUserIdByTaskIdAsync(id);
             if (existingAssignedUser.HasValue)
@@ -179,6 +179,8 @@ namespace Trello.Application.Services.TaskServices
                 await _notificationService.SendNotificationAsync(existingAssignedUser.Value, "Your task have been Checked!", $"Your task have Checked by: {task.UpdatedUser}.");
             }
 
+            await _unitOfWork.SaveChangesAsync();
+         
             var taskDetail = _mapper.Map<TaskDetail>(task);
             return taskDetail;
         }
@@ -195,13 +197,14 @@ namespace Trello.Application.Services.TaskServices
             task.IsActive = isActive;
 
             _unitOfWork.TaskRepository.Update(task);
-            await _unitOfWork.SaveChangesAsync();
 
             var existingAssignedUser = await GetAssignedUserIdByTaskIdAsync(id);
             if (existingAssignedUser.HasValue)
             {
                 await _notificationService.SendNotificationAsync(existingAssignedUser.Value, "Your task have been removed!", $"Your task have removed by: {task.UpdatedUser}.");
             }
+
+            await _unitOfWork.SaveChangesAsync();
 
             var mappedList = _mapper.Map<TaskDetail>(task);
             return mappedList;
