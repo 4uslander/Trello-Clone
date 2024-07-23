@@ -14,6 +14,7 @@ using Trello.Application.Services.CardServices;
 using Trello.Application.Services.ToDoServices;
 using Trello.Application.Utilities.ErrorHandler;
 using Trello.Application.Utilities.Helper.ConvertDate;
+using Trello.Application.Utilities.Helper.FirebaseNoti;
 using Trello.Application.Utilities.Helper.GetUserAuthorization;
 using Trello.Domain.Enums;
 using Trello.Domain.Models;
@@ -29,14 +30,17 @@ namespace Trello.Application.Services.TaskServices
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IBoardMemberService _boardMemberService;
         private readonly IToDoService _todoService;
+        private readonly IFirebaseNotificationService _notificationService;
 
-        public TaskService(IUnitOfWork unitOfWork, IMapper mapper, IHttpContextAccessor httpContextAccessor, IBoardMemberService boardMemberService, IToDoService todoService)
+        public TaskService(IUnitOfWork unitOfWork, IMapper mapper, IHttpContextAccessor httpContextAccessor,
+            IBoardMemberService boardMemberService, IToDoService todoService, IFirebaseNotificationService notificationService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _httpContextAccessor = httpContextAccessor;
             _boardMemberService = boardMemberService;
             _todoService = todoService;
+            _notificationService = notificationService;
         }
 
         public async Task<TaskDetail> CreateTaskAsync(CreateTaskDTO requestBody)
@@ -68,6 +72,12 @@ namespace Trello.Application.Services.TaskServices
 
             await _unitOfWork.TaskRepository.InsertAsync(task);
             await _unitOfWork.SaveChangesAsync();
+
+            //
+            if (requestBody.AssignedUserId.HasValue)
+            {
+                await _notificationService.SendNotificationAsync(requestBody.AssignedUserId.Value, "You have been assigned to a new task!", $"You have assigned to the task: {requestBody.Name}.");
+            }
 
             var createdTaskDto = _mapper.Map<TaskDetail>(task);
             return createdTaskDto;
@@ -137,6 +147,12 @@ namespace Trello.Application.Services.TaskServices
             _unitOfWork.TaskRepository.Update(task);
             await _unitOfWork.SaveChangesAsync();
 
+            //
+            if (requestBody.AssignedUserId.HasValue)
+            {
+                await _notificationService.SendNotificationAsync(requestBody.AssignedUserId.Value, "Your task have been updated!", $"Your task have updated by: {task.UpdatedUser}.");
+            }
+
             var taskDetail = _mapper.Map<TaskDetail>(task);
             return taskDetail;
         }
@@ -157,6 +173,12 @@ namespace Trello.Application.Services.TaskServices
             _unitOfWork.TaskRepository.Update(task);
             await _unitOfWork.SaveChangesAsync();
 
+            var existingAssignedUser = await GetAssignedUserIdByTaskIdAsync(id);
+            if (existingAssignedUser.HasValue)
+            {
+                await _notificationService.SendNotificationAsync(existingAssignedUser.Value, "Your task have been Checked!", $"Your task have Checked by: {task.UpdatedUser}.");
+            }
+
             var taskDetail = _mapper.Map<TaskDetail>(task);
             return taskDetail;
         }
@@ -175,8 +197,26 @@ namespace Trello.Application.Services.TaskServices
             _unitOfWork.TaskRepository.Update(task);
             await _unitOfWork.SaveChangesAsync();
 
+            var existingAssignedUser = await GetAssignedUserIdByTaskIdAsync(id);
+            if (existingAssignedUser.HasValue)
+            {
+                await _notificationService.SendNotificationAsync(existingAssignedUser.Value, "Your task have been removed!", $"Your task have removed by: {task.UpdatedUser}.");
+            }
+
             var mappedList = _mapper.Map<TaskDetail>(task);
             return mappedList;
         }
+
+        public async Task<Guid?> GetAssignedUserIdByTaskIdAsync(Guid taskId)
+        {
+            var userIdQuery = from task in _unitOfWork.TaskRepository.GetAll()
+                              where task.Id == taskId && task.IsActive
+                              select task.AssignedUserId;
+
+            Guid? assignedUserId = await userIdQuery.FirstOrDefaultAsync();
+
+            return assignedUserId;
+        }
+
     }
 }

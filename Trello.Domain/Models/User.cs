@@ -12,6 +12,7 @@ namespace Trello.Domain.Models
             CardMembers = new HashSet<CardMember>();
             Comments = new HashSet<Comment>();
             Tasks = new HashSet<Task>();
+            UserFcmTokens = new HashSet<UserFcmToken>();
         }
 
         public Guid Id { get; set; }
@@ -30,5 +31,6 @@ namespace Trello.Domain.Models
         public virtual ICollection<CardMember> CardMembers { get; set; }
         public virtual ICollection<Comment> Comments { get; set; }
         public virtual ICollection<Task> Tasks { get; set; }
+        public virtual ICollection<UserFcmToken> UserFcmTokens { get; set; }
     }
 }

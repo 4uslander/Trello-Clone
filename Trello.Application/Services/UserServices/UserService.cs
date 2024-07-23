@@ -209,7 +209,7 @@ namespace Trello.Application.Services.UserServices
             var usersQuery = from cardMember in _unitOfWork.CardMemberRepository.GetAll()
                              join card in _unitOfWork.CardRepository.GetAll() on cardMember.CardId equals card.Id
                              join toDo in _unitOfWork.ToDoRepository.GetAll() on card.Id equals toDo.CardId
-                             where toDo.Id == toDoId && cardMember.IsActive // chua PR
+                             where toDo.Id == toDoId && cardMember.IsActive 
                              select cardMember.User;
 
             List<UserDetail> users = await usersQuery
@@ -222,6 +222,28 @@ namespace Trello.Application.Services.UserServices
             }
 
             return users;
+        }
+
+        public async Task<Guid> GetUserIdByBoardMemberIdAsync(Guid boardMemberId) //
+        {
+            var userQuery = from boardMember in _unitOfWork.BoardMemberRepository.GetAll()
+                            where boardMember.Id == boardMemberId && boardMember.IsActive
+                            select boardMember.UserId;
+
+            Guid userId = await userQuery.FirstOrDefaultAsync();
+
+            return userId;
+        }
+
+        public async Task<Guid> GetUserIdByCardMemberIdAsync(Guid cardMemberId) //
+        {
+            var userQuery = from cardMember in _unitOfWork.CardMemberRepository.GetAll()
+                            where cardMember.Id == cardMemberId && cardMember.IsActive
+                            select cardMember.UserId;
+
+            Guid userId = await userQuery.FirstOrDefaultAsync();
+
+            return userId;
         }
     }
 }

@@ -1,3 +1,5 @@
+using FirebaseAdmin;
+using Google.Apis.Auth.OAuth2;
 using Microsoft.AspNetCore.Builder.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Trello.API.Configurations;
@@ -34,6 +36,10 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddSignalR();
+FirebaseApp.Create(new AppOptions()
+{
+    Credential = GoogleCredential.FromFile("clonetrello-103ad-firebase-adminsdk-plg5l-627e51f254.json")
+});
 
 var app = builder.Build();
 

@@ -8,7 +8,9 @@ using Trello.Application.Services.ListServices;
 using Trello.Application.Services.RoleServices;
 using Trello.Application.Services.TaskServices;
 using Trello.Application.Services.ToDoServices;
+using Trello.Application.Services.UserFcmTokenServices;
 using Trello.Application.Services.UserServices;
+using Trello.Application.Utilities.Helper.FirebaseNoti;
 using Trello.Application.Utilities.Helper.JWT;
 using Trello.Infrastructure.IRepositories;
 using Trello.Infrastructure.Repositories;
@@ -31,6 +33,8 @@ namespace Trello.Application.Services
             services.AddScoped<ICommentService, CommentService>();
             services.AddScoped<IToDoService, ToDoService>();
             services.AddScoped<ITaskService, TaskService>();
+            services.AddScoped<IFirebaseNotificationService, FirebaseNotificationService>();
+            services.AddScoped<IUserFcmTokenService, UserFcmTokenService>();
         }
     }
 }

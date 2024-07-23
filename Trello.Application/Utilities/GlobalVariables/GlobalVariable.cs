@@ -29,6 +29,7 @@ namespace Trello.Application.Utilities.GlobalVariables
             public const string COMMENT_FIELD = "Comment";
             public const string TODO_FIELD = "ToDo";
             public const string TASK_FIELD = "Task";
+            public const string USER_FCM_TOKEN_FIELD = "User FCM Token";
         }
         public static class ErrorMessage
         {
@@ -62,6 +63,8 @@ namespace Trello.Application.Utilities.GlobalVariables
             public const string TODO_NOT_EXIST = "This ToDo list does not exist!";
             public const string TASK_NOT_EXIST = "This task does not exist!";
             public const string USER_NOT_FOUND = "No users found for the provided ToDo ID.";
+            public const string USER_FCM_TOKEN_NOT_EXIST = "This user FCM token does not exist!";
+            public const string USER_FCM_TOKEN_NOT_FOUND = "This user FCM token does not found!";
         }
     }
 }

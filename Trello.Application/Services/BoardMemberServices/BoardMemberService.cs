@@ -1,10 +1,14 @@
 ﻿using AutoMapper;
+using FirebaseAdmin;
+using Google.Apis.Auth.OAuth2;
+using Microsoft.AspNetCore.Builder.Extensions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Reflection;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
@@ -16,6 +20,7 @@ using Trello.Application.Services.BoardServices;
 using Trello.Application.Services.RoleServices;
 using Trello.Application.Services.UserServices;
 using Trello.Application.Utilities.ErrorHandler;
+using Trello.Application.Utilities.Helper.FirebaseNoti;
 using Trello.Application.Utilities.Helper.GetUserAuthorization;
 using Trello.Domain.Enums;
 using Trello.Domain.Models;
@@ -32,9 +37,10 @@ namespace Trello.Application.Services.BoardMemberServices
         private readonly IBoardService _boardService;
         private readonly IUserService _userService;
         private readonly IRoleService _roleService;
+        private readonly IFirebaseNotificationService _notificationService;
 
         public BoardMemberService(IUnitOfWork unitOfWork, IMapper mapper, IHttpContextAccessor httpContextAccessor,
-            IBoardService boardService, IUserService userService, IRoleService roleService)
+            IBoardService boardService, IUserService userService, IRoleService roleService, IFirebaseNotificationService notificationService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
@@ -42,6 +48,7 @@ namespace Trello.Application.Services.BoardMemberServices
             _boardService = boardService;
             _userService = userService;
             _roleService = roleService;
+            _notificationService = notificationService;
         }
         public async Task<BoardMemberDetail> CreateBoardMemberAsync(BoardMemberDTO requestBody)
         {
@@ -77,6 +84,9 @@ namespace Trello.Application.Services.BoardMemberServices
 
             await _unitOfWork.BoardMemberRepository.InsertAsync(boardMember);
             await _unitOfWork.SaveChangesAsync();
+
+            //
+            await _notificationService.SendNotificationAsync(requestBody.UserId, "You have been invited to a new board!", $"You have invited to the board: {existingBoard.Name}.");
 
             var createdBoardMemberDto = _mapper.Map<BoardMemberDetail>(boardMember);
 
@@ -149,6 +159,15 @@ namespace Trello.Application.Services.BoardMemberServices
             _unitOfWork.BoardMemberRepository.Update(boardMember);
             await _unitOfWork.SaveChangesAsync();
 
+            var existingUser = await _userService.GetUserIdByBoardMemberIdAsync(id);
+            if (existingUser == Guid.Empty)
+            {
+                throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.USER_FIELD, ErrorMessage.USER_NOT_EXIST);
+            }
+
+            //
+            await _notificationService.SendNotificationAsync(existingUser, "Your role have been updated!", $"Your role have updated.");
+
             var boardMemberDetail = _mapper.Map<BoardMemberDetail>(boardMember);
             return boardMemberDetail;
         }
@@ -166,6 +185,17 @@ namespace Trello.Application.Services.BoardMemberServices
 
             _unitOfWork.BoardMemberRepository.Update(boardMember);
             await _unitOfWork.SaveChangesAsync();
+            
+            //
+            var existingUser = await _userService.GetUserIdByBoardMemberIdAsync(Id);
+            if (existingUser == Guid.Empty)
+            {
+                throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.USER_FIELD, ErrorMessage.USER_NOT_EXIST);
+            }
+
+            //
+            await _notificationService.SendNotificationAsync(existingUser, "You have been removed to a board!", $"You have removed to the board.");
+
 
             var mappedBoard = _mapper.Map<BoardMemberDetail>(boardMember);
             return mappedBoard;
@@ -189,5 +219,6 @@ namespace Trello.Application.Services.BoardMemberServices
         {
             return await _unitOfWork.BoardMemberRepository.FirstOrDefaultAsync(x => x.UserId.Equals(userId));
         }
+
     }
 }
