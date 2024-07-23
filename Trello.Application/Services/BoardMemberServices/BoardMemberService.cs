@@ -184,8 +184,7 @@ namespace Trello.Application.Services.BoardMemberServices
             boardMember.IsActive = isActive;
 
             _unitOfWork.BoardMemberRepository.Update(boardMember);
-            await _unitOfWork.SaveChangesAsync();
-            
+
             //
             var existingUser = await _userService.GetUserIdByBoardMemberIdAsync(Id);
             if (existingUser == Guid.Empty)
@@ -196,7 +195,8 @@ namespace Trello.Application.Services.BoardMemberServices
             //
             await _notificationService.SendNotificationAsync(existingUser, "You have been removed to a board!", $"You have removed to the board.");
 
-
+            await _unitOfWork.SaveChangesAsync();
+                     
             var mappedBoard = _mapper.Map<BoardMemberDetail>(boardMember);
             return mappedBoard;
         }

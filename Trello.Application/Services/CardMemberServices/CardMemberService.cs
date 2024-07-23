@@ -136,7 +136,6 @@ namespace Trello.Application.Services.CardMemberServices
             cardMember.IsActive = isActive;
 
             _unitOfWork.CardMemberRepository.Update(cardMember);
-            await _unitOfWork.SaveChangesAsync();
 
             //
             var existingUser = await _userService.GetUserIdByCardMemberIdAsync(Id);
@@ -148,6 +147,8 @@ namespace Trello.Application.Services.CardMemberServices
             //
             await _notificationService.SendNotificationAsync(existingUser, "You have been removed to a card!", $"You have removed to the card.");
 
+            await _unitOfWork.SaveChangesAsync();
+           
             var mappedCardMember = _mapper.Map<CardMemberDetail>(cardMember);
             return mappedCardMember;
         }
