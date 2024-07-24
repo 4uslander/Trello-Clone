@@ -11,6 +11,7 @@ namespace Trello.Domain.Models
             CardActivities = new HashSet<CardActivity>();
             CardMembers = new HashSet<CardMember>();
             Comments = new HashSet<Comment>();
+            Notifications = new HashSet<Notification>();
             Tasks = new HashSet<Task>();
             UserFcmTokens = new HashSet<UserFcmToken>();
         }
@@ -30,6 +31,7 @@ namespace Trello.Domain.Models
         public virtual ICollection<CardActivity> CardActivities { get; set; }
         public virtual ICollection<CardMember> CardMembers { get; set; }
         public virtual ICollection<Comment> Comments { get; set; }
+        public virtual ICollection<Notification> Notifications { get; set; }
         public virtual ICollection<Task> Tasks { get; set; }
         public virtual ICollection<UserFcmToken> UserFcmTokens { get; set; }
     }

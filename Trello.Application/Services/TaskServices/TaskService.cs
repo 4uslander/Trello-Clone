@@ -1,23 +1,16 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
-using System.Text;
-using System.Threading.Tasks;
+using Trello.Application.DTOs.Notification;
 using Trello.Application.DTOs.Task;
-using Trello.Application.DTOs.ToDo;
 using Trello.Application.Services.BoardMemberServices;
-using Trello.Application.Services.CardServices;
+using Trello.Application.Services.NotificationServices;
 using Trello.Application.Services.ToDoServices;
 using Trello.Application.Utilities.ErrorHandler;
-using Trello.Application.Utilities.Helper.ConvertDate;
 using Trello.Application.Utilities.Helper.FirebaseNoti;
 using Trello.Application.Utilities.Helper.GetUserAuthorization;
 using Trello.Domain.Enums;
-using Trello.Domain.Models;
 using Trello.Infrastructure.IRepositories;
 using static Trello.Application.Utilities.GlobalVariables.GlobalVariable;
 
@@ -30,16 +23,18 @@ namespace Trello.Application.Services.TaskServices
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IBoardMemberService _boardMemberService;
         private readonly IToDoService _todoService;
-        private readonly IFirebaseNotificationService _notificationService;
+        private readonly IFirebaseNotificationService _firebaseNotificationService;
+        private readonly INotificationService _notificationService;
 
         public TaskService(IUnitOfWork unitOfWork, IMapper mapper, IHttpContextAccessor httpContextAccessor,
-            IBoardMemberService boardMemberService, IToDoService todoService, IFirebaseNotificationService notificationService)
+            IBoardMemberService boardMemberService, IToDoService todoService, IFirebaseNotificationService firebaseNotificationService, INotificationService notificationService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _httpContextAccessor = httpContextAccessor;
             _boardMemberService = boardMemberService;
             _todoService = todoService;
+            _firebaseNotificationService = firebaseNotificationService;
             _notificationService = notificationService;
         }
 
@@ -76,7 +71,16 @@ namespace Trello.Application.Services.TaskServices
             //
             if (requestBody.AssignedUserId.HasValue)
             {
-                await _notificationService.SendNotificationAsync(requestBody.AssignedUserId.Value, "You have been assigned to a new task!", $"You have assigned to the task: {requestBody.Name}.");
+                var notificationRequest = new NotificationDTO
+                {
+                    UserId = requestBody.AssignedUserId.Value,
+                    Title = NotificationTitleField.ASSIGNED_TO_TASK,
+                    Body = $"{NotificationBodyField.ASSIGNED_TO_TASK}: {requestBody.Name}."
+                };
+
+                var notificationDetail = await _notificationService.CreateNotificationAsync(notificationRequest);
+
+                await _firebaseNotificationService.SendNotificationAsync(notificationDetail.UserId, notificationDetail.Title, notificationDetail.Body);
             }
 
             var createdTaskDto = _mapper.Map<TaskDetail>(task);
@@ -149,7 +153,16 @@ namespace Trello.Application.Services.TaskServices
             //
             if (requestBody.AssignedUserId.HasValue)
             {
-                await _notificationService.SendNotificationAsync(requestBody.AssignedUserId.Value, "Your task have been updated!", $"Your task have updated by: {task.UpdatedUser}.");
+                var notificationRequest = new NotificationDTO
+                {
+                    UserId = requestBody.AssignedUserId.Value,
+                    Title = NotificationTitleField.TASK_UPDATED,
+                    Body = $"{task.Name} {NotificationBodyField.TASK_UPDATED}"
+                };
+
+                var notificationDetail = await _notificationService.CreateNotificationAsync(notificationRequest);
+
+                await _firebaseNotificationService.SendNotificationAsync(notificationDetail.UserId, notificationDetail.Title, notificationDetail.Body);        
             }
 
             await _unitOfWork.SaveChangesAsync();
@@ -176,7 +189,16 @@ namespace Trello.Application.Services.TaskServices
             var existingAssignedUser = await GetAssignedUserIdByTaskIdAsync(id);
             if (existingAssignedUser.HasValue)
             {
-                await _notificationService.SendNotificationAsync(existingAssignedUser.Value, "Your task have been Checked!", $"Your task have Checked by: {task.UpdatedUser}.");
+                var notificationRequest = new NotificationDTO
+                {
+                    UserId = existingAssignedUser.Value,
+                    Title = NotificationTitleField.TASK_CHECKED,
+                    Body = $"{task.Name} {NotificationBodyField.TASK_CHECKED}"
+                };
+
+                var notificationDetail = await _notificationService.CreateNotificationAsync(notificationRequest);
+
+                await _firebaseNotificationService.SendNotificationAsync(notificationDetail.UserId, notificationDetail.Title, notificationDetail.Body);
             }
 
             await _unitOfWork.SaveChangesAsync();
@@ -201,7 +223,16 @@ namespace Trello.Application.Services.TaskServices
             var existingAssignedUser = await GetAssignedUserIdByTaskIdAsync(id);
             if (existingAssignedUser.HasValue)
             {
-                await _notificationService.SendNotificationAsync(existingAssignedUser.Value, "Your task have been removed!", $"Your task have removed by: {task.UpdatedUser}.");
+                var notificationRequest = new NotificationDTO
+                {
+                    UserId = existingAssignedUser.Value,
+                    Title = NotificationTitleField.TASK_REMOVED,
+                    Body = $"{task.Name} {NotificationBodyField.TASK_REMOVED}"
+                };
+
+                var notificationDetail = await _notificationService.CreateNotificationAsync(notificationRequest);
+
+                await _firebaseNotificationService.SendNotificationAsync(notificationDetail.UserId, notificationDetail.Title, notificationDetail.Body);
             }
 
             await _unitOfWork.SaveChangesAsync();

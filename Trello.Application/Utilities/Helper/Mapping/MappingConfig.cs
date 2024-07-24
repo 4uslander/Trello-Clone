@@ -26,6 +26,8 @@ namespace Trello.Application.Utilities.Helper.Mapping
                 mc.AddProfile(new ToDoProfile());
                 mc.AddProfile(new TaskProfile());
                 mc.AddProfile(new UserProfile());
+                mc.AddProfile(new UserFcmTokenProfile());
+                mc.AddProfile(new NotificationProfile());
             });
             IMapper mapper = mappingConfig.CreateMapper();
             services.AddSingleton(mapper);
