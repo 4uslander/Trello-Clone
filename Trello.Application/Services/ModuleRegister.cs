@@ -5,6 +5,7 @@ using Trello.Application.Services.CardMemberServices;
 using Trello.Application.Services.CardServices;
 using Trello.Application.Services.CommentServices;
 using Trello.Application.Services.ListServices;
+using Trello.Application.Services.NotificationServices;
 using Trello.Application.Services.RoleServices;
 using Trello.Application.Services.TaskServices;
 using Trello.Application.Services.ToDoServices;
@@ -35,6 +36,7 @@ namespace Trello.Application.Services
             services.AddScoped<ITaskService, TaskService>();
             services.AddScoped<IFirebaseNotificationService, FirebaseNotificationService>();
             services.AddScoped<IUserFcmTokenService, UserFcmTokenService>();
+            services.AddScoped<INotificationService, NotificationService>();
         }
     }
 }
