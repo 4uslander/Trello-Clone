@@ -15,6 +15,7 @@ namespace Trello.Application.Utilities.Helper.Mapping.MappingProfile
         {
             CreateMap<CardLabel, CardLabelDetail>().ReverseMap();
             CreateMap<CardLabelDTO, CardLabel>().ReverseMap();
+           CreateMap<UpdateCardLabelDTO, CardLabel>().ReverseMap();
         }
     }
 }

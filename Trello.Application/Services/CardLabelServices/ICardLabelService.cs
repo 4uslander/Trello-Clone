@@ -13,6 +13,7 @@ namespace Trello.Application.Services.CardLabelServices
         public Task<CardLabelDetail> CreateCardLabelAsync(CardLabelDTO requestBody);
         public Task<List<CardLabelDetail>> GetAllCardLabelAsync(Guid cardId);
         public Task<List<CardLabelDetail>> GetCardLabelByFilterAsync(Guid cardId, string? labelName, bool? isActive);
+        public Task<CardLabelDetail> UpdateCardLabelAsync(Guid id,  UpdateCardLabelDTO updateCardLabelDTO);
         public Task<CardLabelDetail> ChangeStatusCardLabelAsync(Guid Id, bool? isActive);
         public Task<CardLabel> GetCardLabelByLabelIdAsync(Guid cardId, Guid labelId);
     }

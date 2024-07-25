@@ -4,15 +4,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Trello.Application.DTOs.CardLabel
+namespace Trello.Application.DTOs.CardActivity
 {
-    public class CardLabelDetail
+    public class CardActivityDetail
     {
         public Guid Id { get; set; }
         public Guid CardId { get; set; }
-        public Guid LabelId { get; set; }
-        public string? LabelName { get; set; }
-        public string? LabelColor { get; set; }
+        public Guid UserId { get; set; }
+        public string Activity { get; set; } = null!;
         public DateTime CreatedDate { get; set; }
         public Guid CreatedUser { get; set; }
         public DateTime? UpdatedDate { get; set; }

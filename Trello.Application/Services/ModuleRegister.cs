@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Trello.Application.Services.BoardMemberServices;
 using Trello.Application.Services.BoardServices;
+using Trello.Application.Services.CardActivityServices;
 using Trello.Application.Services.CardLabelServices;
 using Trello.Application.Services.CardMemberServices;
 using Trello.Application.Services.CardServices;
@@ -35,6 +36,7 @@ namespace Trello.Application.Services
             services.AddScoped<ITaskService, TaskService>();
             services.AddScoped<ILabelService, LabelService>();
             services.AddScoped<ICardLabelService, CardLabelService>();
+            services.AddScoped<ICardActivityService, CardActivityService>();
         }
     }
 }

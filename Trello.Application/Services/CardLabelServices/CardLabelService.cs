@@ -87,6 +87,7 @@ namespace Trello.Application.Services.CardLabelServices
                    CardId = u.CardId,
                    LabelId = u.LabelId,
                    LabelName = u.Label.Name,
+                   LabelColor = u.Label.Color,
                    CreatedDate = u.CreatedDate,
                    CreatedUser = u.CreatedUser,
                    UpdatedDate = u.UpdatedDate,
@@ -119,6 +120,7 @@ namespace Trello.Application.Services.CardLabelServices
                    CardId = u.CardId,
                    LabelId = u.LabelId,
                    LabelName = u.Label.Name,
+                   LabelColor = u.Label.Color,
                    CreatedDate = u.CreatedDate,
                    CreatedUser = u.CreatedUser,
                    UpdatedDate = u.UpdatedDate,
@@ -153,6 +155,37 @@ namespace Trello.Application.Services.CardLabelServices
         public async Task<CardLabel> GetCardLabelByLabelIdAsync(Guid cardId, Guid labelId)
         {
             return await _unitOfWork.CardLabelRepository.FirstOrDefaultAsync(x => x.LabelId.Equals(labelId) && x.CardId == cardId);
+        }
+
+        public async Task<CardLabelDetail> UpdateCardLabelAsync(Guid id, UpdateCardLabelDTO updateCardLabelDTO)
+        {
+            var cardLabel = await _unitOfWork.CardLabelRepository.GetByIdAsync(id)
+                 ?? throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.CARD_LABEL_FIELD, ErrorMessage.CARD_LABEL_NOT_EXIST);
+            var currentUserId = UserAuthorizationHelper.GetUserAuthorizationById(_httpContextAccessor.HttpContext);
+
+            cardLabel.UpdatedDate = DateTime.UtcNow;
+            cardLabel.UpdatedUser = currentUserId;
+
+            _unitOfWork.CardLabelRepository.Update(cardLabel);
+            await _unitOfWork.SaveChangesAsync();
+
+            var cardLabelDetail = new CardLabelDetail
+            {
+                Id = cardLabel.Id,
+                CardId = cardLabel.CardId,
+                LabelId = cardLabel.LabelId,
+                LabelName = cardLabel.Label?.Name,
+                LabelColor = updateCardLabelDTO?.Color,
+                CreatedDate = cardLabel.CreatedDate,
+                CreatedUser = cardLabel.CreatedUser,
+                UpdatedDate = cardLabel.UpdatedDate,
+                UpdatedUser = cardLabel.UpdatedUser,
+                IsActive = cardLabel.IsActive
+            };
+
+            Console.WriteLine("cardLabelDetail" + cardLabelDetail);
+
+            return cardLabelDetail;
         }
     }
 }

@@ -14,7 +14,12 @@ namespace Trello.Application.DTOs.CardLabel
 
         [Required(ErrorMessage = "Label Id is required")]
         public Guid LabelId { get; set; }
-
-
     }
+
+    public class UpdateCardLabelDTO
+    {
+ 
+        public string? Color { get; set; }
+    }
+   
 }

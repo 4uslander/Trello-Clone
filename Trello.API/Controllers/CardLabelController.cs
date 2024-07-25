@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using System.Net;
+using Trello.Application.DTOs.BoardMember;
 using Trello.Application.DTOs.CardLabel;
 using Trello.Application.DTOs.CardMember;
 using Trello.Application.Services.CardLabelServices;
@@ -144,7 +145,7 @@ namespace Trello.API.Controllers
         /// <response code="500">If an unexpected error occurs, returns an error message.</response>
         [Authorize]
         [HttpGet("get-by-filter")]
-        [ProducesResponseType(typeof(PagedApiResponse<List<CardMemberDetail>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(PagedApiResponse<List<CardLabelDetail>>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetCardLabelByFilterAsync([FromQuery] Guid cardId, [FromQuery] PagingQuery query, [FromQuery] string? labelName, bool? isActive)
         {
             try
@@ -203,7 +204,7 @@ namespace Trello.API.Controllers
         /// <response code="500">If an unexpected error occurs, returns an error message.</response>
         [Authorize]
         [HttpPut("change-status/{id}")]
-        [ProducesResponseType(typeof(ApiResponse<CardMemberDetail>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<CardLabelDetail>), StatusCodes.Status200OK)]
         public async Task<IActionResult> ChangeStatusCardLabelAsync(Guid id, [FromQuery] bool isActive)
         {
             try
@@ -241,6 +242,60 @@ namespace Trello.API.Controllers
                 });
             }
         }
+
+        /// <summary>
+        /// Updates an existing board member.
+        /// </summary>
+        /// <param name="id">The ID of the board member to update.</param>
+        /// <param name="requestBody">The new details for the board member.</param>
+        /// <returns>Returns the updated board member details.</returns>
+        /// <response code="200">If the board member is updated successfully.</response>
+        /// <response code="400">If the request is invalid.</response>
+        /// <response code="500">If an unexpected error occurs, returns an error message.</response>
+        [Authorize]
+        [HttpPut("update/{id}")]
+        [ProducesResponseType(typeof(ApiResponse<CardLabelDetail>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> UpdateCardLabelAsync(Guid id, [FromBody] UpdateCardLabelDTO color)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
+                    return BadRequest(new ApiResponse<IEnumerable<string>>
+                    {
+                        Code = StatusCodes.Status400BadRequest,
+                        Data = errors
+                    });
+                }
+
+                var result = await _cardLabelService.UpdateCardLabelAsync(id, color);
+                return Ok(new ApiResponse<CardLabelDetail>()
+                {
+                    Code = StatusCodes.Status200OK,
+                    Data = result
+                });
+            }
+            catch( ExceptionResponse ex )
+            {
+                return StatusCode((int)ex.StatusCode, new ApiResponse<string>
+                {
+                    Code = (int)ex.StatusCode,
+                    Data = ex.ErrorMessage
+                });
+            }
+            catch(Exception ex)
+            {
+                return StatusCode((int)HttpStatusCode.InternalServerError, new ApiResponse<string>
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Data = ex.Message
+                });
+            }
+        }
+
+
+
 
     }
 }
