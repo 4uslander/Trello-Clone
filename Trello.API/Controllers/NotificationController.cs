@@ -208,7 +208,7 @@ namespace Trello.API.Controllers
 
                 return Created(string.Empty, new ApiResponse<int>()
                 {
-                    Code = StatusCodes.Status201Created,
+                    Code = StatusCodes.Status200OK,
                     Data = count
                 });
             }

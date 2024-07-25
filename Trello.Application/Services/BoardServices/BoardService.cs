@@ -137,7 +137,7 @@ namespace Trello.Application.Services.BoardServices
                       board => board.Id,
                       boardMember => boardMember.BoardId,
                       (board, boardMember) => new { board, boardMember })
-                .Where(bb => bb.boardMember.UserId == currentUserId)
+                .Where(bb => bb.boardMember.UserId == currentUserId && bb.boardMember.IsActive)
                 .Select(bb => bb.board);
 
             boardsQuery = boardsQuery.Where(u => u.IsActive);

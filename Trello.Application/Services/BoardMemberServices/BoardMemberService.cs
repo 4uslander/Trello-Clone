@@ -80,7 +80,7 @@ namespace Trello.Application.Services.BoardMemberServices
             {
                 UserId = requestBody.UserId,
                 Title = NotificationTitleField.INVITE_TO_BOARD,
-                Body = $"{NotificationBodyField.INVITE_TO_BOARD}: {existingBoard.Name}."
+                Body = $"\n{NotificationBodyField.INVITE_TO_BOARD}: {existingBoard.Name}."
             };
 
             var notificationDetail = await _notificationService.CreateNotificationAsync(notificationRequest);

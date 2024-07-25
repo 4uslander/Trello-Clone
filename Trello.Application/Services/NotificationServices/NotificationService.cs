@@ -1,5 +1,7 @@
 ﻿using AutoMapper;
+using AutoMapper.Execution;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -16,6 +18,8 @@ using Trello.Application.Services.CardServices;
 using Trello.Application.Services.UserServices;
 using Trello.Application.Utilities.ErrorHandler;
 using Trello.Application.Utilities.Helper.GetUserAuthorization;
+using Trello.Application.Utilities.Helper.SignalRHub;
+using Trello.Domain.Enums;
 using Trello.Domain.Models;
 using Trello.Infrastructure.IRepositories;
 using static Trello.Application.Utilities.GlobalVariables.GlobalVariable;
@@ -28,13 +32,16 @@ namespace Trello.Application.Services.NotificationServices
         private readonly IMapper _mapper;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IUserService _userService;
+        private readonly IHubContext<SignalHub> _hubContext;
 
-        public NotificationService(IUnitOfWork unitOfWork, IMapper mapper, IHttpContextAccessor httpContextAccessor, IUserService userService)
+        public NotificationService(IUnitOfWork unitOfWork, IMapper mapper, IHttpContextAccessor httpContextAccessor,
+            IUserService userService, IHubContext<SignalHub> hubContext)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _httpContextAccessor = httpContextAccessor;
             _userService = userService;
+            _hubContext = hubContext;
         }
 
         public async Task<NotificationDetail> CreateNotificationAsync(NotificationDTO requestBody)
@@ -72,6 +79,7 @@ namespace Trello.Application.Services.NotificationServices
             notificationsQuery = notificationsQuery.Where(u => u.UserId == userId && !u.IsRead);
 
             List<NotificationDetail> notifications = await notificationsQuery
+                .OrderByDescending(u => u.CreatedDate)
                 .Select(u => _mapper.Map<NotificationDetail>(u))
                 .ToListAsync();
 
@@ -99,6 +107,7 @@ namespace Trello.Application.Services.NotificationServices
 
             return notifications;
         }
+
         public async Task<int> GetNotificationCountAsync(Guid userId)
         {
             var existingUser = await _userService.GetUserByIdAsync(userId)
@@ -107,9 +116,10 @@ namespace Trello.Application.Services.NotificationServices
             int notificationCount = await _unitOfWork.NotificationRepository.GetAll()
                 .CountAsync(u => u.UserId == userId && !u.IsRead);
 
+            await _hubContext.Clients.User(userId.ToString()).SendAsync(SignalRHubEnum.ReceiveTotalNotification.ToString(), notificationCount);
+
             return notificationCount;
         }
-
 
         public async Task<NotificationDetail> ChangeStatusAsync(Guid id, bool isRead)
         {
