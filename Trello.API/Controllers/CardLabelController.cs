@@ -23,8 +23,6 @@ namespace Trello.API.Controllers
             _cardLabelService = cardLabelService;
         }
 
-
-
         /// <summary>
         /// Creates a new card label.
         /// </summary>
@@ -255,7 +253,7 @@ namespace Trello.API.Controllers
         [Authorize]
         [HttpPut("update/{id}")]
         [ProducesResponseType(typeof(ApiResponse<CardLabelDetail>), StatusCodes.Status200OK)]
-        public async Task<IActionResult> UpdateCardLabelAsync(Guid id, [FromBody] UpdateCardLabelDTO color)
+        public async Task<IActionResult> UpdateCardLabelAsync(Guid id, [FromQuery] Guid labelId )
         {
             try
             {
@@ -269,7 +267,7 @@ namespace Trello.API.Controllers
                     });
                 }
 
-                var result = await _cardLabelService.UpdateCardLabelAsync(id, color);
+                var result = await _cardLabelService.UpdateCardLabelAsync(id, labelId);
                 return Ok(new ApiResponse<CardLabelDetail>()
                 {
                     Code = StatusCodes.Status200OK,
@@ -293,9 +291,6 @@ namespace Trello.API.Controllers
                 });
             }
         }
-
-
-
 
     }
 }

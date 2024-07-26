@@ -16,10 +16,6 @@ namespace Trello.Application.DTOs.CardLabel
         public Guid LabelId { get; set; }
     }
 
-    public class UpdateCardLabelDTO
-    {
- 
-        public string? Color { get; set; }
-    }
+   
    
 }
