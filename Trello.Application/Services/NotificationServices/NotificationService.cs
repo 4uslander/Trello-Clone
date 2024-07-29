@@ -116,7 +116,7 @@ namespace Trello.Application.Services.NotificationServices
             int notificationCount = await _unitOfWork.NotificationRepository.GetAll()
                 .CountAsync(u => u.UserId == userId && !u.IsRead);
 
-            await _hubContext.Clients.User(userId.ToString()).SendAsync(SignalRHubEnum.ReceiveTotalNotification.ToString(), notificationCount);
+            //await _hubContext.Clients.User(userId.ToString()).SendAsync(SignalRHubEnum.ReceiveTotalNotification.ToString(), notificationCount);
 
             return notificationCount;
         }
