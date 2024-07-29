@@ -70,6 +70,10 @@ namespace Trello.Application.Utilities.GlobalVariables
             public const string USER_FCM_TOKEN_NOT_EXIST = "This user FCM token does not exist!";
             public const string USER_FCM_TOKEN_NOT_FOUND = "This user FCM token does not found!";
             public const string NOTIFICATION_NOT_FOUND = "This notification does not found!";
+
+            public const string LABEL_NOT_EXIST = "This label does not exist!";
+            public const string CARD_LABEL_NOT_EXIST = "This card label does not exist!";
+            public const string CARD_ACTIVITY_NOT_EXIST = "This card activity does not exist!";
         }
 
         public static class NotificationTitleField
@@ -98,9 +102,7 @@ namespace Trello.Application.Utilities.GlobalVariables
             public const string TASK_CHECKED = " has been checked!";
             public const string TASK_REMOVED = " has been removed!";
 
-            public const string LABEL_NOT_EXIST = "This label does not exist!";
-            public const string CARD_LABEL_NOT_EXIST = "This card label does not exist!";
-            public const string CARD_ACTIVITY_NOT_EXIST = "This card activity does not exist!";
+           
         }
     }
 }
