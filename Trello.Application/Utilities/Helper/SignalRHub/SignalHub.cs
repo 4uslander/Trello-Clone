@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Trello.Application.DTOs.CardActivity;
 using Trello.Application.DTOs.Comment;
 using Trello.Application.DTOs.Notification;
 using Trello.Application.Services.NotificationServices;
@@ -38,6 +39,11 @@ namespace Trello.Application.Utilities.Helper.SignalRHub
         {
             var notificationCount = await _notificationService.GetNotificationCountAsync(userId);
             await Clients.Caller.SendAsync(SignalRHubEnum.ReceiveTotalNotification.ToString(), notificationCount);
+        }
+
+        public async Task SendActivity(CardActivityDetail activity)
+        {
+            await Clients.All.SendAsync(SignalRHubEnum.ReceiveActivity.ToString(), activity);
         }
     }
 }

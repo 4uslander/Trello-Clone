@@ -1,26 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace Trello.Domain.Models
+namespace Trello.Application.DTOs.Label
 {
-    public partial class Label
+    public class LabelDetail
     {
-        public Label()
-        {
-            CardLabels = new HashSet<CardLabel>();
-        }
-
         public Guid Id { get; set; }
         public Guid BoardId { get; set; }
         public string? Name { get; set; }
-        public string? Color { get; set; } 
+        public string? Color { get; set; }
         public DateTime CreatedDate { get; set; }
         public Guid CreatedUser { get; set; }
         public DateTime? UpdatedDate { get; set; }
         public Guid UpdatedUser { get; set; }
         public bool IsActive { get; set; }
 
-        public virtual Board Board { get; set; } = null!;
-        public virtual ICollection<CardLabel> CardLabels { get; set; }
     }
 }

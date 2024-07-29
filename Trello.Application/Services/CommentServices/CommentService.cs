@@ -51,6 +51,7 @@ namespace Trello.Application.Services.CommentServices
                 throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.REQUEST_BODY, ErrorMessage.NULL_REQUEST_BODY);
 
             var existingCard = await _cardService.GetCardByIdAsync(requestBody.CardId);
+
             if (existingCard == null)
             {
                 throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.CARD_FIELD, ErrorMessage.CARD_NOT_EXIST);

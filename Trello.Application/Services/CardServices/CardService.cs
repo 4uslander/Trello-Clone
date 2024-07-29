@@ -69,7 +69,6 @@ namespace Trello.Application.Services.CardServices
             List<CardDetail> cards = await cardsQuery
                 .Select(u => _mapper.Map<CardDetail>(u))
                 .ToListAsync();
-
             return cards;
         }
 

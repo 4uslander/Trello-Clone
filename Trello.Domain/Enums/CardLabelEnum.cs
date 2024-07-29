@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Trello.Domain.Enums
 {
-    public enum CardEnum
+    public enum CardLabelEnum
     {
         Inactive = 0,
         Active = 1

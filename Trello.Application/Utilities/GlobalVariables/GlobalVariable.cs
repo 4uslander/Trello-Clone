@@ -31,6 +31,9 @@ namespace Trello.Application.Utilities.GlobalVariables
             public const string TASK_FIELD = "Task";
             public const string USER_FCM_TOKEN_FIELD = "User FCM Token";
             public const string NOTIFICATION_FIELD = "Notification";
+            public const string LABEL_FIELD = "Label";
+            public const string CARD_LABEL_FIELD = "Card Label";
+            public const string CARD_ACTIVITY_FIELD = "Card Activity";
         }
         public static class ErrorMessage
         {
@@ -95,6 +98,9 @@ namespace Trello.Application.Utilities.GlobalVariables
             public const string TASK_CHECKED = " has been checked!";
             public const string TASK_REMOVED = " has been removed!";
 
+            public const string LABEL_NOT_EXIST = "This label does not exist!";
+            public const string CARD_LABEL_NOT_EXIST = "This card label does not exist!";
+            public const string CARD_ACTIVITY_NOT_EXIST = "This card activity does not exist!";
         }
     }
 }

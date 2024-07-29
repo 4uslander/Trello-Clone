@@ -1,9 +1,12 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Trello.Application.Services.BoardMemberServices;
 using Trello.Application.Services.BoardServices;
+using Trello.Application.Services.CardActivityServices;
+using Trello.Application.Services.CardLabelServices;
 using Trello.Application.Services.CardMemberServices;
 using Trello.Application.Services.CardServices;
 using Trello.Application.Services.CommentServices;
+using Trello.Application.Services.LabelServices;
 using Trello.Application.Services.ListServices;
 using Trello.Application.Services.NotificationServices;
 using Trello.Application.Services.RoleServices;
@@ -37,6 +40,9 @@ namespace Trello.Application.Services
             services.AddScoped<IFirebaseNotificationService, FirebaseNotificationService>();
             services.AddScoped<IUserFcmTokenService, UserFcmTokenService>();
             services.AddScoped<INotificationService, NotificationService>();
+            services.AddScoped<ILabelService, LabelService>();
+            services.AddScoped<ICardLabelService, CardLabelService>();
+            services.AddScoped<ICardActivityService, CardActivityService>();
         }
     }
 }
