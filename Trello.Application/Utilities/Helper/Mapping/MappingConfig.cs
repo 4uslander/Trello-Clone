@@ -25,6 +25,9 @@ namespace Trello.Application.Utilities.Helper.Mapping
                 mc.AddProfile(new CommentProfile());
                 mc.AddProfile(new ToDoProfile());
                 mc.AddProfile(new TaskProfile());
+                mc.AddProfile(new UserProfile());
+                mc.AddProfile(new UserFcmTokenProfile());
+                mc.AddProfile(new NotificationProfile());
                 mc.AddProfile(new LabelProfile());
                 mc.AddProfile(new CardLabelProfile());
                 mc.AddProfile(new CardActivityProfile());

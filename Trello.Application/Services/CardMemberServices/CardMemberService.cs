@@ -1,21 +1,15 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
-using System.Text;
-using System.Threading.Tasks;
-using Trello.Application.DTOs.Board;
-using Trello.Application.DTOs.BoardMember;
-using Trello.Application.DTOs.Card;
 using Trello.Application.DTOs.CardMember;
-using Trello.Application.DTOs.List;
+using Trello.Application.DTOs.Notification;
 using Trello.Application.Services.BoardMemberServices;
 using Trello.Application.Services.CardServices;
+using Trello.Application.Services.NotificationServices;
 using Trello.Application.Services.UserServices;
 using Trello.Application.Utilities.ErrorHandler;
+using Trello.Application.Utilities.Helper.FirebaseNoti;
 using Trello.Application.Utilities.Helper.GetUserAuthorization;
 using Trello.Domain.Models;
 using Trello.Infrastructure.IRepositories;
@@ -31,9 +25,11 @@ namespace Trello.Application.Services.CardMemberServices
         private readonly ICardService _cardService;
         private readonly IUserService _userService;
         private readonly IBoardMemberService _boardMemberService;
+        private readonly IFirebaseNotificationService _firebaseNotificationService;
+        private readonly INotificationService _notificationService;
 
-        public CardMemberService(IUnitOfWork unitOfWork, IMapper mapper, IHttpContextAccessor httpContextAccessor,
-            ICardService cardService, IUserService userService, IBoardMemberService boardMemberService)
+        public CardMemberService(IUnitOfWork unitOfWork, IMapper mapper, IHttpContextAccessor httpContextAccessor,ICardService cardService, IUserService userService,
+            IBoardMemberService boardMemberService, IFirebaseNotificationService firebaseNotificationService, INotificationService notificationService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
@@ -41,6 +37,8 @@ namespace Trello.Application.Services.CardMemberServices
             _cardService = cardService;
             _userService = userService;
             _boardMemberService = boardMemberService;
+            _firebaseNotificationService = firebaseNotificationService;
+            _notificationService = notificationService;
         }
 
         public async Task<CardMemberDetail> CreateCardMemberAsync(CardMemberDTO requestBody)
@@ -75,10 +73,22 @@ namespace Trello.Application.Services.CardMemberServices
             cardMember.IsActive = true;
 
             await _unitOfWork.CardMemberRepository.InsertAsync(cardMember);
-            await _unitOfWork.SaveChangesAsync();
 
             var createdBoardMemberDto = _mapper.Map<CardMemberDetail>(cardMember);
 
+            //
+            var notificationRequest = new NotificationDTO
+            {
+                UserId = requestBody.UserId,
+                Title = NotificationTitleField.ADDED_TO_CARD,
+                Body = $"{NotificationBodyField.ADDED_TO_CARD}: {existingCard.Title}."
+            };
+
+            var notificationDetail = await _notificationService.CreateNotificationAsync(notificationRequest);
+
+            await _firebaseNotificationService.SendNotificationAsync(notificationDetail.UserId, notificationDetail.Title, notificationDetail.Body );
+
+            await _unitOfWork.SaveChangesAsync();
             return createdBoardMemberDto;
         }
 
@@ -130,8 +140,27 @@ namespace Trello.Application.Services.CardMemberServices
             cardMember.IsActive = isActive;
 
             _unitOfWork.CardMemberRepository.Update(cardMember);
-            await _unitOfWork.SaveChangesAsync();
 
+            //
+            var existingUser = await _userService.GetUserIdByCardMemberIdAsync(Id);
+            if (existingUser == Guid.Empty)
+            {
+                throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.USER_FIELD, ErrorMessage.USER_NOT_EXIST);
+            }
+
+            var notificationRequest = new NotificationDTO
+            {
+                UserId = existingUser,
+                Title = NotificationTitleField.CARD_MEMBER_REMOVED,
+                Body = $"{NotificationBodyField.CARD_MEMBER_REMOVED}"
+            };
+
+            var notificationDetail = await _notificationService.CreateNotificationAsync(notificationRequest);
+
+            await _firebaseNotificationService.SendNotificationAsync(notificationDetail.UserId, notificationDetail.Title, notificationDetail.Body);
+
+            await _unitOfWork.SaveChangesAsync();
+           
             var mappedCardMember = _mapper.Map<CardMemberDetail>(cardMember);
             return mappedCardMember;
         }

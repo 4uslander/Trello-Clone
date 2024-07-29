@@ -1,22 +1,16 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
-using System.Text;
-using System.Threading.Tasks;
+using Trello.Application.DTOs.Notification;
 using Trello.Application.DTOs.Task;
-using Trello.Application.DTOs.ToDo;
 using Trello.Application.Services.BoardMemberServices;
-using Trello.Application.Services.CardServices;
+using Trello.Application.Services.NotificationServices;
 using Trello.Application.Services.ToDoServices;
 using Trello.Application.Utilities.ErrorHandler;
-using Trello.Application.Utilities.Helper.ConvertDate;
+using Trello.Application.Utilities.Helper.FirebaseNoti;
 using Trello.Application.Utilities.Helper.GetUserAuthorization;
 using Trello.Domain.Enums;
-using Trello.Domain.Models;
 using Trello.Infrastructure.IRepositories;
 using static Trello.Application.Utilities.GlobalVariables.GlobalVariable;
 
@@ -29,14 +23,19 @@ namespace Trello.Application.Services.TaskServices
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IBoardMemberService _boardMemberService;
         private readonly IToDoService _todoService;
+        private readonly IFirebaseNotificationService _firebaseNotificationService;
+        private readonly INotificationService _notificationService;
 
-        public TaskService(IUnitOfWork unitOfWork, IMapper mapper, IHttpContextAccessor httpContextAccessor, IBoardMemberService boardMemberService, IToDoService todoService)
+        public TaskService(IUnitOfWork unitOfWork, IMapper mapper, IHttpContextAccessor httpContextAccessor,
+            IBoardMemberService boardMemberService, IToDoService todoService, IFirebaseNotificationService firebaseNotificationService, INotificationService notificationService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _httpContextAccessor = httpContextAccessor;
             _boardMemberService = boardMemberService;
             _todoService = todoService;
+            _firebaseNotificationService = firebaseNotificationService;
+            _notificationService = notificationService;
         }
 
         public async Task<TaskDetail> CreateTaskAsync(CreateTaskDTO requestBody)
@@ -68,6 +67,21 @@ namespace Trello.Application.Services.TaskServices
 
             await _unitOfWork.TaskRepository.InsertAsync(task);
             await _unitOfWork.SaveChangesAsync();
+
+            //
+            if (requestBody.AssignedUserId.HasValue)
+            {
+                var notificationRequest = new NotificationDTO
+                {
+                    UserId = requestBody.AssignedUserId.Value,
+                    Title = NotificationTitleField.ASSIGNED_TO_TASK,
+                    Body = $"{NotificationBodyField.ASSIGNED_TO_TASK}: {requestBody.Name}."
+                };
+
+                var notificationDetail = await _notificationService.CreateNotificationAsync(notificationRequest);
+
+                await _firebaseNotificationService.SendNotificationAsync(notificationDetail.UserId, notificationDetail.Title, notificationDetail.Body);
+            }
 
             var createdTaskDto = _mapper.Map<TaskDetail>(task);
             return createdTaskDto;
@@ -135,8 +149,24 @@ namespace Trello.Application.Services.TaskServices
             }
 
             _unitOfWork.TaskRepository.Update(task);
-            await _unitOfWork.SaveChangesAsync();
 
+            //
+            if (requestBody.AssignedUserId.HasValue)
+            {
+                var notificationRequest = new NotificationDTO
+                {
+                    UserId = requestBody.AssignedUserId.Value,
+                    Title = NotificationTitleField.TASK_UPDATED,
+                    Body = $"{task.Name} {NotificationBodyField.TASK_UPDATED}"
+                };
+
+                var notificationDetail = await _notificationService.CreateNotificationAsync(notificationRequest);
+
+                await _firebaseNotificationService.SendNotificationAsync(notificationDetail.UserId, notificationDetail.Title, notificationDetail.Body);        
+            }
+
+            await _unitOfWork.SaveChangesAsync();
+           
             var taskDetail = _mapper.Map<TaskDetail>(task);
             return taskDetail;
         }
@@ -155,8 +185,24 @@ namespace Trello.Application.Services.TaskServices
             task.Status = isChecked ? TaskStatusEnum.Resolved.ToString() : TaskStatusEnum.InProgress.ToString();
 
             _unitOfWork.TaskRepository.Update(task);
-            await _unitOfWork.SaveChangesAsync();
 
+            var existingAssignedUser = await GetAssignedUserIdByTaskIdAsync(id);
+            if (existingAssignedUser.HasValue)
+            {
+                var notificationRequest = new NotificationDTO
+                {
+                    UserId = existingAssignedUser.Value,
+                    Title = NotificationTitleField.TASK_CHECKED,
+                    Body = $"{task.Name} {NotificationBodyField.TASK_CHECKED}"
+                };
+
+                var notificationDetail = await _notificationService.CreateNotificationAsync(notificationRequest);
+
+                await _firebaseNotificationService.SendNotificationAsync(notificationDetail.UserId, notificationDetail.Title, notificationDetail.Body);
+            }
+
+            await _unitOfWork.SaveChangesAsync();
+         
             var taskDetail = _mapper.Map<TaskDetail>(task);
             return taskDetail;
         }
@@ -173,10 +219,38 @@ namespace Trello.Application.Services.TaskServices
             task.IsActive = isActive;
 
             _unitOfWork.TaskRepository.Update(task);
+
+            var existingAssignedUser = await GetAssignedUserIdByTaskIdAsync(id);
+            if (existingAssignedUser.HasValue)
+            {
+                var notificationRequest = new NotificationDTO
+                {
+                    UserId = existingAssignedUser.Value,
+                    Title = NotificationTitleField.TASK_REMOVED,
+                    Body = $"{task.Name} {NotificationBodyField.TASK_REMOVED}"
+                };
+
+                var notificationDetail = await _notificationService.CreateNotificationAsync(notificationRequest);
+
+                await _firebaseNotificationService.SendNotificationAsync(notificationDetail.UserId, notificationDetail.Title, notificationDetail.Body);
+            }
+
             await _unitOfWork.SaveChangesAsync();
 
             var mappedList = _mapper.Map<TaskDetail>(task);
             return mappedList;
         }
+
+        public async Task<Guid?> GetAssignedUserIdByTaskIdAsync(Guid taskId)
+        {
+            var userIdQuery = from task in _unitOfWork.TaskRepository.GetAll()
+                              where task.Id == taskId && task.IsActive
+                              select task.AssignedUserId;
+
+            Guid? assignedUserId = await userIdQuery.FirstOrDefaultAsync();
+
+            return assignedUserId;
+        }
+
     }
 }

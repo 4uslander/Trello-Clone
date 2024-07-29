@@ -29,6 +29,8 @@ namespace Trello.Application.Utilities.GlobalVariables
             public const string COMMENT_FIELD = "Comment";
             public const string TODO_FIELD = "ToDo";
             public const string TASK_FIELD = "Task";
+            public const string USER_FCM_TOKEN_FIELD = "User FCM Token";
+            public const string NOTIFICATION_FIELD = "Notification";
             public const string LABEL_FIELD = "Label";
             public const string CARD_LABEL_FIELD = "Card Label";
             public const string CARD_ACTIVITY_FIELD = "Card Activity";
@@ -65,6 +67,37 @@ namespace Trello.Application.Utilities.GlobalVariables
             public const string TODO_NOT_EXIST = "This ToDo list does not exist!";
             public const string TASK_NOT_EXIST = "This task does not exist!";
             public const string USER_NOT_FOUND = "No users found for the provided ToDo ID.";
+            public const string USER_FCM_TOKEN_NOT_EXIST = "This user FCM token does not exist!";
+            public const string USER_FCM_TOKEN_NOT_FOUND = "This user FCM token does not found!";
+            public const string NOTIFICATION_NOT_FOUND = "This notification does not found!";
+        }
+
+        public static class NotificationTitleField
+        {
+            public const string INVITE_TO_BOARD = "Invited to a new board";
+            public const string MEMBER_ROLE_UPDATED = "Role Updated";
+            public const string MEMBER_REMOVED = "Removed from Board";
+            public const string ADDED_TO_CARD = "Added to a new card";
+            public const string CARD_MEMBER_REMOVED = "Removed from card";
+            public const string ASSIGNED_TO_TASK = "Assigned to a new task";
+            public const string TASK_UPDATED = "Task Updated";
+            public const string TASK_CHECKED = "Task Checked";
+            public const string TASK_REMOVED = "Task Removed";
+
+        }
+
+        public static class NotificationBodyField
+        {
+            public const string INVITE_TO_BOARD = "You have been invited to the board";
+            public const string MEMBER_ROLE_UPDATED = "Your role has been updated by Admin.";
+            public const string MEMBER_REMOVED = "You have been removed from the board by Admin.";
+            public const string ADDED_TO_CARD = "You have been added to the card";
+            public const string CARD_MEMBER_REMOVED = "You have been removed from the card.";
+            public const string ASSIGNED_TO_TASK = "You have assigned to the task";
+            public const string TASK_UPDATED = " has been updated!";
+            public const string TASK_CHECKED = " has been checked!";
+            public const string TASK_REMOVED = " has been removed!";
+
             public const string LABEL_NOT_EXIST = "This label does not exist!";
             public const string CARD_LABEL_NOT_EXIST = "This card label does not exist!";
             public const string CARD_ACTIVITY_NOT_EXIST = "This card activity does not exist!";

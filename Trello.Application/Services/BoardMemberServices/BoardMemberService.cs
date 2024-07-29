@@ -1,21 +1,15 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
-using System.Security.Claims;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Linq;
-using Trello.Application.DTOs.Board;
 using Trello.Application.DTOs.BoardMember;
-using Trello.Application.DTOs.List;
+using Trello.Application.DTOs.Notification;
 using Trello.Application.Services.BoardServices;
+using Trello.Application.Services.NotificationServices;
 using Trello.Application.Services.RoleServices;
 using Trello.Application.Services.UserServices;
 using Trello.Application.Utilities.ErrorHandler;
+using Trello.Application.Utilities.Helper.FirebaseNoti;
 using Trello.Application.Utilities.Helper.GetUserAuthorization;
 using Trello.Domain.Enums;
 using Trello.Domain.Models;
@@ -32,9 +26,11 @@ namespace Trello.Application.Services.BoardMemberServices
         private readonly IBoardService _boardService;
         private readonly IUserService _userService;
         private readonly IRoleService _roleService;
+        private readonly IFirebaseNotificationService _firebaseNotificationService;
+        private readonly INotificationService _notificationService;
 
-        public BoardMemberService(IUnitOfWork unitOfWork, IMapper mapper, IHttpContextAccessor httpContextAccessor,
-            IBoardService boardService, IUserService userService, IRoleService roleService)
+        public BoardMemberService(IUnitOfWork unitOfWork, IMapper mapper, IHttpContextAccessor httpContextAccessor, IBoardService boardService,
+            IUserService userService, IRoleService roleService, IFirebaseNotificationService firebaseNotificationService, INotificationService notificationService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
@@ -42,6 +38,8 @@ namespace Trello.Application.Services.BoardMemberServices
             _boardService = boardService;
             _userService = userService;
             _roleService = roleService;
+            _firebaseNotificationService = firebaseNotificationService;
+            _notificationService = notificationService;
         }
         public async Task<BoardMemberDetail> CreateBoardMemberAsync(BoardMemberDTO requestBody)
         {
@@ -76,17 +74,33 @@ namespace Trello.Application.Services.BoardMemberServices
             boardMember.IsActive = true;
 
             await _unitOfWork.BoardMemberRepository.InsertAsync(boardMember);
-            await _unitOfWork.SaveChangesAsync();
 
+            //
+            var notificationRequest = new NotificationDTO
+            {
+                UserId = requestBody.UserId,
+                Title = NotificationTitleField.INVITE_TO_BOARD,
+                Body = $"\n{NotificationBodyField.INVITE_TO_BOARD}: {existingBoard.Name}."
+            };
+
+            var notificationDetail = await _notificationService.CreateNotificationAsync(notificationRequest);
+
+            // Send notification
+            await _firebaseNotificationService.SendNotificationAsync(notificationDetail.UserId, notificationDetail.Title, notificationDetail.Body);
+
+            await _unitOfWork.SaveChangesAsync();
             var createdBoardMemberDto = _mapper.Map<BoardMemberDetail>(boardMember);
 
             return createdBoardMemberDto;
-        }
+        } 
+
         public async Task<List<BoardMemberDetail>> GetAllBoardMemberAsync(Guid boardId)
         {
             IQueryable<BoardMember> boardMembersQuery = _unitOfWork.BoardMemberRepository.GetAll();
 
             boardMembersQuery = boardMembersQuery.Where(u => u.BoardId == boardId && u.IsActive);
+
+            var adminRole = BoardMemberRoleEnum.Admin.ToString();
 
             List<BoardMemberDetail> lists = await boardMembersQuery
                 .Select(bm => new BoardMemberDetail
@@ -102,6 +116,8 @@ namespace Trello.Application.Services.BoardMemberServices
                     CreatedDate = bm.CreatedDate,
                     UpdatedDate = bm.UpdatedDate
                 })
+                .OrderByDescending(bm => bm.RoleName == adminRole)
+                .ThenBy(bm => bm.RoleName)
                 .ToListAsync();
 
             return lists;
@@ -143,8 +159,26 @@ namespace Trello.Application.Services.BoardMemberServices
             boardMember.UpdatedUser = currentUserId;
 
             _unitOfWork.BoardMemberRepository.Update(boardMember);
-            await _unitOfWork.SaveChangesAsync();
 
+            //
+            var existingUser = await _userService.GetUserIdByBoardMemberIdAsync(id);
+            if (existingUser == Guid.Empty)
+            {
+                throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.USER_FIELD, ErrorMessage.USER_NOT_EXIST);
+            }
+
+            var notificationRequest = new NotificationDTO
+            {
+                UserId = existingUser,
+                Title = NotificationTitleField.MEMBER_ROLE_UPDATED,
+                Body = $"{NotificationTitleField.MEMBER_ROLE_UPDATED}"
+            };
+
+            var notificationDetail = await _notificationService.CreateNotificationAsync(notificationRequest);
+ 
+            await _firebaseNotificationService.SendNotificationAsync(notificationDetail.UserId, notificationDetail.Title, notificationDetail.Body);
+
+            await _unitOfWork.SaveChangesAsync();
             var boardMemberDetail = _mapper.Map<BoardMemberDetail>(boardMember);
             return boardMemberDetail;
         }
@@ -161,8 +195,27 @@ namespace Trello.Application.Services.BoardMemberServices
             boardMember.IsActive = isActive;
 
             _unitOfWork.BoardMemberRepository.Update(boardMember);
-            await _unitOfWork.SaveChangesAsync();
 
+            //
+            var existingUser = await _userService.GetUserIdByBoardMemberIdAsync(Id);
+            if (existingUser == Guid.Empty)
+            {
+                throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.USER_FIELD, ErrorMessage.USER_NOT_EXIST);
+            }
+
+            var notificationRequest = new NotificationDTO
+            {
+                UserId = existingUser,
+                Title = NotificationTitleField.MEMBER_REMOVED,
+                Body = $"{NotificationBodyField.MEMBER_REMOVED}"
+            };
+
+            var notificationDetail = await _notificationService.CreateNotificationAsync(notificationRequest);
+
+            await _firebaseNotificationService.SendNotificationAsync(notificationDetail.UserId, notificationDetail.Title, notificationDetail.Body);
+
+            await _unitOfWork.SaveChangesAsync();
+                     
             var mappedBoard = _mapper.Map<BoardMemberDetail>(boardMember);
             return mappedBoard;
         }
@@ -185,5 +238,6 @@ namespace Trello.Application.Services.BoardMemberServices
         {
             return await _unitOfWork.BoardMemberRepository.FirstOrDefaultAsync(x => x.UserId.Equals(userId));
         }
+
     }
 }

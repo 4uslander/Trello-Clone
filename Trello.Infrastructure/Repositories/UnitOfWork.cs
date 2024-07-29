@@ -27,8 +27,8 @@ namespace Trello.Infrastructure.Repositories
         private IGenericRepository<Domain.Models.Task> _taskRepository;
         private IGenericRepository<ToDo> _toDoRepository;
         private IGenericRepository<User> _userRepository;
-        
-
+        private IGenericRepository<UserFcmToken> _userFcmTokenRepository;
+        private IGenericRepository<Notification> _notificationRepository;
         public UnitOfWork(TrellocloneContext context)
         {
             _context = context;
@@ -57,6 +57,10 @@ namespace Trello.Infrastructure.Repositories
         public IGenericRepository<ToDo> ToDoRepository => _toDoRepository ??= new GenericRepository<ToDo>(_context);
 
         public IGenericRepository<User> UserRepository => _userRepository ??= new GenericRepository<User>(_context);
+
+        public IGenericRepository<UserFcmToken> UserFcmTokenRepository => _userFcmTokenRepository ??= new GenericRepository<UserFcmToken>(_context);
+
+        public IGenericRepository<Notification> NotificationRepository => _notificationRepository ??= new GenericRepository<Notification>(_context);
 
         public void Dispose()
         {
