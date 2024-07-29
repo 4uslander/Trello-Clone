@@ -9,6 +9,7 @@ namespace Trello.Domain.Enums
     public enum SignalRHubEnum
     {
         ReceiveComment,
-        UpdateComment
+        UpdateComment,
+        ReceiveTotalNotification
     }
 }
