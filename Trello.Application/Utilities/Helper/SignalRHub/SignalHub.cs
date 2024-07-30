@@ -35,10 +35,12 @@ namespace Trello.Application.Utilities.Helper.SignalRHub
             await Clients.All.SendAsync(SignalRHubEnum.UpdateComment.ToString(), comment);
         }
 
-        public async Task GetTotalNotification(Guid userId)
+        public async Task<int> GetTotalNotification(Guid userId)
         {
-            var notificationCount = await _notificationService.GetNotificationCountAsync(userId);
-            await Clients.Caller.SendAsync(SignalRHubEnum.ReceiveTotalNotification.ToString(), notificationCount);
+            var notifications = await _notificationService.GetAllNotificationAsync(userId);
+            var totalCount = notifications.TotalCount;
+            await Clients.Caller.SendAsync(SignalRHubEnum.ReceiveTotalNotification.ToString(), totalCount);
+            return totalCount;
         }
 
         public async Task SendActivity(CardActivityDetail activity)

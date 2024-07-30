@@ -162,6 +162,30 @@ namespace Trello.Application.Services.CardServices
             return mappedList;
         }
 
+        public async Task<CardDetail> MoveCardAsync(Guid cardId, Guid newListId)
+        {
+            var card = await _unitOfWork.CardRepository.GetByIdAsync(cardId)
+                ?? throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.CARD_FIELD, ErrorMessage.CARD_NOT_EXIST);
+
+            var newList = await _listService.GetListByIdAsync(newListId);
+            if (newList == null)
+            {
+                throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.LIST_FIELD, ErrorMessage.LIST_NOT_EXIST);
+            }
+
+            var currentUserId = UserAuthorizationHelper.GetUserAuthorizationById(_httpContextAccessor.HttpContext);
+
+            card.ListId = newListId;
+            card.UpdatedDate = DateTime.UtcNow;
+            card.UpdatedUser = currentUserId;
+
+            _unitOfWork.CardRepository.Update(card);
+            await _unitOfWork.SaveChangesAsync();
+
+            var cardDetail = _mapper.Map<CardDetail>(card);
+            return cardDetail;
+        }
+
         public async Task<Card> GetCardByIdAsync(Guid cardId)
         {
             return await _unitOfWork.CardRepository.GetByIdAsync(cardId);

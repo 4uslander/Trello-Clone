@@ -69,7 +69,7 @@ namespace Trello.Application.Services.NotificationServices
             return createdNotificationDto;
         }
 
-        public async Task<List<NotificationDetail>> GetAllNotificationAsync(Guid userId)
+        public async Task<(List<NotificationDetail> Notifications, int TotalCount)> GetAllNotificationAsync(Guid userId)
         {
             var existingUser = await _userService.GetUserByIdAsync(userId)
                 ?? throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.USER_FIELD, ErrorMessage.USER_NOT_EXIST);
@@ -78,12 +78,16 @@ namespace Trello.Application.Services.NotificationServices
 
             notificationsQuery = notificationsQuery.Where(u => u.UserId == userId && !u.IsRead);
 
+            int totalCount = await notificationsQuery.CountAsync();
+
             List<NotificationDetail> notifications = await notificationsQuery
                 .OrderByDescending(u => u.CreatedDate)
                 .Select(u => _mapper.Map<NotificationDetail>(u))
                 .ToListAsync();
 
-            return notifications;
+            //await _hubContext.Clients.User(userId.ToString()).SendAsync(SignalRHubEnum.ReceiveTotalNotification.ToString(), totalCount);
+
+            return (notifications, totalCount);
         }
 
         public async Task<List<NotificationDetail>> GetNotificationByFilterAsync(Guid userId, string? title, bool? isRead)

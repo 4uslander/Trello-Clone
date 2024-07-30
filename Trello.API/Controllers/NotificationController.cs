@@ -65,14 +65,14 @@ namespace Trello.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Retrieves all notification, optionally filtered by title.
-        /// </summary>
-        /// <param name="listId">The ID of the list to get.</param>
-        /// <param name="query">The pagination query parameters including page index and page size.</param>
-        /// <returns>Returns a list of notification details.</returns>
-        /// <response code="200">If the retrieval is successful.</response>
-        /// <response code="400">If the request is invalid.</response>
+        ///// <summary>
+        ///// Retrieves all notification, optionally filtered by title.
+        ///// </summary>
+        ///// <param name="listId">The ID of the list to get.</param>
+        ///// <param name="query">The pagination query parameters including page index and page size.</param>
+        ///// <returns>Returns a list of notification details.</returns>
+        ///// <response code="200">If the retrieval is successful.</response>
+        ///// <response code="400">If the request is invalid.</response>
         [Authorize]
         [HttpGet("get-all")]
         [ProducesResponseType(typeof(PagedApiResponse<List<NotificationDetail>>), StatusCodes.Status200OK)]
@@ -89,7 +89,8 @@ namespace Trello.API.Controllers
                         Data = errors
                     });
                 }
-                List<NotificationDetail> result = await _notificationService.GetAllNotificationAsync(userId);
+
+                var (result, totalCount) = await _notificationService.GetAllNotificationAsync(userId);
 
                 var pagingResult = result.PagedItems(query.PageIndex, query.PageSize).ToList();
 
@@ -99,12 +100,16 @@ namespace Trello.API.Controllers
                     Size = query.PageSize,
                 };
 
-                return Ok(new PagedApiResponse<NotificationDetail>
+                var response = new PagedApiResponse<NotificationDetail>
                 {
                     Code = StatusCodes.Status200OK,
                     Paging = paging,
                     Data = pagingResult
-                });
+                };
+
+                response.TotalCount = totalCount; // Add total count to the response
+
+                return Ok(response);
             }
             catch (ExceptionResponse ex)
             {
@@ -123,6 +128,7 @@ namespace Trello.API.Controllers
                 });
             }
         }
+
 
         /// <summary>
         /// Retrieves all notification, optionally filtered by title.
