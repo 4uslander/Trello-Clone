@@ -26,6 +26,7 @@ namespace Trello.Application.Utilities.ResponseHandler
             public int Code { get; set; }
             public PaginationInfo Paging { get; set; }
             public List<T> Data { get; set; }
+            public int TotalCount { get; set; }
         }
 
         public class PagedApiResponseSpecificData<T>

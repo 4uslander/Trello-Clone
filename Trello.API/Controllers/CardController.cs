@@ -285,5 +285,55 @@ namespace Trello.API.Controllers
                 });
             }
         }
+
+        /// <summary>
+        /// Changes the status of an existing card.
+        /// </summary>
+        /// <param name="id">The ID of the card whose status is to be changed.</param>
+        /// <param name="isActive">The status of the card to update.</param>
+        /// <returns>Returns the updated card details.</returns>
+        /// <response code="200">If the card status is changed successfully.</response>
+        /// <response code="400">If the request is invalid.</response>
+        [Authorize]
+        [HttpPut("move-card/{id}")]
+        [ProducesResponseType(typeof(ApiResponse<CardDetail>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> MoveCardAsync(Guid id, [FromQuery] Guid newListId)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
+                    return BadRequest(new ApiResponse<IEnumerable<string>>
+                    {
+                        Code = StatusCodes.Status400BadRequest,
+                        Data = errors
+                    });
+                }
+                var result = await _cardService.MoveCardAsync(id, newListId);
+
+                return Ok(new ApiResponse<CardDetail>()
+                {
+                    Code = StatusCodes.Status200OK,
+                    Data = result
+                });
+            }
+            catch (ExceptionResponse ex)
+            {
+                return StatusCode((int)ex.StatusCode, new ApiResponse<string>
+                {
+                    Code = (int)ex.StatusCode,
+                    Data = ex.ErrorMessage
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode((int)HttpStatusCode.InternalServerError, new ApiResponse<string>
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Data = ex.Message
+                });
+            }
+        }
     }
 }
