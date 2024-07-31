@@ -81,7 +81,7 @@ namespace Trello.Application.Services.CommentServices
 
             foreach (var member in boardMembers)
             {
-                await _hubContext.Clients.User(member.UserId.ToString()).SendAsync(SignalRHubEnum.ReceiveComment.ToString(), createdCommentDto);
+                await _hubContext.Clients.All.SendAsync(SignalRHubEnum.ReceiveComment.ToString(), createdCommentDto);
             }
 
             return createdCommentDto;

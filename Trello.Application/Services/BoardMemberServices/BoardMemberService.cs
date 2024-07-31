@@ -207,7 +207,7 @@ namespace Trello.Application.Services.BoardMemberServices
             {
                 UserId = existingUser,
                 Title = NotificationTitleField.MEMBER_REMOVED,
-                Body = $"{NotificationBodyField.MEMBER_REMOVED}"
+                Body = $"\n{NotificationBodyField.MEMBER_REMOVED}"
             };
 
             var notificationDetail = await _notificationService.CreateNotificationAsync(notificationRequest);

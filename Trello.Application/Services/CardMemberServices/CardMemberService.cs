@@ -81,7 +81,7 @@ namespace Trello.Application.Services.CardMemberServices
             {
                 UserId = requestBody.UserId,
                 Title = NotificationTitleField.ADDED_TO_CARD,
-                Body = $"{NotificationBodyField.ADDED_TO_CARD}: {existingCard.Title}."
+                Body = $"\n{NotificationBodyField.ADDED_TO_CARD}: {existingCard.Title}."
             };
 
             var notificationDetail = await _notificationService.CreateNotificationAsync(notificationRequest);
@@ -152,7 +152,7 @@ namespace Trello.Application.Services.CardMemberServices
             {
                 UserId = existingUser,
                 Title = NotificationTitleField.CARD_MEMBER_REMOVED,
-                Body = $"{NotificationBodyField.CARD_MEMBER_REMOVED}"
+                Body = $"\n{NotificationBodyField.CARD_MEMBER_REMOVED}"
             };
 
             var notificationDetail = await _notificationService.CreateNotificationAsync(notificationRequest);
