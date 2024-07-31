@@ -75,7 +75,7 @@ namespace Trello.Application.Services.TaskServices
                 {
                     UserId = requestBody.AssignedUserId.Value,
                     Title = NotificationTitleField.ASSIGNED_TO_TASK,
-                    Body = $"{NotificationBodyField.ASSIGNED_TO_TASK}: {requestBody.Name}."
+                    Body = $"\n{NotificationBodyField.ASSIGNED_TO_TASK}: {requestBody.Name}."
                 };
 
                 var notificationDetail = await _notificationService.CreateNotificationAsync(notificationRequest);
@@ -157,7 +157,7 @@ namespace Trello.Application.Services.TaskServices
                 {
                     UserId = requestBody.AssignedUserId.Value,
                     Title = NotificationTitleField.TASK_UPDATED,
-                    Body = $"{task.Name} {NotificationBodyField.TASK_UPDATED}"
+                    Body = $"\n{task.Name} {NotificationBodyField.TASK_UPDATED}"
                 };
 
                 var notificationDetail = await _notificationService.CreateNotificationAsync(notificationRequest);
@@ -193,7 +193,7 @@ namespace Trello.Application.Services.TaskServices
                 {
                     UserId = existingAssignedUser.Value,
                     Title = NotificationTitleField.TASK_CHECKED,
-                    Body = $"{task.Name} {NotificationBodyField.TASK_CHECKED}"
+                    Body = $"\n{task.Name} {NotificationBodyField.TASK_CHECKED}"
                 };
 
                 var notificationDetail = await _notificationService.CreateNotificationAsync(notificationRequest);
@@ -227,7 +227,7 @@ namespace Trello.Application.Services.TaskServices
                 {
                     UserId = existingAssignedUser.Value,
                     Title = NotificationTitleField.TASK_REMOVED,
-                    Body = $"{task.Name} {NotificationBodyField.TASK_REMOVED}"
+                    Body = $"\n {task.Name} {NotificationBodyField.TASK_REMOVED}"
                 };
 
                 var notificationDetail = await _notificationService.CreateNotificationAsync(notificationRequest);
