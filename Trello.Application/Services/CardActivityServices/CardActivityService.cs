@@ -68,7 +68,7 @@ namespace Trello.Application.Services.CardActivityServices
 
             var activity = _mapper.Map<CardActivity>(requestBody);
             activity.Id = Guid.NewGuid();
-            activity.UserId = currentUserId;
+            
             activity.CreatedDate = DateTime.UtcNow;
             activity.CreatedUser = currentUserId;
             activity.IsActive = true;

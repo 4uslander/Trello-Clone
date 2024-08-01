@@ -104,5 +104,10 @@ namespace Trello.Application.Utilities.GlobalVariables
 
            
         }
+
+        public static class CardActivityField
+        {
+            public const string ADD_THIS_CARD = "add this card to";
+        }
     }
 }
