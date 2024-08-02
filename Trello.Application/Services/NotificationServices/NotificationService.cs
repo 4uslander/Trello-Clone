@@ -66,6 +66,12 @@ namespace Trello.Application.Services.NotificationServices
             await _unitOfWork.SaveChangesAsync();
 
             var createdNotificationDto = _mapper.Map<NotificationDetail>(notification);
+
+            var totalNotifications = await GetNotificationCountAsync(requestBody.UserId);
+
+            // Send the total number of notifications to the client
+            await _hubContext.Clients.All.SendAsync(SignalRHubEnum.ReceiveTotalNotification.ToString(), totalNotifications);
+
             return createdNotificationDto;
         }
 
@@ -119,8 +125,6 @@ namespace Trello.Application.Services.NotificationServices
 
             int notificationCount = await _unitOfWork.NotificationRepository.GetAll()
                 .CountAsync(u => u.UserId == userId && !u.IsRead);
-
-            //await _hubContext.Clients.User(userId.ToString()).SendAsync(SignalRHubEnum.ReceiveTotalNotification.ToString(), notificationCount);
 
             return notificationCount;
         }

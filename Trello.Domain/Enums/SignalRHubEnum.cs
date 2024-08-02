@@ -11,6 +11,7 @@ namespace Trello.Domain.Enums
         ReceiveComment,
         UpdateComment,
         ReceiveTotalNotification,
-        ReceiveActivity
+        ReceiveActivity,
+        ReceiveNotification,
     }
 }
