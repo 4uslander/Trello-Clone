@@ -35,17 +35,21 @@ namespace Trello.Application.Services.CardServices
         }
         public async Task<CardDetail> CreateCardAsync(CreateCardDTO requestBody)
         {
+            // Check if the request body is null and throw an exception if it is
             if (requestBody == null)
                 throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.REQUEST_BODY, ErrorMessage.NULL_REQUEST_BODY);
 
+            // Verify that the list exists
             var existingList = await _listService.GetListByIdAsync(requestBody.ListId);
             if (existingList == null)
             {
                 throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.LIST_FIELD, ErrorMessage.LIST_NOT_EXIST);
             }
 
+            // Get the current user ID
             var currentUserId = UserAuthorizationHelper.GetUserAuthorizationById(_httpContextAccessor.HttpContext);
 
+            // Map the request body to a Card entity and set metadata
             var card = _mapper.Map<Card>(requestBody);
             card.Id = Guid.NewGuid();
             card.IsActive = true;
@@ -53,19 +57,22 @@ namespace Trello.Application.Services.CardServices
             card.CreatedDate = DateTime.UtcNow;
             card.CreatedUser = currentUserId;
 
+            // Insert the new card into the repository
             await _unitOfWork.CardRepository.InsertAsync(card);
             await _unitOfWork.SaveChangesAsync();
 
+            // Map the created card to a CardDetail DTO
             var createdCardDto = _mapper.Map<CardDetail>(card);
             return createdCardDto;
         }
 
         public async Task<List<CardDetail>> GetAllCardAsync(Guid listId)
         {
+            // Query to get all active cards for a specific list
             IQueryable<Card> cardsQuery = _unitOfWork.CardRepository.GetAll();
-
             cardsQuery = cardsQuery.Where(u => u.ListId == listId && u.IsActive);
 
+            // Map the cards to CardDetail DTOs
             List<CardDetail> cards = await cardsQuery
                 .Select(u => _mapper.Map<CardDetail>(u))
                 .ToListAsync();
@@ -74,10 +81,11 @@ namespace Trello.Application.Services.CardServices
 
         public async Task<List<CardDetail>> GetCardByFilterAsync(Guid listId, string? title, bool? isActive)
         {
+            // Query to get all cards for a specific list
             IQueryable<Card> cardsQuery = _unitOfWork.CardRepository.GetAll();
-
             cardsQuery = cardsQuery.Where(c => c.ListId == listId);
 
+            // Apply filters based on the provided parameters
             if (!string.IsNullOrEmpty(title))
             {
                 cardsQuery = cardsQuery.Where(c => c.Title.Contains(title));
@@ -88,6 +96,7 @@ namespace Trello.Application.Services.CardServices
                 cardsQuery = cardsQuery.Where(c => c.IsActive == isActive.Value);
             }
 
+            // Map the filtered cards to CardDetail DTOs
             List<CardDetail> cards = await cardsQuery
                 .Select(c => _mapper.Map<CardDetail>(c))
                 .ToListAsync();
@@ -97,10 +106,11 @@ namespace Trello.Application.Services.CardServices
 
         public async Task<CardDetail> UpdateCardAsync(Guid id, UpdateCardDTO requestBody)
         {
+            // Get the card by ID and throw an exception if it doesn't exist
             var card = await _unitOfWork.CardRepository.GetByIdAsync(id)
                 ?? throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.CARD_FIELD, ErrorMessage.CARD_NOT_EXIST);
 
-
+            // Get the current user ID
             var currentUserId = UserAuthorizationHelper.GetUserAuthorizationById(_httpContextAccessor.HttpContext);
 
             // Validate that EndDate is later than StartDate
@@ -130,6 +140,7 @@ namespace Trello.Application.Services.CardServices
                 }
             }
 
+            // Map the request body to the card entity and set metadata
             card = _mapper.Map(requestBody, card);
             card.UpdatedDate = DateTime.UtcNow;
             card.UpdatedUser = currentUserId;
@@ -137,58 +148,73 @@ namespace Trello.Application.Services.CardServices
             card.EndDate = requestBody.EndDate;
             card.ReminderDate = requestBody.ReminderDate;
 
+            // Update the card in the repository
             _unitOfWork.CardRepository.Update(card);
             await _unitOfWork.SaveChangesAsync();
 
+            // Map the updated card to a CardDetail DTO
             var cardDetail = _mapper.Map<CardDetail>(card);
             return cardDetail;
         }
 
         public async Task<CardDetail> ChangeStatusAsync(Guid Id, bool isActive)
         {
+            // Get the card by ID and throw an exception if it doesn't exist
             var card = await _unitOfWork.CardRepository.GetByIdAsync(Id)
                 ?? throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.CARD_FIELD, ErrorMessage.CARD_NOT_EXIST);
 
+            // Get the current user ID
             var currentUserId = UserAuthorizationHelper.GetUserAuthorizationById(_httpContextAccessor.HttpContext);
 
+            // Update the card's status and metadata
             card.UpdatedDate = DateTime.UtcNow;
             card.UpdatedUser = currentUserId;
             card.IsActive = isActive;
 
+            // Update the card in the repository
             _unitOfWork.CardRepository.Update(card);
             await _unitOfWork.SaveChangesAsync();
 
+            // Map the updated card to a CardDetail DTO
             var mappedList = _mapper.Map<CardDetail>(card);
             return mappedList;
         }
 
         public async Task<CardDetail> MoveCardAsync(Guid cardId, Guid newListId)
         {
+            // Get the card by ID and throw an exception if it doesn't exist
             var card = await _unitOfWork.CardRepository.GetByIdAsync(cardId)
                 ?? throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.CARD_FIELD, ErrorMessage.CARD_NOT_EXIST);
 
+            // Verify that the new list exists
             var newList = await _listService.GetListByIdAsync(newListId);
             if (newList == null)
             {
                 throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.LIST_FIELD, ErrorMessage.LIST_NOT_EXIST);
             }
 
+            // Get the current user ID
             var currentUserId = UserAuthorizationHelper.GetUserAuthorizationById(_httpContextAccessor.HttpContext);
 
+            // Update the card's list ID and metadata
             card.ListId = newListId;
             card.UpdatedDate = DateTime.UtcNow;
             card.UpdatedUser = currentUserId;
 
+            // Update the card in the repository
             _unitOfWork.CardRepository.Update(card);
             await _unitOfWork.SaveChangesAsync();
 
+            // Map the updated card to a CardDetail DTO
             var cardDetail = _mapper.Map<CardDetail>(card);
             return cardDetail;
         }
 
         public async Task<Card> GetCardByIdAsync(Guid cardId)
         {
+            // Get the card by ID
             return await _unitOfWork.CardRepository.GetByIdAsync(cardId);
         }
+
     }
 }
