@@ -47,5 +47,10 @@ namespace Trello.Application.Utilities.Helper.SignalRHub
         {
             await Clients.All.SendAsync(SignalRHubEnum.ReceiveActivity.ToString(), activity);
         }
+
+        public async Task SendNotification(NotificationDetail notification)
+        {
+            await Clients.All.SendAsync(SignalRHubEnum.ReceiveNotification.ToString(), notification);
+        }
     }
 }
