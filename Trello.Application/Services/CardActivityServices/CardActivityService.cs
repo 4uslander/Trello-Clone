@@ -29,25 +29,13 @@ namespace Trello.Application.Services.CardActivityServices
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly ICardService _cardService;
-        private readonly IUserService _userService;
-        private readonly ICardMemberService _cardMemberService;
-        private readonly IBoardService _boardService;
-        private readonly IBoardMemberService _boardMemberService;
         private readonly IHubContext<SignalHub> _hubContext;
 
-        public CardActivityService(IUnitOfWork unitOfWork, IMapper mapper, IHttpContextAccessor httpContextAccessor,
-            ICardService cardService, IUserService userService, ICardMemberService cardMemberService, 
-            IBoardService boardService, IBoardMemberService boardMemberService, IHubContext<SignalHub> hubContext)
+        public CardActivityService(IUnitOfWork unitOfWork, IMapper mapper, IHttpContextAccessor httpContextAccessor, IHubContext<SignalHub> hubContext)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _httpContextAccessor = httpContextAccessor;
-            _cardService = cardService;
-            _userService = userService; //
-            _cardMemberService = cardMemberService; //
-            _boardService = boardService;
-            _boardMemberService = boardMemberService;
             _hubContext = hubContext;
         }
 
@@ -58,17 +46,10 @@ namespace Trello.Application.Services.CardActivityServices
                  throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.REQUEST_BODY, ErrorMessage.NULL_REQUEST_BODY);
             }
 
-
-            var existingCard = await _cardService.GetCardByIdAsync(requestBody.CardId);
-            if (existingCard == null)
-            {
-                throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.CARD_FIELD, ErrorMessage.CARD_NOT_EXIST);
-            }
             var currentUserId = UserAuthorizationHelper.GetUserAuthorizationById(_httpContextAccessor.HttpContext);
 
             var activity = _mapper.Map<CardActivity>(requestBody);
             activity.Id = Guid.NewGuid();
-            
             activity.CreatedDate = DateTime.UtcNow;
             activity.CreatedUser = currentUserId;
             activity.IsActive = true;
@@ -77,22 +58,9 @@ namespace Trello.Application.Services.CardActivityServices
             await _unitOfWork.SaveChangesAsync();
 
             var createdCardActivityDto = _mapper.Map<CardActivityDetail>(activity);
-
-            var board = await _boardService.GetBoardByCardIdAsync(existingCard.Id);
-            if(board == null)
-            {
-                throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.BOARD_FIELD, ErrorMessage.BOARD_NOT_EXIST);
-            }
-
-            var boardMembers = await _boardMemberService.GetAllBoardMemberAsync(board.Id);
-            foreach (var member in boardMembers)
-            {
-                await _hubContext.Clients.User(member.UserId.ToString()).SendAsync(SignalRHubEnum.ReceiveActivity.ToString(), createdCardActivityDto);
-            }
+            await _hubContext.Clients.All.SendAsync(SignalRHubEnum.ReceiveActivity.ToString(), createdCardActivityDto);
 
             return createdCardActivityDto;
-
-
         }
 
         public async Task<List<CardActivityDetail>> GetCardActivityDetailAsync(Guid cardId)
@@ -100,8 +68,23 @@ namespace Trello.Application.Services.CardActivityServices
             IQueryable<CardActivity> cardActivitiesQuery = _unitOfWork.CardActivityRepository.GetAll();
             cardActivitiesQuery = cardActivitiesQuery.Where(u => u.CardId == cardId && u.IsActive);
 
-            List<CardActivityDetail> list = await cardActivitiesQuery.Select(u => _mapper.Map<CardActivityDetail>(u)).ToListAsync();
-            return list ;
+            //List<CardActivityDetail> list = await cardActivitiesQuery.Select(u => _mapper.Map<CardActivityDetail>(u)).ToListAsync();
+
+            List<CardActivityDetail> cardActivities = await cardActivitiesQuery.Select(cm => new CardActivityDetail
+            {
+                Id = cm.Id,
+                CardId = cm.CardId,
+                UserId = cm.UserId,
+                UserName = cm.User.Name,
+                Activity = cm.Activity,
+                CreatedDate = cm.CreatedDate,
+                CreatedUser = cm.CreatedUser,
+                UpdatedDate = cm.UpdatedDate,
+                UpdatedUser = cm.UpdatedUser,
+                IsActive = cm.IsActive,
+
+            }).ToListAsync();
+            return cardActivities;
         }
 
 
