@@ -216,5 +216,28 @@ namespace Trello.Application.Services.CardServices
             return await _unitOfWork.CardRepository.GetByIdAsync(cardId);
         }
 
+
+        public async Task<CardDetail> GetCardByTodoIdAsync(Guid todoId)
+        {
+            var todo = await _unitOfWork.ToDoRepository.GetByIdAsync(todoId);
+            if (todo == null)
+            {
+                throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.TODO_FIELD, ErrorMessage.TODO_NOT_EXIST);
+            }
+
+            var card = await _unitOfWork.CardRepository.GetByIdAsync(todo.CardId);
+            if (card == null)
+            {
+                throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.CARD_FIELD, ErrorMessage.CARD_NOT_EXIST);
+            }
+
+            return _mapper.Map<CardDetail>(card);
+        }
+
+        public async Task<List<CardDetail>> GetCardsForReminderAsync(DateTime currentDate)
+        {
+            var cards = await _unitOfWork.CardRepository.GetCardsByReminderDateAsync(currentDate);
+            return _mapper.Map<List<CardDetail>>(cards);
+        }
     }
 }

@@ -126,5 +126,23 @@ namespace Trello.Infrastructure.Repositories
             _dbSet.Remove(entity);
         }
 
+        public async Task<List<Domain.Models.Task>> GetTasksByReminderDateAsync(DateTime reminderDate)
+        {
+            return await _context.Tasks
+                .Where(t => t.DueDate.HasValue && t.DueDate.Value.Date == reminderDate.Date)
+                .ToListAsync();
+        }
+        public async Task<List<Card>> GetCardsByReminderDateAsync(DateTime? reminderDate)
+        {
+            if (reminderDate == null)
+            {
+                return new List<Card>();
+            }
+
+            return await _context.Cards
+                .Where(c => c.ReminderDate.HasValue && c.ReminderDate.Value.Date == reminderDate.Value.Date)
+                .ToListAsync();
+        }
+
     }
 }
