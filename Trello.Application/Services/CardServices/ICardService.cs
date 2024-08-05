@@ -17,5 +17,7 @@ namespace Trello.Application.Services.CardServices
         public Task<CardDetail> ChangeStatusAsync(Guid Id, bool isActive);
         public Task<CardDetail> MoveCardAsync(Guid cardId, Guid newListId);
         public Task<Card> GetCardByIdAsync(Guid cardId);
+        public Task<CardDetail> GetCardByTodoIdAsync(Guid todoId);
+        Task<List<CardDetail>> GetCardsForReminderAsync(DateTime currentDate);
     }
 }

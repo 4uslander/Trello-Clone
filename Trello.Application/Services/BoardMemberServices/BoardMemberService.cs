@@ -113,6 +113,8 @@ namespace Trello.Application.Services.BoardMemberServices
                     RoleId = bm.RoleId,
                     RoleName = bm.Role.Name,
                     IsActive = bm.IsActive,
+                    CreatedUser = bm.CreatedUser,
+                    UpdatedUser = bm.UpdatedUser,
                     CreatedDate = bm.CreatedDate,
                     UpdatedDate = bm.UpdatedDate
                 })
