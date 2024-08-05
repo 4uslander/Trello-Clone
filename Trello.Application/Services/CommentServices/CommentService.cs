@@ -47,18 +47,21 @@ namespace Trello.Application.Services.CommentServices
 
         public async Task<CommentDetail> CreateCommentAsync(CommentDTO requestBody)
         {
+            // Check if the request body is null and throw an exception if it is
             if (requestBody == null)
                 throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.REQUEST_BODY, ErrorMessage.NULL_REQUEST_BODY);
 
+            // Verify that the card exists
             var existingCard = await _cardService.GetCardByIdAsync(requestBody.CardId);
-
             if (existingCard == null)
             {
                 throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.CARD_FIELD, ErrorMessage.CARD_NOT_EXIST);
             }
 
+            // Get the current user ID
             var currentUserId = UserAuthorizationHelper.GetUserAuthorizationById(_httpContextAccessor.HttpContext);
 
+            // Map the request body to a Comment entity and set metadata
             var comment = _mapper.Map<Comment>(requestBody);
             comment.Id = Guid.NewGuid();
             comment.UserId = currentUserId;
@@ -66,19 +69,24 @@ namespace Trello.Application.Services.CommentServices
             comment.CreatedDate = DateTime.UtcNow;
             comment.CreatedUser = currentUserId;
 
+            // Insert the new comment into the repository
             await _unitOfWork.CommentRepository.InsertAsync(comment);
             await _unitOfWork.SaveChangesAsync();
 
+            // Map the created comment to a CommentDetail DTO
             var createdCommentDto = _mapper.Map<CommentDetail>(comment);
 
+            // Get the board associated with the card
             var board = await _boardService.GetBoardByCardIdAsync(existingCard.Id);
             if (board == null)
             {
                 throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.BOARD_FIELD, ErrorMessage.BOARD_NOT_EXIST);
             }
 
+            // Get all members of the board
             var boardMembers = await _boardMemberService.GetAllBoardMemberAsync(board.Id);
 
+            // Notify all board members about the new comment
             foreach (var member in boardMembers)
             {
                 await _hubContext.Clients.All.SendAsync(SignalRHubEnum.ReceiveComment.ToString(), createdCommentDto);
@@ -89,10 +97,11 @@ namespace Trello.Application.Services.CommentServices
 
         public async Task<List<CommentDetail>> GetAllCommentAsync(Guid cardId)
         {
+            // Query to get all active comments for a specific card
             IQueryable<Comment> commentsQuery = _unitOfWork.CommentRepository.GetAll();
-
             commentsQuery = commentsQuery.Where(u => u.CardId == cardId && u.IsActive);
 
+            // Map the comments to CommentDetail DTOs
             List<CommentDetail> lists = await commentsQuery
                 .Select(cm => new CommentDetail
                 {
@@ -114,20 +123,26 @@ namespace Trello.Application.Services.CommentServices
 
         public async Task<CommentDetail> UpdateCommentAsync(Guid id, string content)
         {
+            // Get the comment by ID and throw an exception if it doesn't exist
             var comment = await _unitOfWork.CommentRepository.GetByIdAsync(id)
                 ?? throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.COMMENT_FIELD, ErrorMessage.COMMENT_NOT_EXIST);
 
+            // Get the current user ID
             var currentUserId = UserAuthorizationHelper.GetUserAuthorizationById(_httpContextAccessor.HttpContext);
 
+            // Update the comment's content and metadata
             comment.UpdatedDate = DateTime.UtcNow;
             comment.UpdatedUser = currentUserId;
             comment.Content = content;
 
+            // Update the comment in the repository
             _unitOfWork.CommentRepository.Update(comment);
             await _unitOfWork.SaveChangesAsync();
 
+            // Map the updated comment to a CommentDetail DTO
             var commentDetail = _mapper.Map<CommentDetail>(comment);
 
+            // Get the board associated with the card
             var existingCard = await _cardService.GetCardByIdAsync(comment.CardId);
             var board = await _boardService.GetBoardByCardIdAsync(existingCard.Id);
             if (board == null)
@@ -135,8 +150,10 @@ namespace Trello.Application.Services.CommentServices
                 throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.BOARD_FIELD, ErrorMessage.BOARD_NOT_EXIST);
             }
 
+            // Get all members of the board
             var boardMembers = await _boardMemberService.GetAllBoardMemberAsync(board.Id);
 
+            // Notify all board members about the updated comment
             foreach (var member in boardMembers)
             {
                 await _hubContext.Clients.User(member.UserId.ToString()).SendAsync(SignalRHubEnum.UpdateComment.ToString(), commentDetail);
@@ -147,21 +164,27 @@ namespace Trello.Application.Services.CommentServices
 
         public async Task<CommentDetail> ChangeStatusAsync(Guid id, bool isActive)
         {
+            // Get the comment by ID and throw an exception if it doesn't exist
             var comment = await _unitOfWork.CommentRepository.GetByIdAsync(id);
             if (comment == null)
                 throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.COMMENT_FIELD, ErrorMessage.COMMENT_NOT_EXIST);
 
+            // Get the current user ID
             var currentUserId = UserAuthorizationHelper.GetUserAuthorizationById(_httpContextAccessor.HttpContext);
 
+            // Update the comment's status and metadata
             comment.UpdatedDate = DateTime.UtcNow;
             comment.UpdatedUser = currentUserId;
             comment.IsActive = isActive;
 
+            // Update the comment in the repository
             _unitOfWork.CommentRepository.Update(comment);
             await _unitOfWork.SaveChangesAsync();
 
+            // Map the updated comment to a CommentDetail DTO
             var mappedComment = _mapper.Map<CommentDetail>(comment);
 
+            // Get the board associated with the card
             var existingCard = await _cardService.GetCardByIdAsync(comment.CardId);
             var board = await _boardService.GetBoardByCardIdAsync(existingCard.Id);
             if (board == null)
@@ -169,8 +192,10 @@ namespace Trello.Application.Services.CommentServices
                 throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.BOARD_FIELD, ErrorMessage.BOARD_NOT_EXIST);
             }
 
+            // Get all members of the board
             var boardMembers = await _boardMemberService.GetAllBoardMemberAsync(board.Id);
 
+            // Notify all board members about the updated comment status
             foreach (var member in boardMembers)
             {
                 await _hubContext.Clients.User(member.UserId.ToString()).SendAsync(SignalRHubEnum.UpdateComment.ToString(), mappedComment);
@@ -178,5 +203,6 @@ namespace Trello.Application.Services.CommentServices
 
             return mappedComment;
         }
+
     }
 }
