@@ -224,6 +224,7 @@ namespace Trello.Application.Services.TaskServices
 
             var checkTodoId = await _todoService.GetTodoListByIdAsync(task.TodoId);
 
+            // Create card activity and check task done or not
             if (isChecked == true)
             {
                 var cardActivityRequest = new CreateCardActivityDTO

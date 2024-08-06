@@ -76,15 +76,14 @@ namespace Trello.Application.Services.ToDoServices
             // Insert the new ToDo into the repository and save changes
             await _unitOfWork.ToDoRepository.InsertAsync(todo);
 
+            // Create card activity
             var cardActivityRequest = new CreateCardActivityDTO
             {
                 Activity = $"Add todo list {requestBody.Title} to this card",
                 CardId = requestBody.CardId,
                 UserId = todo.CreatedUser
             };
-
             await _cardActivityService.CreateCardActivityAsync(cardActivityRequest);
-
             await _unitOfWork.SaveChangesAsync();
 
             // Map the created ToDo to a ToDoDetail DTO and return it
@@ -150,18 +149,15 @@ namespace Trello.Application.Services.ToDoServices
             // Update the ToDo in the repository and save changes
             _unitOfWork.ToDoRepository.Update(todo);
 
-
+            // Create card activity
             var cardActivityRequest = new CreateCardActivityDTO 
             {
                 Activity = $"Rename todo list  {requestBody.Title} from todo list {preTodoTitle} ",
                 CardId = todo.CardId,
                 UserId = todo.UpdatedUser
             };
-
             await _cardActivityService.CreateCardActivityAsync(cardActivityRequest);
-
             await _unitOfWork.SaveChangesAsync();
-
             // Map the updated ToDo to a ToDoDetail DTO and return it
             var todoDetail = _mapper.Map<ToDoDetail>(todo);
             return todoDetail;
@@ -185,7 +181,7 @@ namespace Trello.Application.Services.ToDoServices
             _unitOfWork.ToDoRepository.Update(todo);
 
 
-
+            // Create card activity
             var cardActivityRequest = new CreateCardActivityDTO
             {
                 Activity = $"Removed todo list {todo.Title} from this card",

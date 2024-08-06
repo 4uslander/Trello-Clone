@@ -101,7 +101,7 @@ namespace Trello.Application.Services.CardMemberServices
             var notificationDetail = await _notificationService.CreateNotificationAsync(notificationRequest);
             await _firebaseNotificationService.SendNotificationAsync(notificationDetail.UserId, notificationDetail.Title, notificationDetail.Body);
 
-            // 
+            // Create the card activity 
             var cardActivityRequest = new CreateCardActivityDTO
             {
                 Activity = "Joined this card",
@@ -110,8 +110,6 @@ namespace Trello.Application.Services.CardMemberServices
             };
             await _cardActivityService.CreateCardActivityAsync(cardActivityRequest);
             
-           
-
             await _unitOfWork.SaveChangesAsync();
             return createdBoardMemberDto;
         }

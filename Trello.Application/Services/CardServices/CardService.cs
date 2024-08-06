@@ -66,17 +66,15 @@ namespace Trello.Application.Services.CardServices
             // Insert the new card into the repository
             await _unitOfWork.CardRepository.InsertAsync(card);
 
+            // Create card activity 
             var cardActivityRequest = new CreateCardActivityDTO
             {
                 Activity = $"Add this card to {existingList.Name}",
                 CardId = card.Id,
                 UserId = card.CreatedUser
             };
-
             await _cardActivityService.CreateCardActivityAsync(cardActivityRequest);
-
             await _unitOfWork.SaveChangesAsync();
-
             // Map the created card to a CardDetail DTO
             var createdCardDto = _mapper.Map<CardDetail>(card);
             return createdCardDto;
