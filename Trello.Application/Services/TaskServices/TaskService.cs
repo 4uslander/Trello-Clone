@@ -2,10 +2,12 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using System.Net;
+using Trello.Application.DTOs.CardActivity;
 using Trello.Application.DTOs.Notification;
 using Trello.Application.DTOs.Task;
 using Trello.Application.Services.BoardMemberServices;
 using Trello.Application.Services.CardServices;
+using Trello.Application.Services.CardActivityServices;
 using Trello.Application.Services.NotificationServices;
 using Trello.Application.Services.ToDoServices;
 using Trello.Application.Utilities.ErrorHandler;
@@ -26,10 +28,12 @@ namespace Trello.Application.Services.TaskServices
         private readonly IToDoService _todoService;
         private readonly IFirebaseNotificationService _firebaseNotificationService;
         private readonly INotificationService _notificationService;
+        private readonly ICardActivityService _cardActivityService;
         private readonly ICardService _cardService;
 
-        public TaskService(IUnitOfWork unitOfWork, IMapper mapper, IHttpContextAccessor httpContextAccessor, IBoardMemberService boardMemberService,
-            IToDoService todoService, IFirebaseNotificationService firebaseNotificationService, INotificationService notificationService, ICardService cardService)
+        public TaskService(IUnitOfWork unitOfWork, IMapper mapper, IHttpContextAccessor httpContextAccessor,
+            IBoardMemberService boardMemberService, IToDoService todoService, IFirebaseNotificationService firebaseNotificationService,
+            INotificationService notificationService, ICardActivityService cardActivityService, ICardService cardService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
@@ -38,6 +42,7 @@ namespace Trello.Application.Services.TaskServices
             _todoService = todoService;
             _firebaseNotificationService = firebaseNotificationService;
             _notificationService = notificationService;
+            _cardActivityService = cardActivityService;
             _cardService = cardService;
         }
 
@@ -260,6 +265,34 @@ namespace Trello.Application.Services.TaskServices
 
                 await _firebaseNotificationService.SendNotificationAsync(notificationDetail.UserId, notificationDetail.Title, notificationDetail.Body);
             }
+
+            var checkTodoId = await _todoService.GetTodoListByIdAsync(task.TodoId);
+
+            // Create card activity and check task done or not
+            if (isChecked == true)
+            {
+                var cardActivityRequest = new CreateCardActivityDTO
+                {
+
+                    Activity = $"Completed {task.Name} on this card",
+                    CardId = checkTodoId.CardId,
+                    UserId = task.UpdatedUser
+                };
+                await _cardActivityService.CreateCardActivityAsync(cardActivityRequest);
+            }
+            else if (isChecked == false)
+            {
+                var cardActivityRequest = new CreateCardActivityDTO
+                {
+
+                    Activity = $"Marked {task.Name} completed on this card",
+                    CardId = checkTodoId.CardId,
+                    UserId = task.UpdatedUser
+                };
+                await _cardActivityService.CreateCardActivityAsync(cardActivityRequest);
+            }
+
+           
 
             await _unitOfWork.SaveChangesAsync();
 

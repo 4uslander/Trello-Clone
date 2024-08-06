@@ -8,9 +8,11 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using Trello.Application.DTOs.Card;
+using Trello.Application.DTOs.CardActivity;
 using Trello.Application.DTOs.List;
 using Trello.Application.DTOs.ToDo;
 using Trello.Application.Services.BoardMemberServices;
+using Trello.Application.Services.CardActivityServices;
 using Trello.Application.Services.CardMemberServices;
 using Trello.Application.Services.CardServices;
 using Trello.Application.Utilities.ErrorHandler;
@@ -28,14 +30,17 @@ namespace Trello.Application.Services.ToDoServices
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ICardService _cardService;
         private readonly IBoardMemberService _boardMemberService;
+        private readonly ICardActivityService _cardActivityService;
 
-        public ToDoService(IUnitOfWork unitOfWork, IMapper mapper, IHttpContextAccessor httpContextAccessor, ICardService cardService, IBoardMemberService boardMemberService)
+        public ToDoService(IUnitOfWork unitOfWork, IMapper mapper, IHttpContextAccessor httpContextAccessor,
+            ICardService cardService, IBoardMemberService boardMemberService, ICardActivityService cardActivityService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _httpContextAccessor = httpContextAccessor;
             _cardService = cardService;
             _boardMemberService = boardMemberService;
+            _cardActivityService = cardActivityService;
         }
 
         public async Task<ToDoDetail> CreateToDoListAsync(CreateToDoDTO requestBody)
@@ -70,6 +75,15 @@ namespace Trello.Application.Services.ToDoServices
 
             // Insert the new ToDo into the repository and save changes
             await _unitOfWork.ToDoRepository.InsertAsync(todo);
+
+            // Create card activity
+            var cardActivityRequest = new CreateCardActivityDTO
+            {
+                Activity = $"Add todo list {requestBody.Title} to this card",
+                CardId = requestBody.CardId,
+                UserId = todo.CreatedUser
+            };
+            await _cardActivityService.CreateCardActivityAsync(cardActivityRequest);
             await _unitOfWork.SaveChangesAsync();
 
             // Map the created ToDo to a ToDoDetail DTO and return it
@@ -122,6 +136,7 @@ namespace Trello.Application.Services.ToDoServices
             // Get the ToDo by ID and throw an exception if it doesn't exist
             var todo = await _unitOfWork.ToDoRepository.GetByIdAsync(id)
                 ?? throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.TODO_FIELD, ErrorMessage.TODO_NOT_EXIST);
+            var preTodoTitle = todo.Title;
 
             // Get the current user ID from the HTTP context
             var currentUserId = UserAuthorizationHelper.GetUserAuthorizationById(_httpContextAccessor.HttpContext);
@@ -133,8 +148,16 @@ namespace Trello.Application.Services.ToDoServices
 
             // Update the ToDo in the repository and save changes
             _unitOfWork.ToDoRepository.Update(todo);
-            await _unitOfWork.SaveChangesAsync();
 
+            // Create card activity
+            var cardActivityRequest = new CreateCardActivityDTO 
+            {
+                Activity = $"Rename todo list  {requestBody.Title} from todo list {preTodoTitle} ",
+                CardId = todo.CardId,
+                UserId = todo.UpdatedUser
+            };
+            await _cardActivityService.CreateCardActivityAsync(cardActivityRequest);
+            await _unitOfWork.SaveChangesAsync();
             // Map the updated ToDo to a ToDoDetail DTO and return it
             var todoDetail = _mapper.Map<ToDoDetail>(todo);
             return todoDetail;
@@ -156,6 +179,17 @@ namespace Trello.Application.Services.ToDoServices
 
             // Update the ToDo in the repository and save changes
             _unitOfWork.ToDoRepository.Update(todo);
+
+
+            // Create card activity
+            var cardActivityRequest = new CreateCardActivityDTO
+            {
+                Activity = $"Removed todo list {todo.Title} from this card",
+                CardId = todo.CardId,
+                UserId = todo.UpdatedUser,
+            };
+
+            await _cardActivityService.CreateCardActivityAsync(cardActivityRequest);
             await _unitOfWork.SaveChangesAsync();
 
             // Map the updated ToDo to a ToDoDetail DTO and return it

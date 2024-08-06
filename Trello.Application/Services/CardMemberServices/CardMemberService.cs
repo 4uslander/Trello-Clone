@@ -2,9 +2,11 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using System.Net;
+using Trello.Application.DTOs.CardActivity;
 using Trello.Application.DTOs.CardMember;
 using Trello.Application.DTOs.Notification;
 using Trello.Application.Services.BoardMemberServices;
+using Trello.Application.Services.CardActivityServices;
 using Trello.Application.Services.CardServices;
 using Trello.Application.Services.NotificationServices;
 using Trello.Application.Services.UserServices;
@@ -27,9 +29,11 @@ namespace Trello.Application.Services.CardMemberServices
         private readonly IBoardMemberService _boardMemberService;
         private readonly IFirebaseNotificationService _firebaseNotificationService;
         private readonly INotificationService _notificationService;
+        private readonly ICardActivityService _cardActivityService;
 
-        public CardMemberService(IUnitOfWork unitOfWork, IMapper mapper, IHttpContextAccessor httpContextAccessor,ICardService cardService, IUserService userService,
-            IBoardMemberService boardMemberService, IFirebaseNotificationService firebaseNotificationService, INotificationService notificationService)
+        public CardMemberService(IUnitOfWork unitOfWork, IMapper mapper, IHttpContextAccessor httpContextAccessor,
+            ICardService cardService, IUserService userService, IBoardMemberService boardMemberService,
+            IFirebaseNotificationService firebaseNotificationService, INotificationService notificationService, ICardActivityService cardActivityService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
@@ -39,6 +43,7 @@ namespace Trello.Application.Services.CardMemberServices
             _boardMemberService = boardMemberService;
             _firebaseNotificationService = firebaseNotificationService;
             _notificationService = notificationService;
+            _cardActivityService = cardActivityService;
         }
 
         public async Task<CardMemberDetail> CreateCardMemberAsync(CardMemberDTO requestBody)
@@ -96,7 +101,15 @@ namespace Trello.Application.Services.CardMemberServices
             var notificationDetail = await _notificationService.CreateNotificationAsync(notificationRequest);
             await _firebaseNotificationService.SendNotificationAsync(notificationDetail.UserId, notificationDetail.Title, notificationDetail.Body);
 
-            // Save the changes to the repository
+            // Create the card activity 
+            var cardActivityRequest = new CreateCardActivityDTO
+            {
+                Activity = "Joined this card",
+                CardId = requestBody.CardId,
+                UserId = requestBody.UserId
+            };
+            await _cardActivityService.CreateCardActivityAsync(cardActivityRequest);
+            
             await _unitOfWork.SaveChangesAsync();
             return createdBoardMemberDto;
         }

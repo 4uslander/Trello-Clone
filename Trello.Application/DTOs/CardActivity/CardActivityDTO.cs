@@ -12,7 +12,7 @@ namespace Trello.Application.DTOs.CardActivity
         [Required(ErrorMessage = "Card Id is required")]
         public Guid CardId { get; set; }
         [Required(ErrorMessage = "User Id is required")]
-        public string UserId { get; set; }
+        public Guid UserId { get; set; }
     }
 
     public class CreateCardActivityDTO : CardActivityDTO

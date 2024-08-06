@@ -16,6 +16,8 @@ using System.Xml.Linq;
 using Microsoft.EntityFrameworkCore;
 using Trello.Application.Services.ListServices;
 using Trello.Application.Utilities.Helper.ConvertDate;
+using Trello.Application.Services.CardActivityServices;
+using Trello.Application.DTOs.CardActivity;
 
 namespace Trello.Application.Services.CardServices
 {
@@ -25,14 +27,18 @@ namespace Trello.Application.Services.CardServices
         private readonly IMapper _mapper;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IListService _listService;
+        private readonly ICardActivityService _cardActivityService;
 
-        public CardService(IUnitOfWork unitOfWork, IMapper mapper, IHttpContextAccessor httpContextAccessor, IListService listService)
+        public CardService(IUnitOfWork unitOfWork, IMapper mapper, IHttpContextAccessor httpContextAccessor, 
+            IListService listService, ICardActivityService cardActivityService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _httpContextAccessor = httpContextAccessor;
             _listService = listService;
+            _cardActivityService = cardActivityService;
         }
+
         public async Task<CardDetail> CreateCardAsync(CreateCardDTO requestBody)
         {
             // Check if the request body is null and throw an exception if it is
@@ -59,8 +65,16 @@ namespace Trello.Application.Services.CardServices
 
             // Insert the new card into the repository
             await _unitOfWork.CardRepository.InsertAsync(card);
-            await _unitOfWork.SaveChangesAsync();
 
+            // Create card activity 
+            var cardActivityRequest = new CreateCardActivityDTO
+            {
+                Activity = $"Add this card to {existingList.Name}",
+                CardId = card.Id,
+                UserId = card.CreatedUser
+            };
+            await _cardActivityService.CreateCardActivityAsync(cardActivityRequest);
+            await _unitOfWork.SaveChangesAsync();
             // Map the created card to a CardDetail DTO
             var createdCardDto = _mapper.Map<CardDetail>(card);
             return createdCardDto;
@@ -193,6 +207,9 @@ namespace Trello.Application.Services.CardServices
                 throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.LIST_FIELD, ErrorMessage.LIST_NOT_EXIST);
             }
 
+            //Get detail the current List
+            var oldList = await _listService.GetListByIdAsync(card.ListId); 
+
             // Get the current user ID
             var currentUserId = UserAuthorizationHelper.GetUserAuthorizationById(_httpContextAccessor.HttpContext);
 
@@ -203,6 +220,17 @@ namespace Trello.Application.Services.CardServices
 
             // Update the card in the repository
             _unitOfWork.CardRepository.Update(card);
+
+
+            //Record card activity
+            var cardActivityRequest = new CreateCardActivityDTO
+            {
+                Activity = $"Moved this card from {oldList.Name} to {newList.Name}",
+                CardId = cardId,
+                UserId = card.UpdatedUser
+            };
+            await _cardActivityService.CreateCardActivityAsync(cardActivityRequest);
+
             await _unitOfWork.SaveChangesAsync();
 
             // Map the updated card to a CardDetail DTO

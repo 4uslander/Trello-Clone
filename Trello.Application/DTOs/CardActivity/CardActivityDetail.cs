@@ -11,6 +11,7 @@ namespace Trello.Application.DTOs.CardActivity
         public Guid Id { get; set; }
         public Guid CardId { get; set; }
         public Guid UserId { get; set; }
+        public string UserName { get; set; }
         public string Activity { get; set; } = null!;
         public DateTime CreatedDate { get; set; }
         public Guid CreatedUser { get; set; }
