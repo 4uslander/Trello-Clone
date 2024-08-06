@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using AutoMapper.Execution;
+using FirebaseAdmin.Messaging;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
@@ -19,6 +20,7 @@ using Trello.Application.Services.UserServices;
 using Trello.Application.Utilities.ErrorHandler;
 using Trello.Application.Utilities.Helper.GetUserAuthorization;
 using Trello.Application.Utilities.Helper.SignalRHub;
+using Trello.Application.Utilities.Helper.SignalRHub.UserConnection;
 using Trello.Domain.Enums;
 using Trello.Domain.Models;
 using Trello.Infrastructure.IRepositories;
@@ -33,15 +35,17 @@ namespace Trello.Application.Services.NotificationServices
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IUserService _userService;
         private readonly IHubContext<SignalHub> _hubContext;
+        private readonly IUserConnectionManager _userConnectionManager;
 
         public NotificationService(IUnitOfWork unitOfWork, IMapper mapper, IHttpContextAccessor httpContextAccessor,
-            IUserService userService, IHubContext<SignalHub> hubContext)
+            IUserService userService, IHubContext<SignalHub> hubContext, IUserConnectionManager userConnectionManager)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _httpContextAccessor = httpContextAccessor;
             _userService = userService;
             _hubContext = hubContext;
+            _userConnectionManager = userConnectionManager;
         }
 
         public async Task<NotificationDetail> CreateNotificationAsync(NotificationDTO requestBody)
@@ -58,7 +62,7 @@ namespace Trello.Application.Services.NotificationServices
             }
 
             // Map the request body to a Notification entity and set its properties
-            var notification = _mapper.Map<Notification>(requestBody);
+            var notification = _mapper.Map<Domain.Models.Notification>(requestBody);
             notification.Id = Guid.NewGuid();
             notification.CreatedDate = DateTime.UtcNow;
             notification.IsRead = false;
@@ -76,8 +80,11 @@ namespace Trello.Application.Services.NotificationServices
             var totalNotifications = await GetNotificationCountAsync(requestBody.UserId);
 
             // Send the total number of notifications to the client via SignalR
-            await _hubContext.Clients.All.SendAsync(SignalRHubEnum.ReceiveTotalNotification.ToString(), totalNotifications);
-
+            var connections = _userConnectionManager.GetUserConnections(requestBody.UserId.ToString());
+            foreach (var connectionId in connections)
+            {
+                await _hubContext.Clients.Client(connectionId).SendAsync(SignalRHubEnum.ReceiveTotalNotification.ToString(), totalNotifications);
+            }
             return createdNotificationDto;
         }
 
@@ -88,7 +95,7 @@ namespace Trello.Application.Services.NotificationServices
                 ?? throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.USER_FIELD, ErrorMessage.USER_NOT_EXIST);
 
             // Get all unread notifications for the specified user
-            IQueryable<Notification> notificationsQuery = _unitOfWork.NotificationRepository.GetAll();
+            IQueryable<Domain.Models.Notification> notificationsQuery = _unitOfWork.NotificationRepository.GetAll();
             notificationsQuery = notificationsQuery.Where(u => u.UserId == userId && !u.IsRead);
 
             // Get the total count of unread notifications
@@ -106,7 +113,7 @@ namespace Trello.Application.Services.NotificationServices
         public async Task<List<NotificationDetail>> GetNotificationByFilterAsync(Guid userId, string? title, bool? isRead)
         {
             // Get all notifications for the specified user
-            IQueryable<Notification> notificationsQuery = _unitOfWork.NotificationRepository.GetAll();
+            IQueryable<Domain.Models.Notification> notificationsQuery = _unitOfWork.NotificationRepository.GetAll();
             notificationsQuery = notificationsQuery.Where(u => u.UserId == userId);
 
             // Filter notifications by title if provided
@@ -159,6 +166,15 @@ namespace Trello.Application.Services.NotificationServices
             // Map the updated notification to NotificationDetail and return it
             var mappedList = _mapper.Map<NotificationDetail>(notification);
             return mappedList;
+        }
+
+        public async Task<Domain.Models.Notification?> GetExistingNotificationAsync(NotificationDTO notificationDto)
+        {
+            return await _unitOfWork.NotificationRepository.GetAll()
+                .FirstOrDefaultAsync(n => n.UserId == notificationDto.UserId &&
+                                          n.Title == notificationDto.Title &&
+                                          n.Body == notificationDto.Body &&
+                                          !n.IsRead);
         }
 
     }

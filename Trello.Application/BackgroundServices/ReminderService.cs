@@ -21,8 +21,8 @@ namespace Trello.Application.BackgroundServices
     {
         private readonly IServiceProvider _serviceProvider;
         private readonly ILogger<ReminderService> _logger;
-        private readonly TimeSpan _interval = TimeSpan.FromHours(1);
-        //private readonly TimeSpan _interval = TimeSpan.FromMinutes(1);
+        //private readonly TimeSpan _interval = TimeSpan.FromHours(1);
+        private readonly TimeSpan _interval = TimeSpan.FromMinutes(10);
 
         public ReminderService(IServiceProvider serviceProvider, ILogger<ReminderService> logger)
         {
@@ -70,8 +70,13 @@ namespace Trello.Application.BackgroundServices
                             Body = $"Reminder: The task '{task.Name}' is due tomorrow."
                         };
 
-                        var notificationDetail = await notificationService.CreateNotificationAsync(notificationRequest);
-                        await firebaseNotificationService.SendNotificationAsync(notificationDetail.UserId, notificationDetail.Title, notificationDetail.Body);
+                        // Check if a similar notification already exists
+                        var existingNotification = await notificationService.GetExistingNotificationAsync(notificationRequest);
+                        if (existingNotification == null)
+                        {
+                            var notificationDetail = await notificationService.CreateNotificationAsync(notificationRequest);
+                            await firebaseNotificationService.SendNotificationAsync(notificationDetail.UserId, notificationDetail.Title, notificationDetail.Body);
+                        }
                     }
                 }
 
@@ -90,8 +95,13 @@ namespace Trello.Application.BackgroundServices
                             Body = $"Reminder: The card '{card.Title}' has a reminder set for '{card.ReminderDate}'."
                         };
 
-                        var notificationDetail = await notificationService.CreateNotificationAsync(notificationRequest);
-                        await firebaseNotificationService.SendNotificationAsync(notificationDetail.UserId, notificationDetail.Title, notificationDetail.Body);
+                        // Check if a similar notification already exists
+                        var existingNotification = await notificationService.GetExistingNotificationAsync(notificationRequest);
+                        if (existingNotification == null)
+                        {
+                            var notificationDetail = await notificationService.CreateNotificationAsync(notificationRequest);
+                            await firebaseNotificationService.SendNotificationAsync(notificationDetail.UserId, notificationDetail.Title, notificationDetail.Body);
+                        }
                     }
                 }
             }

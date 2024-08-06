@@ -14,5 +14,6 @@ namespace Trello.Application.Services.NotificationServices
         public Task<List<NotificationDetail>> GetNotificationByFilterAsync(Guid userId, string? title, bool? isRead);
         public Task<int> GetNotificationCountAsync(Guid userId);
         public Task<NotificationDetail> ChangeStatusAsync(Guid id, bool isRead);
+        Task<Domain.Models.Notification?> GetExistingNotificationAsync(NotificationDTO notificationDto);
     }
 }
