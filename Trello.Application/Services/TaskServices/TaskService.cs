@@ -6,6 +6,7 @@ using Trello.Application.DTOs.CardActivity;
 using Trello.Application.DTOs.Notification;
 using Trello.Application.DTOs.Task;
 using Trello.Application.Services.BoardMemberServices;
+using Trello.Application.Services.CardServices;
 using Trello.Application.Services.CardActivityServices;
 using Trello.Application.Services.NotificationServices;
 using Trello.Application.Services.ToDoServices;
@@ -28,10 +29,11 @@ namespace Trello.Application.Services.TaskServices
         private readonly IFirebaseNotificationService _firebaseNotificationService;
         private readonly INotificationService _notificationService;
         private readonly ICardActivityService _cardActivityService;
+        private readonly ICardService _cardService;
 
         public TaskService(IUnitOfWork unitOfWork, IMapper mapper, IHttpContextAccessor httpContextAccessor,
             IBoardMemberService boardMemberService, IToDoService todoService, IFirebaseNotificationService firebaseNotificationService,
-            INotificationService notificationService, ICardActivityService cardActivityService)
+            INotificationService notificationService, ICardActivityService cardActivityService, ICardService cardService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
@@ -41,6 +43,7 @@ namespace Trello.Application.Services.TaskServices
             _firebaseNotificationService = firebaseNotificationService;
             _notificationService = notificationService;
             _cardActivityService = cardActivityService;
+            _cardService = cardService;
         }
 
         public async Task<TaskDetail> CreateTaskAsync(CreateTaskDTO requestBody)
@@ -65,7 +68,27 @@ namespace Trello.Application.Services.TaskServices
             {
                 throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.BOARD_MEMBER_FIELD, ErrorMessage.BOARD_MEMBER_NOT_EXIST);
             }
+            
+            var card = await _cardService.GetCardByTodoIdAsync(requestBody.TodoId);
 
+            if (requestBody.DueDate.HasValue)
+            {
+                if (card.StartDate.HasValue && card.EndDate.HasValue)
+                {
+                    if (requestBody.DueDate < card.StartDate || requestBody.DueDate > card.EndDate)
+                    {
+                        throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.DATE_FIELD, ErrorMessage.INVALID_DUDE_DATE);
+                    }
+                }
+                else if (card.EndDate.HasValue)
+                {
+                    if (requestBody.DueDate > card.EndDate)
+                    {
+                        throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.DATE_FIELD, ErrorMessage.INVALID_DUDE_DATE);
+                    }
+                }
+            }
+            
             // Map the request body to a Task entity and set its properties
             var task = _mapper.Map<Domain.Models.Task>(requestBody);
             task.Id = Guid.NewGuid();
@@ -150,6 +173,27 @@ namespace Trello.Application.Services.TaskServices
 
             // Get the current user ID from the HTTP context
             var currentUserId = UserAuthorizationHelper.GetUserAuthorizationById(_httpContextAccessor.HttpContext);
+
+
+            var card = await _cardService.GetCardByTodoIdAsync(task.TodoId);
+
+            if (requestBody.DueDate.HasValue)
+            {
+                if (card.StartDate.HasValue && card.EndDate.HasValue)
+                {
+                    if (requestBody.DueDate < card.StartDate || requestBody.DueDate > card.EndDate)
+                    {
+                        throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.DATE_FIELD, ErrorMessage.INVALID_DUDE_DATE);
+                    }
+                }
+                else if (card.EndDate.HasValue)
+                {
+                    if (requestBody.DueDate > card.EndDate)
+                    {
+                        throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.DATE_FIELD, ErrorMessage.INVALID_DUDE_DATE);
+                    }
+                }
+            }
 
             // Update the task properties
             task.UpdatedDate = DateTime.UtcNow;
@@ -306,6 +350,12 @@ namespace Trello.Application.Services.TaskServices
             Guid? assignedUserId = await userIdQuery.FirstOrDefaultAsync();
 
             return assignedUserId;
+        }
+        public async Task<List<TaskDetail>> GetTasksForReminderAsync(DateTime currentDate)
+        {
+            var reminderDate = currentDate.Date.AddDays(1); // Check for tasks with reminder date of tomorrow
+            var tasks = await _unitOfWork.TaskRepository.GetTasksByReminderDateAsync(reminderDate);
+            return _mapper.Map<List<TaskDetail>>(tasks);
         }
 
     }

@@ -16,5 +16,6 @@ namespace Trello.Application.Services.TaskServices
         public Task<TaskDetail> UpdateTaskAsync(Guid id, TaskDTO requestBody);
         public Task<TaskDetail> CheckTaskAsync(Guid id, bool isChecked);
         public Task<TaskDetail> ChangeStatusAsync(Guid id, bool isActive);
+        Task<List<TaskDetail>> GetTasksForReminderAsync(DateTime currentDate);
     }
 }

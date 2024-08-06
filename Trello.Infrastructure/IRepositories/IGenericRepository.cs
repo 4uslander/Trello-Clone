@@ -4,6 +4,8 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
+using Trello.Domain.Models;
+using Task = System.Threading.Tasks.Task;
 
 namespace Trello.Infrastructure.IRepositories
 {
@@ -36,5 +38,8 @@ namespace Trello.Infrastructure.IRepositories
 
         Task DeleteAsync(Guid id);
 
+        Task<List<Domain.Models.Task>> GetTasksByReminderDateAsync(DateTime reminderDate);
+
+        Task<List<Card>> GetCardsByReminderDateAsync(DateTime? reminderDate);
     }
 }
