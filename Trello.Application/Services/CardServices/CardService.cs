@@ -127,6 +127,19 @@ namespace Trello.Application.Services.CardServices
             // Get the current user ID
             var currentUserId = UserAuthorizationHelper.GetUserAuthorizationById(_httpContextAccessor.HttpContext);
 
+            var currentUtcDateTime = DateTime.UtcNow;
+
+            // Validate that StartDate is later than or equal to the current UTC date and time
+            if (requestBody.StartDate.HasValue && requestBody.StartDate.Value < currentUtcDateTime)
+            {
+                throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.DATE_FIELD, ErrorMessage.INVALID_START_DATE);
+            }
+
+            if (requestBody.EndDate.HasValue && requestBody.EndDate.Value < currentUtcDateTime)
+            {
+                throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.DATE_FIELD, ErrorMessage.INVALID_END_DATE);
+            }
+
             // Validate that EndDate is later than StartDate
             if (requestBody.EndDate.HasValue && requestBody.StartDate.HasValue)
             {

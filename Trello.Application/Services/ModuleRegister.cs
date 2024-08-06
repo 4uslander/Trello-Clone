@@ -17,6 +17,7 @@ using Trello.Application.Services.UserFcmTokenServices;
 using Trello.Application.Services.UserServices;
 using Trello.Application.Utilities.Helper.FirebaseNoti;
 using Trello.Application.Utilities.Helper.JWT;
+using Trello.Application.Utilities.Helper.SignalRHub.UserConnection;
 using Trello.Infrastructure.IRepositories;
 using Trello.Infrastructure.Repositories;
 
@@ -45,6 +46,8 @@ namespace Trello.Application.Services
             services.AddScoped<ICardLabelService, CardLabelService>();
             services.AddScoped<ICardActivityService, CardActivityService>();
             services.AddHostedService<ReminderService>();
+            services.AddSingleton<IUserConnectionManager, UserConnectionManager>();
+            services.AddSignalRCore();
         }
     }
 }

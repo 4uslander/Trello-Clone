@@ -38,7 +38,7 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddSignalR();
 FirebaseApp.Create(new AppOptions()
 {
-    Credential = GoogleCredential.FromFile("clonetrello-103ad-firebase-adminsdk-plg5l-beabb48a69.json")
+    Credential = GoogleCredential.FromFile("clonetrello-103ad-firebase-adminsdk-plg5l-9823b9f478.json")
 });
 
 var app = builder.Build();
