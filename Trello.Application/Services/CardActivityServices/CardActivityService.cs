@@ -41,22 +41,27 @@ namespace Trello.Application.Services.CardActivityServices
 
         public async Task<CardActivityDetail> CreateCardActivityAsync(CreateCardActivityDTO requestBody)
         {
-            if(requestBody == null)
+            if (requestBody == null)
             {
-                 throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.REQUEST_BODY, ErrorMessage.NULL_REQUEST_BODY);
+                // Throws an exception if the request body is null
+                throw new ExceptionResponse(HttpStatusCode.BadRequest, ErrorField.REQUEST_BODY, ErrorMessage.NULL_REQUEST_BODY);
             }
 
+            // Gets the current user's ID from the HTTP context
             var currentUserId = UserAuthorizationHelper.GetUserAuthorizationById(_httpContextAccessor.HttpContext);
 
+            // Maps the DTO to the CardActivity entity and sets additional properties
             var activity = _mapper.Map<CardActivity>(requestBody);
             activity.Id = Guid.NewGuid();
             activity.CreatedDate = DateTime.UtcNow.ToLocalTime();
             activity.CreatedUser = currentUserId;
             activity.IsActive = true;
 
+            // Inserts the activity into the database and saves changes
             await _unitOfWork.CardActivityRepository.InsertAsync(activity);
             await _unitOfWork.SaveChangesAsync();
 
+            // Maps the created activity to a DTO and sends a real-time notification
             var createdCardActivityDto = _mapper.Map<CardActivityDetail>(activity);
             await _hubContext.Clients.All.SendAsync(SignalRHubEnum.ReceiveActivity.ToString(), createdCardActivityDto);
 
@@ -65,11 +70,11 @@ namespace Trello.Application.Services.CardActivityServices
 
         public async Task<List<CardActivityDetail>> GetCardActivityDetailAsync(Guid cardId)
         {
+            // Builds the query to retrieve active card activities for the specified card ID
             IQueryable<CardActivity> cardActivitiesQuery = _unitOfWork.CardActivityRepository.GetAll();
             cardActivitiesQuery = cardActivitiesQuery.Where(u => u.CardId == cardId && u.IsActive);
 
-            //List<CardActivityDetail> list = await cardActivitiesQuery.Select(u => _mapper.Map<CardActivityDetail>(u)).ToListAsync();
-
+            // Maps the entities to DTOs and returns the list
             List<CardActivityDetail> cardActivities = await cardActivitiesQuery.Select(cm => new CardActivityDetail
             {
                 Id = cm.Id,
@@ -82,11 +87,9 @@ namespace Trello.Application.Services.CardActivityServices
                 UpdatedDate = cm.UpdatedDate,
                 UpdatedUser = cm.UpdatedUser,
                 IsActive = cm.IsActive,
-
             }).ToListAsync();
+
             return cardActivities;
         }
-
-
     }
 }
